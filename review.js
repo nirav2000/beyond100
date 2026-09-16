@@ -6,7 +6,7 @@ const summary=document.querySelector('#feedSummary');
 const esc=s=>String(s??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 function feedId(){const raw=location.hash.replace(/^#/,'').trim();return /^[A-Za-z0-9_-]{40,120}$/.test(raw)?raw:''}
-function rawUrl(id){const project=CLOUD?.firebase?.projectId||'kk-syllabus',key=CLOUD?.firebase?.apiKey||'';return `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(project)}/databases/(default)/documents/${COLLECTION}/${encodeURIComponent(id)}${key?`?key=${encodeURIComponent(key)}`:''}`}
+function rawUrl(id){const project=CLOUD?.firebase?.projectId||'kk-syllabus',key=CLOUD?.firebase?.apiKey||'';return `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(project)}/databases/%28default%29/documents/${COLLECTION}/${encodeURIComponent(id)}${key?`?key=${encodeURIComponent(key)}`:''}`}
 function setStatus(text,kind=''){status.className=`feed-status ${kind}`;status.textContent=text}
 function fmt(value){try{return new Intl.DateTimeFormat('en-GB',{dateStyle:'medium',timeStyle:'short'}).format(new Date(value))}catch{return value||'—'}}
 async function statusLedger(){try{const r=await fetch(`review-status.json?v=${Date.now()}`,{cache:'no-store'});if(!r.ok)return{};const j=await r.json();return j?.schema==='beyond100-review-status-v1'&&j.notes&&typeof j.notes==='object'?j.notes:{}}catch{return{}}}
