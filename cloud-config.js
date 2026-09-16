@@ -17,7 +17,7 @@ window.BEYOND100_CLOUD = {
 };
 
 // Release identity is set before notes.js loads so annotations carry the exact app version.
-window.BEYOND100_CURRENT_VERSION = '0.3.0';
+window.BEYOND100_CURRENT_VERSION = '0.4.0';
 if (window.BEYOND100_DATA?.meta) window.BEYOND100_DATA.meta.version = window.BEYOND100_CURRENT_VERSION;
 
 (() => {
