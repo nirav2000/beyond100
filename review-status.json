@@ -1,5 +1,24 @@
 {
   "schema": "beyond100-review-status-v1",
-  "updatedAt": null,
-  "notes": {}
+  "updatedAt": "2026-09-16T20:15:00Z",
+  "notes": {
+    "4ddc266d-25bf-46f5-a481-cfa8439a38aa": {
+      "status": "actioned",
+      "updatedAt": "2026-09-16T20:15:00Z",
+      "message": "Added movable/minimisable Notes, password visibility, persistent Firebase session UX, app-level log-out-all-devices, authenticated session/IP tracking, and weekly/monthly review summaries.",
+      "commit": "b5d9c0bb084bf6b9c4e1cce04659a0b86b1d425f"
+    },
+    "7e850325-f342-41d4-afd5-22b1bff2fe50": {
+      "status": "actioned",
+      "updatedAt": "2026-09-16T20:15:00Z",
+      "message": "Added a child-friendly place-value explanation with familiar money and positional examples.",
+      "commit": "b5d9c0bb084bf6b9c4e1cce04659a0b86b1d425f"
+    },
+    "e07a4838-da76-4a9e-9267-b444d9265a96": {
+      "status": "actioned",
+      "updatedAt": "2026-09-16T20:15:00Z",
+      "message": "Added expandable What is it, history, why useful, and parent-child discussion panels for Place Value.",
+      "commit": "b5d9c0bb084bf6b9c4e1cce04659a0b86b1d425f"
+    }
+  }
 }
