@@ -1,63 +1,29 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#f7f7f4">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#f7f7f4">
   <title>Beyond 100 · Version Lab</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="versions.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet"><link rel="stylesheet" href="versions.css"><link rel="stylesheet" href="versions-v05.css">
 </head>
 <body>
-  <header class="lab-topbar">
-    <a class="back" href="./">← Beyond 100</a>
-    <div class="lab-brand"><strong>Version Lab</strong><span>compare · decide · develop</span></div>
-    <span class="current-pill" id="currentPill"></span>
-  </header>
-
+  <header class="lab-topbar"><a class="back" href="./">← Beyond 100</a><div class="lab-brand"><strong>Version Lab</strong><span>compare · decide · develop</span></div><span class="current-pill" id="currentPill"></span></header>
   <main class="lab-main">
-    <section class="lab-hero">
-      <div>
-        <p class="eyebrow">VERSION HISTORY</p>
-        <h1>Keep the parts that work.</h1>
-        <p>Compare earlier versions as working snapshots. For each change, mark what should be kept, reverted, reworked or reconsidered. Your choices become a precise brief for the next iteration instead of an all-or-nothing rollback.</p>
-      </div>
-      <div class="workflow-card">
-        <strong>Suggested loop</strong>
-        <ol><li>Make one coherent release.</li><li>Compare it with the previous release.</li><li>Decide per change area.</li><li>Copy the development brief.</li><li>Build the next release from those decisions.</li></ol>
-      </div>
-    </section>
+    <section class="lab-hero"><div><p class="eyebrow">VERSION HISTORY</p><h1>Keep the parts that work.</h1><p>Compare earlier versions as working snapshots. Scroll both together, note what you see while comparing, then mark each release area Keep, Revert, Rework or Unsure.</p></div><div class="workflow-card"><strong>Suggested loop</strong><ol><li>Make one coherent release.</li><li>Compare it with the previous release.</li><li>Add notes while both are visible.</li><li>Decide per change area.</li><li>Copy the development brief.</li></ol></div></section>
 
-    <section class="release-section">
-      <div class="section-title"><div><p class="eyebrow">RELEASES</p><h2>Named checkpoints</h2></div><p>Git commits remain the technical history. These releases are the human-friendly checkpoints worth comparing.</p></div>
-      <div class="release-grid" id="releaseGrid"></div>
-    </section>
+    <section class="release-section"><div class="section-title"><div><p class="eyebrow">RELEASES</p><h2>Named checkpoints</h2></div><p>Git commits remain the technical history. These releases are the human-friendly checkpoints worth comparing.</p></div><div class="release-grid" id="releaseGrid"></div></section>
 
     <section class="compare-section" id="compare">
-      <div class="section-title"><div><p class="eyebrow">SIDE BY SIDE</p><h2>Compare working versions</h2></div><p>Historical previews are reconstructed from immutable Git commits and run in isolated frames, so reviewing an old version does not replace the live app.</p></div>
-      <div class="compare-controls">
-        <label>Left version<select id="leftVersion"></select></label>
-        <button id="swapVersions" title="Swap versions">⇄</button>
-        <label>Right version<select id="rightVersion"></select></label>
-        <button class="primary" id="loadCompare">Load comparison</button>
-      </div>
+      <div class="section-title"><div><p class="eyebrow">SIDE BY SIDE</p><h2>Compare working versions</h2></div><p>With synchronized scrolling on, moving through either preview moves the other to the same relative point. Turn it off whenever the page structures differ too much.</p></div>
+      <div class="compare-controls"><label>Left version<select id="leftVersion"></select></label><button id="swapVersions" title="Swap versions">⇄</button><label>Right version<select id="rightVersion"></select></label><label class="sync-scroll-control"><input type="checkbox" id="syncScroll" checked> Sync scrolling</label><button class="primary" id="loadCompare">Load comparison</button></div>
       <div class="preview-grid">
         <article class="preview-panel"><header><div><strong id="leftTitle">Version</strong><span id="leftStatus"></span></div><a id="leftSource" target="_blank" rel="noopener">Source</a></header><iframe id="leftFrame" sandbox="allow-scripts allow-forms allow-modals" title="Left version preview"></iframe></article>
         <article class="preview-panel"><header><div><strong id="rightTitle">Version</strong><span id="rightStatus"></span></div><a id="rightSource" target="_blank" rel="noopener">Source</a></header><iframe id="rightFrame" sandbox="allow-scripts allow-forms allow-modals" title="Right version preview"></iframe></article>
       </div>
+      <section class="comparison-note-box"><h3>Notes while comparing</h3><p>Capture an observation immediately while both versions are visible. These notes are automatically included in the development brief.</p><div class="comparison-note-form"><select id="comparisonNoteFocus" aria-label="Which version does this note refer to?"></select><textarea id="comparisonNoteText" placeholder="e.g. Keep the v0.4 card spacing, but I prefer the v0.3 navigation…"></textarea><button type="button" id="addComparisonNote">Add note</button></div><div class="comparison-note-list" id="comparisonNoteList"></div></section>
     </section>
 
-    <section class="decision-section">
-      <div class="section-title"><div><p class="eyebrow">DECISION LOG</p><h2>Judge changes individually</h2></div><p>Select the release you are reviewing. Your decisions are stored on this device and can be copied as a structured development brief.</p></div>
-      <div class="decision-toolbar"><label>Review release<select id="decisionVersion"></select></label><button id="copyBrief">Copy development brief</button><button id="exportDecisions">Export decisions</button></div>
-      <div id="decisionSummary" class="decision-summary"></div>
-      <div id="decisionList" class="decision-list"></div>
-    </section>
+    <section class="decision-section"><div class="section-title"><div><p class="eyebrow">DECISION LOG</p><h2>Judge changes individually</h2></div><p>Select the release you are reviewing. Your change-area decisions and comparison notes become one precise development brief.</p></div><div class="decision-toolbar"><label>Review release<select id="decisionVersion"></select></label><button id="copyBrief">Copy development brief</button><button id="exportDecisions">Export review</button></div><div id="decisionSummary" class="decision-summary"></div><div id="decisionList" class="decision-list"></div></section>
   </main>
-
-  <script src="versions-data.js"></script>
-  <script src="versions.js"></script>
+  <script src="versions-data.js"></script><script src="versions-v05.js"></script>
 </body>
 </html>
