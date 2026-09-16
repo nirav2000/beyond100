@@ -6,6 +6,10 @@ A topic-first curriculum, diagnostic and mastery app for tracking progression fr
 
 https://nirav2000.github.io/beyond100/
 
+Version Lab:
+
+https://nirav2000.github.io/beyond100/versions.html
+
 ## What is implemented
 
 - Mobile-friendly syllabus navigation for **Maths, English and Science**.
@@ -17,7 +21,29 @@ https://nirav2000.github.io/beyond100/
 - Diagnostic error codes: Knowledge, Concept, Question interpretation, Procedure, Fluency, Reasoning and Attention.
 - A **Topic Factory** that creates the standard JSON scaffold and a ready-to-use generation prompt for every unfinished topic.
 - Contextual **notes and annotations** backed by the existing `kk-syllabus` Firebase/Firestore project.
-- Automatic GitHub Pages deployment on pushes to `main`.
+- A **Version Lab** for browsing releases, comparing working historical snapshots and recording Keep / Revert / Rework / Unsure decisions per change area.
+- Automatic GitHub Pages deployment on pushes to `main`, with JavaScript and release-identity validation before publishing.
+
+## Version Lab and reversible development
+
+Beyond 100 is intentionally experimental. A release may improve one part of the app while making another part worse, so the version system is designed for **selective rollback rather than whole-app rollback**.
+
+Open **Versions** from the main app or visit `versions.html` directly.
+
+The Version Lab provides:
+
+- named human-readable releases;
+- runnable historical previews reconstructed from the exact Git commit for that release;
+- side-by-side version comparison;
+- source links back to GitHub;
+- independent decisions for each change area: **Keep / Revert / Rework / Unsure**;
+- a note field for precise preferences;
+- a generated **development brief** that can be pasted into ChatGPT; and
+- JSON export of version decisions.
+
+Git remains the complete technical history. Named releases are the smaller set of checkpoints that are useful to compare visually and behaviourally. Release branches such as `releases/v0.1.0`, `releases/v0.2.0` and `releases/v0.3.0` preserve explicit recovery points as development continues.
+
+See `DEVELOPMENT_WORKFLOW.md` for the release, comparison and selective-rollback process.
 
 ## Notes and annotations
 
