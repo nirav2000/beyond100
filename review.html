@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="robots" content="noindex,nofollow,noarchive" />
+  <meta name="referrer" content="no-referrer" />
+  <meta name="theme-color" content="#f7f7f4" />
+  <title>Beyond 100 · Review Notes</title>
+  <link rel="stylesheet" href="review.css" />
+</head>
+<body>
+  <main class="review-shell">
+    <header class="review-header">
+      <a href="./" class="back-link">← Beyond 100</a>
+      <div>
+        <p class="eyebrow">CHATGPT REVIEW FEED</p>
+        <h1>Notes for development</h1>
+        <p class="lede">This page reads the current Beyond 100 notes marked for review from Firebase. The capability URL is private-by-possession: anyone with the full link can read this limited review feed.</p>
+      </div>
+      <div class="review-actions">
+        <button id="refreshFeed" type="button">Refresh</button>
+        <button id="copyPageLink" type="button">Copy this link</button>
+        <button id="copyRawLink" type="button">Copy raw JSON URL</button>
+      </div>
+    </header>
+
+    <section class="feed-status" id="feedStatus" aria-live="polite">Loading review feed…</section>
+
+    <section class="feed-summary" id="feedSummary" hidden>
+      <div><span>Pending</span><strong id="pendingCount">0</strong></div>
+      <div><span>App version</span><strong id="appVersion">—</strong></div>
+      <div><span>Updated</span><strong id="updatedAt">—</strong></div>
+    </section>
+
+    <section class="review-list" id="reviewList"></section>
+
+    <details class="technical" id="technicalDetails" hidden>
+      <summary>Technical details</summary>
+      <p>The raw Firestore document is useful when an automated reader does not execute this page's JavaScript.</p>
+      <label>Raw JSON URL<input id="rawJsonUrl" readonly /></label>
+      <label>Feed ID<input id="feedId" readonly /></label>
+    </details>
+
+    <footer>
+      <span>Beyond 100 review feed</span>
+      <span>No learner database listing is exposed; only the single capability document can be fetched.</span>
+    </footer>
+  </main>
+
+  <script src="cloud-config.js"></script>
+  <script type="module" src="review.js"></script>
+</body>
+</html>
