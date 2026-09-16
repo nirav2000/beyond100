@@ -1,13 +1,28 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.4.0',
+  currentVersion: '0.5.0',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.5.0',
+      date: '2026-09-16',
+      title: 'Assessment Evidence & Workflow Repairs',
+      ref: 'main',
+      status: 'current',
+      summary: 'Restores visible Notes controls, adds a permanent review-link mode, synchronizes Version Lab scrolling, adds free-form comparison notes and turns uploaded school work into topic-based assessment evidence.',
+      areas: [
+        { id: 'notes-visibility', title: 'Visible Notes controls', kind: 'repair', summary: 'Repairs the top-bar insertion bug and keeps the Notes label visible on small screens.' },
+        { id: 'permanent-review-link', title: 'Permanent ChatGPT notes link', kind: 'workflow', summary: 'Changes the review-link UI and backend contract to support one reusable capability URL until it is revoked.' },
+        { id: 'synced-compare', title: 'Synchronized version scrolling', kind: 'feature', summary: 'Scrolling either Version Lab preview moves the other to the same relative position, with a toggle to disable synchronization.' },
+        { id: 'comparison-notes', title: 'Notes while comparing', kind: 'workflow', summary: 'Capture free-form change notes against a version pair and include them in the development brief.' },
+        { id: 'assessment-evidence', title: 'Assessment evidence by topic', kind: 'content', summary: 'Organizes uploaded Year 4→5 maths work by topic with source pages, working assessment, likely error types and next cold checks.' }
+      ]
+    },
     {
       version: '0.4.0',
       date: '2026-09-16',
       title: 'Review Link Automation',
-      ref: 'main',
-      status: 'current',
+      ref: '068b364521175312d6966bb14971f9a93da32192',
+      status: 'archive',
       summary: 'Adds an expiring Firebase-backed capability URL so ChatGPT can retrieve pending review notes directly and update their status after changes are successfully applied.',
       areas: [
         { id: 'review-feed', title: 'Private JSON review feed', kind: 'feature', summary: 'Generate an expiring URL that returns only Beyond 100 notes explicitly marked for review.' },
@@ -40,7 +55,7 @@ window.BEYOND100_RELEASES = {
       areas: [
         { id: 'annotations', title: 'Element annotations', kind: 'feature', summary: 'Attach a note to a stable syllabus element such as stage:Y5, a mastery dimension or a question.' },
         { id: 'text-selection', title: 'Text-selection notes', kind: 'feature', summary: 'Select exact words on the page and attach the quoted text to a note.' },
-        { id: 'review-queue', title: 'Review queue', kind: 'workflow', summary: 'Mark notes for review, jump back to their referenced element and copy a structured review pack.' },
+        { id: 'review-queue', title: 'Review queue', kind: 'workflow', summary: 'Mark notes for review, jump back to the referenced element and copy a structured review pack.' },
         { id: 'firebase-notes', title: 'Firebase note sync', kind: 'data', summary: 'Owner-only Firestore sync in a dedicated sai-beyond100 namespace, with local storage as the immediate fallback.' }
       ]
     },
