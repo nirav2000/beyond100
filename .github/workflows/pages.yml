@@ -29,6 +29,20 @@ jobs:
           node --check data.js
           node --check cloud-config.js
           node --check notes.js
+          node --check versions-data.js
+          node --check versions.js
+      - name: Validate release identity
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const manifest = fs.readFileSync('versions-data.js','utf8').match(/currentVersion:\s*'([^']+)'/);
+          const runtime = fs.readFileSync('cloud-config.js','utf8').match(/BEYOND100_CURRENT_VERSION\s*=\s*'([^']+)'/);
+          if (!manifest || !runtime || manifest[1] !== runtime[1]) {
+            console.error('Version mismatch between versions-data.js and cloud-config.js');
+            process.exit(1);
+          }
+          console.log('Release identity:', manifest[1]);
+          NODE
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload static site
