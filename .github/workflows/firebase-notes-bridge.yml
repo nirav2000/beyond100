@@ -1,0 +1,89 @@
+name: Refresh Beyond 100 review feed
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 * * * *"
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  refresh-review-feed:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch Firestore review feed
+        env:
+          FBNOTES: ${{ secrets.FBNOTES }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${FBNOTES:-}" ]; then
+            echo "FBNOTES secret is missing or empty." >&2
+            exit 1
+          fi
+          mkdir -p out
+          curl --fail-with-body --silent --show-error --location \
+            --retry 3 --retry-all-errors \
+            --output out/firestore-document.json \
+            "$FBNOTES"
+
+      - name: Convert Firestore JSON to normal JSON
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const input = JSON.parse(fs.readFileSync('out/firestore-document.json', 'utf8'));
+
+          function decode(value) {
+            if (!value || typeof value !== 'object') return null;
+            if ('nullValue' in value) return null;
+            if ('stringValue' in value) return value.stringValue;
+            if ('booleanValue' in value) return value.booleanValue;
+            if ('integerValue' in value) return Number(value.integerValue);
+            if ('doubleValue' in value) return Number(value.doubleValue);
+            if ('timestampValue' in value) return value.timestampValue;
+            if ('referenceValue' in value) return value.referenceValue;
+            if ('bytesValue' in value) return value.bytesValue;
+            if ('geoPointValue' in value) return value.geoPointValue;
+            if ('arrayValue' in value) return (value.arrayValue?.values || []).map(decode);
+            if ('mapValue' in value) return decodeFields(value.mapValue?.fields || {});
+            return null;
+          }
+
+          function decodeFields(fields) {
+            return Object.fromEntries(Object.entries(fields).map(([key, value]) => [key, decode(value)]));
+          }
+
+          if (!input.fields || typeof input.fields !== 'object') {
+            throw new Error('Firestore response did not contain a document fields object.');
+          }
+
+          const feed = decodeFields(input.fields);
+          if (feed.app !== 'beyond100') {
+            throw new Error(`Unexpected review feed app: ${String(feed.app)}`);
+          }
+
+          const output = {
+            ...feed,
+            _bridge: {
+              fetchedAt: new Date().toISOString(),
+              firestoreCreateTime: input.createTime || null,
+              firestoreUpdateTime: input.updateTime || null
+            }
+          };
+
+          fs.writeFileSync('out/review-feed.json', JSON.stringify(output, null, 2) + '\n');
+          console.log(`Fetched Beyond 100 review feed with ${Array.isArray(feed.notes) ? feed.notes.length : 0} note(s).`);
+          NODE
+          rm -f out/firestore-document.json
+
+      - name: Upload review feed artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: beyond100-review-feed
+          path: out/review-feed.json
+          if-no-files-found: error
+          retention-days: 1
