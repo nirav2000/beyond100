@@ -2,10 +2,6 @@ name: Refresh Beyond 100 review feed
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "17 * * * *"
-  push:
-    branches: ["main"]
 
 permissions:
   contents: read
