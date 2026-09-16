@@ -16,6 +16,11 @@ function mount(){
         <span><b>5</b><small>5 ones</small></span><span><b>50</b><small>5 tens</small></span><span><b>500</b><small>5 hundreds</small></span><span><b>5,000</b><small>5 thousands</small></span>
       </div>
       <p class="muted">A useful real-life picture: £5, £50 and £500 all contain the digit 5, but you would notice the difference very quickly if someone offered you one of them.</p>
+      <div class="kid-sport-example" data-note-anchor="context:place-value:basketball" data-note-label="Basketball place value analogy">
+        <strong>🏀 Basketball analogy</strong>
+        <p>Imagine a basketball player wearing <strong>#5</strong>. The player could be standing right by the opposition basket, at the centre of the court, or down at the far end. The number on the shirt is still <strong>5</strong>, but the player's <em>position</em> changes how valuable that position is for scoring. Near the basket, #5 is in a much more valuable scoring position because it is easier to get the ball into the hoop.</p>
+        <p class="muted">Digits work in a similar way: the digit stays the same, but its position in the number changes its value.</p>
+      </div>
     </div>
     <div class="topic-context-panels">
       <details open data-note-anchor="context:place-value:what" data-note-label="What is place value?"><summary>What is place value?</summary><p>Place value is the system that tells us what each digit is worth from where it sits in a number. Moving one place to the left makes a digit worth ten times as much in our decimal system; moving one place right makes it one tenth as much.</p></details>
