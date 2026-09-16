@@ -16,7 +16,63 @@ https://nirav2000.github.io/beyond100/
 - A tagged question bank with hidden answers.
 - Diagnostic error codes: Knowledge, Concept, Question interpretation, Procedure, Fluency, Reasoning and Attention.
 - A **Topic Factory** that creates the standard JSON scaffold and a ready-to-use generation prompt for every unfinished topic.
+- Contextual **notes and annotations** backed by the existing `kk-syllabus` Firebase/Firestore project.
 - Automatic GitHub Pages deployment on pushes to `main`.
+
+## Notes and annotations
+
+Beyond 100 includes a contextual review system designed for syllabus refinement.
+
+### Add a note to an element
+
+Tap **Annotate**, then tap a highlighted item such as:
+
+- a Year-stage card;
+- a mastery dimension;
+- a misconception;
+- a question;
+- a section heading; or
+- another main syllabus block.
+
+The note stores a stable semantic anchor such as:
+
+```text
+stage:Y5
+mastery:represent
+question:pv14
+misconception:3
+```
+
+This is deliberately not based on screen coordinates, so the reference remains useful when the page reflows or is viewed on another device.
+
+### Add a note to exact text
+
+Select text in the page and choose **+ Note on selection**. The note stores both the containing syllabus anchor and the selected quotation.
+
+### Review queue
+
+Notes can be marked **Include in ChatGPT review queue**. The Notes panel can then:
+
+- filter open / review / archived notes;
+- jump back to the referenced element;
+- edit or archive a note;
+- copy a structured review pack; and
+- export notes as JSON.
+
+### Firebase storage
+
+The app reuses the same Firebase project already used by the other learning apps:
+
+```text
+project: kk-syllabus
+path: families/{ownerUid}/learners/sai-latin/progress/
+```
+
+Each cloud note is stored as a separate document with `app: "beyond100"` and `kind: "note"`. Local storage is written first so a note is not lost when offline; Firestore is merged by note ID and `updatedAt` when sync is available.
+
+The existing Firestore rules already restrict this path to the configured owner Firebase account. No password or service-account key is stored in the repository. The Firebase client configuration is public project-identification data; access control remains in Firebase Authentication and Firestore security rules.
+
+If a Firebase session for the same project already exists on the same browser origin, Beyond 100 attempts to reuse it. Otherwise open **Notes → Firebase sync** and sign in once.
 
 ## Design principle
 
