@@ -11,7 +11,7 @@ window.BEYOND100_CLOUD = {
     appId: '1:821660665663:web:c708860329bb97dc24758a'
   },
   ownerUid: '2AJSfYdtg5URWHv7HCzpNMmKIlg2',
-  learnerId: 'sai-latin',
+  learnerId: 'sai-beyond100',
   appId: 'beyond100',
-  firestoreBase: ['families', '2AJSfYdtg5URWHv7HCzpNMmKIlg2', 'learners', 'sai-latin', 'progress']
+  firestoreBase: ['families', '2AJSfYdtg5URWHv7HCzpNMmKIlg2', 'learners', 'sai-beyond100', 'progress']
 };
