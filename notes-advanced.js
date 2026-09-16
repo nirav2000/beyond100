@@ -1,12 +1,11 @@
 const ADV_CLOUD=window.BEYOND100_CLOUD;
 const NOTES_KEY='beyond100.notes.v1';
-const SESSION_KEY='beyond100.session.id.v1';
+const SESSION_KEY='beyond100.session.current.v1';
 const AUTH_EPOCH_KEY='beyond100.auth.epoch.v1';
-let advSdkPromise=null,sessionTimer=null,epochTimer=null,currentSession=null,dragState=null;
+let advSdkPromise=null,sessionTimer=null,localSessionTimer=null,epochTimer=null,currentSession=null,dragState=null;
 
 const q=(s,r=document)=>r.querySelector(s);
 function notesData(){try{return JSON.parse(localStorage.getItem(NOTES_KEY)||'[]')}catch{return[]}}
-function uid(){let id=sessionStorage.getItem(SESSION_KEY);if(!id){id=crypto.randomUUID();sessionStorage.setItem(SESSION_KEY,id)}return id}
 function cloudBase(){return ADV_CLOUD.firestoreBase||['families',ADV_CLOUD.ownerUid,'learners',ADV_CLOUD.learnerId,'progress']}
 async function sdk(){
   if(advSdkPromise)return advSdkPromise;
@@ -16,6 +15,36 @@ async function sdk(){
     import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js')
   ]);const app=A.getApps()[0]||A.initializeApp(ADV_CLOUD.firebase);return{Auth,F,auth:Auth.getAuth(app),db:F.getFirestore(app)}})();
   return advSdkPromise;
+}
+
+function newLocalSession(){
+  const now=new Date().toISOString();
+  const s={id:crypto.randomUUID(),startedAt:now,lastSeenAt:now,endedAt:null,durationSeconds:0,ip:null,page:location.pathname+location.hash,userAgent:navigator.userAgent,platform:navigator.platform||'',language:navigator.language||'',syncedAt:null};
+  localStorage.setItem(SESSION_KEY,JSON.stringify(s));
+  return s;
+}
+function loadLocalSession(){
+  try{
+    const s=JSON.parse(localStorage.getItem(SESSION_KEY)||'null');
+    if(!s?.id||!s.startedAt)return null;
+    const stale=Date.now()-Date.parse(s.lastSeenAt||s.startedAt)>30*60*1000;
+    if(stale||s.endedAt)return null;
+    return s;
+  }catch{return null}
+}
+function ensureLocalSession(){
+  if(currentSession)return currentSession;
+  currentSession=loadLocalSession()||newLocalSession();
+  localStorage.setItem(SESSION_KEY,JSON.stringify(currentSession));
+  return currentSession;
+}
+function touchLocalSession(final=false){
+  const s=ensureLocalSession(),now=new Date();
+  s.lastSeenAt=now.toISOString();
+  s.durationSeconds=Math.max(0,Math.round((now-Date.parse(s.startedAt))/1000));
+  if(final)s.endedAt=now.toISOString();
+  localStorage.setItem(SESSION_KEY,JSON.stringify(s));
+  return s;
 }
 
 function installPasswordToggle(){
@@ -78,18 +107,20 @@ function installInsights(){
 
 async function publicIp(){try{const r=await fetch('https://api.ipify.org?format=json',{cache:'no-store'});if(!r.ok)return null;return (await r.json()).ip||null}catch{return null}}
 async function writeSession(final=false){
-  const S=await sdk(),user=S.auth.currentUser;if(!user||user.uid!==ADV_CLOUD.ownerUid)return;
-  if(!currentSession){currentSession={id:uid(),startedAt:new Date().toISOString(),ip:await publicIp(),page:location.pathname,userAgent:navigator.userAgent,platform:navigator.platform||'',language:navigator.language||''}}
-  const now=new Date(),durationSeconds=Math.max(0,Math.round((now-Date.parse(currentSession.startedAt))/1000));
-  await S.F.setDoc(S.F.doc(S.db,...cloudBase(),`beyond100-session-${currentSession.id}`),{app:ADV_CLOUD.appId||'beyond100',kind:'session',sessionId:currentSession.id,startedAt:currentSession.startedAt,lastSeenAt:now.toISOString(),durationSeconds,endedAt:final?now.toISOString():null,ip:currentSession.ip||null,page:currentSession.page,userAgent:currentSession.userAgent,platform:currentSession.platform,language:currentSession.language},{merge:true});
+  const local=touchLocalSession(final),S=await sdk(),user=S.auth.currentUser;if(!user||user.uid!==ADV_CLOUD.ownerUid)return;
+  if(!local.ip){local.ip=await publicIp();localStorage.setItem(SESSION_KEY,JSON.stringify(local))}
+  await S.F.setDoc(S.F.doc(S.db,...cloudBase(),`beyond100-session-${local.id}`),{app:ADV_CLOUD.appId||'beyond100',kind:'session',sessionId:local.id,startedAt:local.startedAt,lastSeenAt:local.lastSeenAt,durationSeconds:local.durationSeconds,endedAt:local.endedAt||null,ip:local.ip||null,page:local.page,userAgent:local.userAgent,platform:local.platform,language:local.language},{merge:true});
+  local.syncedAt=new Date().toISOString();localStorage.setItem(SESSION_KEY,JSON.stringify(local));
 }
 async function startSessionTracking(){
+  ensureLocalSession();
+  clearInterval(localSessionTimer);localSessionTimer=setInterval(()=>touchLocalSession(false),30000);
   const S=await sdk();await S.auth.authStateReady();S.Auth.onAuthStateChanged(S.auth,user=>{
-    clearInterval(sessionTimer);sessionTimer=null;currentSession=null;
+    clearInterval(sessionTimer);sessionTimer=null;
     if(user?.uid===ADV_CLOUD.ownerUid){writeSession(false).catch(()=>{});sessionTimer=setInterval(()=>writeSession(false).catch(()=>{}),60000);startEpochWatch().catch(()=>{})}
   });
-  addEventListener('pagehide',()=>{writeSession(true).catch(()=>{})});
-  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')writeSession(false).catch(()=>{})});
+  addEventListener('pagehide',()=>{touchLocalSession(true);writeSession(true).catch(()=>{})});
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){touchLocalSession(false);writeSession(false).catch(()=>{})}});
 }
 
 async function epochRef(){const S=await sdk();return{S,ref:S.F.doc(S.db,...cloudBase(),'beyond100-auth-epoch')}}
