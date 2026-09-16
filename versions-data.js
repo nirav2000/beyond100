@@ -1,13 +1,27 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.3.0',
+  currentVersion: '0.4.0',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.4.0',
+      date: '2026-09-16',
+      title: 'Review Link Automation',
+      ref: 'main',
+      status: 'current',
+      summary: 'Adds an expiring Firebase-backed capability URL so ChatGPT can retrieve pending review notes directly and update their status after changes are successfully applied.',
+      areas: [
+        { id: 'review-feed', title: 'Private JSON review feed', kind: 'feature', summary: 'Generate an expiring URL that returns only Beyond 100 notes explicitly marked for review.' },
+        { id: 'scoped-actions', title: 'Scoped status actions', kind: 'workflow', summary: 'Each note includes narrowly scoped actions for actioned, needs-user and reopen states.' },
+        { id: 'two-step-confirmation', title: 'Two-step confirmation', kind: 'safety', summary: 'Opening an action link does not change data; an explicit short-lived confirmation URL is required before the status is written.' },
+        { id: 'revocable-capability', title: 'Expiry and revocation', kind: 'security', summary: 'Review URLs expire after 1–30 days and can be revoked from the Notes panel without changing Firebase credentials.' }
+      ]
+    },
     {
       version: '0.3.0',
       date: '2026-09-16',
       title: 'Version Lab',
-      ref: 'main',
-      status: 'current',
+      ref: '542728f52337d0875dc90570ea1edf4a395a54b6',
+      status: 'archive',
       summary: 'Adds a first-class version history and comparison workflow so individual design or behaviour changes can be kept, reverted or reworked without losing unrelated improvements.',
       areas: [
         { id: 'version-history', title: 'Version history', kind: 'feature', summary: 'Browse named releases with a concise explanation of what changed and why.' },
