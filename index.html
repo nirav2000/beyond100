@@ -22,7 +22,10 @@
           <small>diagnose · understand · master</small>
         </span>
       </a>
-      <button class="icon-button" id="openNav" aria-label="Open syllabus">☰</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <a class="icon-button" href="versions.html" aria-label="Open Version Lab" title="Version Lab">↺</a>
+        <button class="icon-button" id="openNav" aria-label="Open syllabus">☰</button>
+      </div>
     </header>
 
     <aside class="sidebar" id="sidebar" aria-label="Syllabus navigation">
@@ -191,7 +194,7 @@
       </section>
 
       <footer>
-        <span>Beyond 100 · prototype syllabus v0.2</span>
+        <span>Beyond 100 · version loading…</span>
         <span>Primary progression uses the England National Curriculum; KS3 is presented as a practical progression because statutory KS3 content spans Years 7–9.</span>
       </footer>
     </main>
@@ -199,8 +202,11 @@
 
   <div class="scrim" id="scrim"></div>
   <script src="data.js"></script>
+  <script src="versions-data.js"></script>
+  <script src="version-current.js"></script>
   <script src="app.js"></script>
   <script src="cloud-config.js"></script>
   <script type="module" src="notes.js"></script>
+  <script type="module" src="review-link.js"></script>
 </body>
 </html>
