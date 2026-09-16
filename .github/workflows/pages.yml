@@ -29,8 +29,10 @@ jobs:
           node --check data.js
           node --check cloud-config.js
           node --check notes.js
+          node --check review-link.js
           node --check versions-data.js
           node --check versions.js
+          node --check version-current.js
       - name: Validate release identity
         run: |
           node - <<'NODE'
