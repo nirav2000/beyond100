@@ -61,11 +61,11 @@ Notes can be marked **Include in ChatGPT review queue**. The Notes panel can the
 
 ### Firebase storage
 
-The app reuses the same Firebase project already used by the other learning apps:
+The app reuses the same Firebase project already used by the other learning apps, but keeps Beyond 100 in its own learner namespace:
 
 ```text
 project: kk-syllabus
-path: families/{ownerUid}/learners/sai-latin/progress/
+path: families/{ownerUid}/learners/sai-beyond100/progress/
 ```
 
 Each cloud note is stored as a separate document with `app: "beyond100"` and `kind: "note"`. Local storage is written first so a note is not lost when offline; Firestore is merged by note ID and `updatedAt` when sync is available.
