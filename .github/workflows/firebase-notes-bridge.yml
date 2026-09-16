@@ -2,6 +2,8 @@ name: Refresh Beyond 100 review feed
 
 on:
   workflow_dispatch:
+  push:
+    branches: ["main"]
 
 permissions:
   contents: read
