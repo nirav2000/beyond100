@@ -32,25 +32,30 @@ jobs:
           node --check assessment.js
           node --check cloud-config.js
           node --check notes.js
-          node --check review-link-v05.js
+          node --check review.js
+          node --check review-feed-publisher.js
           node --check versions-data.js
           node --check versions-v05.js
           node --check version-current.js
           node --check preview-bridge.js
 
-      - name: Validate release identity and v0.5 wiring
+      - name: Validate release identity and current wiring
         run: |
           node - <<'NODE'
           const fs = require('fs');
           const manifestText = fs.readFileSync('versions-data.js','utf8');
           const index = fs.readFileSync('index.html','utf8');
+          const review = fs.readFileSync('review.html','utf8');
           const versionsHtml = fs.readFileSync('versions.html','utf8');
           const manifest = manifestText.match(/currentVersion:\s*'([^']+)'/);
           if (!manifest) throw new Error('Could not read currentVersion from versions-data.js');
           const current = manifest[1];
           if (!manifestText.includes(`version: '${current}'`)) throw new Error(`Current version ${current} is missing from release history`);
-          for (const required of ['assessment-data.js','assessment.js','review-link-v05.js']) {
+          for (const required of ['assessment-data.js','assessment.js','review-feed-publisher.js']) {
             if (!index.includes(required)) throw new Error(`index.html is not loading ${required}`);
+          }
+          for (const required of ['review.css','review.js']) {
+            if (!review.includes(required)) throw new Error(`review.html is not loading ${required}`);
           }
           if (!versionsHtml.includes('versions-v05.js')) throw new Error('Version Lab is not loading versions-v05.js');
           console.log('Release identity:', current);
