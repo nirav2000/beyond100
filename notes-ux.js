@@ -1,38 +1,12 @@
 const CLOUD = window.BEYOND100_CLOUD;
-const touchStarts = new WeakMap();
 let authModulesPromise = null;
 
 function byId(id){ return document.getElementById(id); }
 
-function installTouchReliability(){
-  // iOS can occasionally swallow the first synthetic click on dynamically
-  // inserted controls. Convert a short, stationary touch into one explicit
-  // click and suppress the delayed compatibility click.
-  document.addEventListener('touchstart', e => {
-    const control = e.target.closest?.('#notesButton,#annotateButton,.notes-dialog button,.notes-dialog summary');
-    if(!control || e.touches.length !== 1) return;
-    const t = e.touches[0];
-    touchStarts.set(control,{x:t.clientX,y:t.clientY});
-  },{passive:true,capture:true});
-
-  document.addEventListener('touchend', e => {
-    const control = e.target.closest?.('#notesButton,#annotateButton,.notes-dialog button');
-    if(!control) return;
-    const start = touchStarts.get(control);
-    const t = e.changedTouches?.[0];
-    touchStarts.delete(control);
-    if(!start || !t || Math.abs(t.clientX-start.x)>12 || Math.abs(t.clientY-start.y)>12) return;
-    e.preventDefault();
-    e.stopImmediatePropagation();
-    control.click();
-  },{passive:false,capture:true});
-
-  // Guard against a rapid second activation of showModal().
-  document.addEventListener('click', e => {
-    if(!e.target.closest?.('#notesButton')) return;
-    const dialog = byId('notesDialog');
-    if(dialog?.open){ e.preventDefault(); e.stopImmediatePropagation(); }
-  },true);
+// Keep native click/touch behaviour. The previous synthetic touch layer
+// interfered with dialog buttons and <details>/<summary> controls on iOS.
+function installNativeInteractionHints(){
+  document.documentElement.classList.add('native-touch-controls');
 }
 
 function installFirebasePresentation(){
@@ -49,7 +23,13 @@ function installFirebasePresentation(){
   if(summary){
     summary.textContent = 'Firebase connection';
     summary.setAttribute('aria-disabled','true');
-    summary.addEventListener('click',e=>e.preventDefault());
+    if(!summary.dataset.fixedOpen){
+      summary.dataset.fixedOpen='1';
+      summary.addEventListener('click',e=>{
+        e.preventDefault();
+        panel.open=true;
+      });
+    }
   }
 
   if(!byId('firebaseIdentityCard')){
@@ -180,6 +160,6 @@ function mountWhenReady(){
   observer.observe(document.documentElement,{childList:true,subtree:true});
 }
 
-installTouchReliability();
+installNativeInteractionHints();
 mountWhenReady();
 watchAuth();
