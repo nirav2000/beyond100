@@ -1,17 +1,31 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.5.0',
+  currentVersion: '0.6.0',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.6.0',
+      date: '2026-09-16',
+      title: 'Static Review Feed',
+      ref: 'main',
+      status: 'current',
+      summary: 'Replaces the Firebase Functions dependency for ChatGPT review notes with a permanent GitHub Pages capability URL backed by one sanitized Firestore review-feed document.',
+      areas: [
+        { id: 'static-review-page', title: 'Static GitHub review page', kind: 'feature', summary: 'Adds review.html, a permanent GitHub Pages URL that reads the current review snapshot directly from Firestore.' },
+        { id: 'review-publisher', title: 'Authenticated feed publisher', kind: 'data', summary: 'While the parent is signed into Firebase, Beyond 100 publishes only notes marked for review into one sanitized capability document.' },
+        { id: 'raw-json', title: 'Raw JSON access', kind: 'workflow', summary: 'The review page exposes the direct Firestore REST URL so automated readers can retrieve the same feed without executing page JavaScript.' },
+        { id: 'capability-security', title: 'Capability-scoped read rule', kind: 'security', summary: 'Firestore allows get on an exact long random feed ID, forbids collection listing, and keeps writes owner-authenticated.' }
+      ]
+    },
     {
       version: '0.5.0',
       date: '2026-09-16',
       title: 'Assessment Evidence & Workflow Repairs',
-      ref: 'main',
-      status: 'current',
-      summary: 'Restores visible Notes controls, adds a permanent review-link mode, synchronizes Version Lab scrolling, adds free-form comparison notes and turns uploaded school work into topic-based assessment evidence.',
+      ref: 'releases/v0.5.0',
+      status: 'archive',
+      summary: 'Restores visible Notes controls, synchronizes Version Lab scrolling, adds free-form comparison notes and turns uploaded school work into topic-based assessment evidence.',
       areas: [
         { id: 'notes-visibility', title: 'Visible Notes controls', kind: 'repair', summary: 'Repairs the top-bar insertion bug and keeps the Notes label visible on small screens.' },
-        { id: 'permanent-review-link', title: 'Permanent ChatGPT notes link', kind: 'workflow', summary: 'Changes the review-link UI and backend contract to support one reusable capability URL until it is revoked.' },
+        { id: 'permanent-review-link', title: 'Permanent ChatGPT notes link', kind: 'workflow', summary: 'Introduces the first reusable review-link UI, later simplified in v0.6.' },
         { id: 'synced-compare', title: 'Synchronized version scrolling', kind: 'feature', summary: 'Scrolling either Version Lab preview moves the other to the same relative position, with a toggle to disable synchronization.' },
         { id: 'comparison-notes', title: 'Notes while comparing', kind: 'workflow', summary: 'Capture free-form change notes against a version pair and include them in the development brief.' },
         { id: 'assessment-evidence', title: 'Assessment evidence by topic', kind: 'content', summary: 'Organizes uploaded Year 4→5 maths work by topic with source pages, working assessment, likely error types and next cold checks.' }
