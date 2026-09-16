@@ -31,8 +31,11 @@ jobs:
           node --check assessment-data.js
           node --check assessment.js
           node --check cloud-config.js
+          node --check topic-context.js
+          node --check notes-auto-anchors.js
           node --check notes.js
           node --check notes-ux.js
+          node --check notes-advanced.js
           node --check review.js
           node --check review-feed-publisher.js
           node --check versions-data.js
@@ -52,7 +55,7 @@ jobs:
           if (!manifest) throw new Error('Could not read currentVersion from versions-data.js');
           const current = manifest[1];
           if (!manifestText.includes(`version: '${current}'`)) throw new Error(`Current version ${current} is missing from release history`);
-          for (const required of ['assessment-data.js','assessment.js','notes-ux.js','review-feed-publisher.js']) {
+          for (const required of ['assessment-data.js','assessment.js','topic-context.js','notes-auto-anchors.js','notes-ux.js','notes-advanced.js','review-feed-publisher.js']) {
             if (!index.includes(required)) throw new Error(`index.html is not loading ${required}`);
           }
           for (const required of ['review.css','review.js']) {
