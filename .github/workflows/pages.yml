@@ -23,34 +23,53 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Validate JavaScript
         run: |
           node --check app.js
           node --check data.js
+          node --check assessment-data.js
+          node --check assessment.js
           node --check cloud-config.js
           node --check notes.js
-          node --check review-link.js
+          node --check review-link-v05.js
           node --check versions-data.js
-          node --check versions.js
+          node --check versions-v05.js
           node --check version-current.js
-      - name: Validate release identity
+          node --check preview-bridge.js
+
+      - name: Validate release identity and v0.5 wiring
         run: |
           node - <<'NODE'
           const fs = require('fs');
-          const manifest = fs.readFileSync('versions-data.js','utf8').match(/currentVersion:\s*'([^']+)'/);
-          const runtime = fs.readFileSync('cloud-config.js','utf8').match(/BEYOND100_CURRENT_VERSION\s*=\s*'([^']+)'/);
-          if (!manifest || !runtime || manifest[1] !== runtime[1]) {
-            console.error('Version mismatch between versions-data.js and cloud-config.js');
-            process.exit(1);
+          const manifestText = fs.readFileSync('versions-data.js','utf8');
+          const index = fs.readFileSync('index.html','utf8');
+          const versionsHtml = fs.readFileSync('versions.html','utf8');
+          const manifest = manifestText.match(/currentVersion:\s*'([^']+)'/);
+          if (!manifest) throw new Error('Could not read currentVersion from versions-data.js');
+          const current = manifest[1];
+          if (!manifestText.includes(`version: '${current}'`)) throw new Error(`Current version ${current} is missing from release history`);
+          for (const required of ['assessment-data.js','assessment.js','review-link-v05.js']) {
+            if (!index.includes(required)) throw new Error(`index.html is not loading ${required}`);
           }
-          console.log('Release identity:', manifest[1]);
+          if (!versionsHtml.includes('versions-v05.js')) throw new Error('Version Lab is not loading versions-v05.js');
+          console.log('Release identity:', current);
           NODE
+
+      - name: Validate assessment assets
+        run: |
+          for n in 1 2 3 4 5 6 7; do
+            test -s "assets/assessments/orley-summer-2026/page-$n.jpg" || { echo "Missing assessment page-$n.jpg"; exit 1; }
+          done
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
+
       - name: Upload static site
         uses: actions/upload-pages-artifact@v4
         with:
           path: "."
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
