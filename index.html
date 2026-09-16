@@ -11,202 +11,57 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="annotations.css" />
+  <link rel="stylesheet" href="assessment.css" />
+  <link rel="stylesheet" href="v05.css" />
 </head>
 <body>
   <div class="app-shell">
     <header class="topbar">
       <a class="brand" href="#" aria-label="Beyond 100 home">
         <span class="brand-mark">100<span>+</span></span>
-        <span class="brand-copy">
-          <strong>Beyond 100</strong>
-          <small>diagnose · understand · master</small>
-        </span>
+        <span class="brand-copy"><strong>Beyond 100</strong><small>diagnose · understand · master</small></span>
       </a>
-      <div style="display:flex;gap:8px;align-items:center">
-        <a class="icon-button" href="versions.html" aria-label="Open Version Lab" title="Version Lab">↺</a>
-        <button class="icon-button" id="openNav" aria-label="Open syllabus">☰</button>
-      </div>
+      <a class="icon-button" href="versions.html" aria-label="Open Version Lab" title="Version Lab">↺</a>
+      <button class="icon-button" id="openNav" aria-label="Open syllabus">☰</button>
     </header>
 
     <aside class="sidebar" id="sidebar" aria-label="Syllabus navigation">
-      <div class="sidebar-head">
-        <div>
-          <p class="eyebrow">SYLLABUS</p>
-          <h2>Topics</h2>
-        </div>
-        <button class="icon-button close-only" id="closeNav" aria-label="Close syllabus">×</button>
-      </div>
-      <label class="search-wrap">
-        <span>⌕</span>
-        <input id="topicSearch" type="search" placeholder="Find a topic…" autocomplete="off" />
-      </label>
-      <div class="subject-tabs" id="subjectTabs"></div>
-      <div class="topic-list" id="topicList"></div>
-      <button class="factory-link" id="openFactory">＋ Topic factory</button>
+      <div class="sidebar-head"><div><p class="eyebrow">SYLLABUS</p><h2>Topics</h2></div><button class="icon-button close-only" id="closeNav" aria-label="Close syllabus">×</button></div>
+      <label class="search-wrap"><span>⌕</span><input id="topicSearch" type="search" placeholder="Find a topic…" autocomplete="off" /></label>
+      <div class="subject-tabs" id="subjectTabs"></div><div class="topic-list" id="topicList"></div><button class="factory-link" id="openFactory">＋ Topic factory</button>
     </aside>
 
     <main class="main" id="main">
       <section class="hero">
-        <div class="hero-copy">
-          <p class="eyebrow" id="topicSubject">MATHS · NUMBER</p>
-          <h1 id="topicTitle">Place Value & Number Structure</h1>
-          <p id="topicSummary"></p>
-          <div class="hero-actions">
-            <button class="primary" data-jump="diagnose">Start a diagnostic</button>
-            <button class="secondary" data-jump="mastery">What mastery looks like</button>
-          </div>
-        </div>
-        <div class="hero-card">
-          <span class="hero-card-label">SAI NOW</span>
-          <strong>Year 5</strong>
-          <span>Age 9–10</span>
-          <div class="hero-divider"></div>
-          <span class="hero-card-label">HORIZON</span>
-          <strong>Year 7</strong>
-          <span>See the road ahead</span>
-        </div>
+        <div class="hero-copy"><p class="eyebrow" id="topicSubject">MATHS · NUMBER</p><h1 id="topicTitle">Place Value & Number Structure</h1><p id="topicSummary"></p><div class="hero-actions"><button class="primary" data-jump="diagnose">Start a diagnostic</button><button class="secondary" data-jump="mastery">What mastery looks like</button></div></div>
+        <div class="hero-card"><span class="hero-card-label">SAI NOW</span><strong>Year 5</strong><span>Age 9–10</span><div class="hero-divider"></div><span class="hero-card-label">HORIZON</span><strong>Year 7</strong><span>See the road ahead</span></div>
       </section>
 
-      <section class="why-card" id="whyCard">
-        <span class="why-icon">↗</span>
-        <div>
-          <strong>Why this matters</strong>
-          <p id="whyText"></p>
-        </div>
-      </section>
+      <section class="why-card" id="whyCard"><span class="why-icon">↗</span><div><strong>Why this matters</strong><p id="whyText"></p></div></section>
 
       <nav class="section-nav" aria-label="Topic sections">
-        <button class="active" data-section="progression">Progression</button>
-        <button data-section="diagnose">Diagnose</button>
-        <button data-section="mastery">Mastery</button>
-        <button data-section="misconceptions">Misconceptions</button>
-        <button data-section="questions">Questions</button>
+        <button class="active" data-section="progression">Progression</button><button data-section="diagnose">Diagnose</button><button data-section="mastery">Mastery</button><button data-section="misconceptions">Misconceptions</button><button data-section="questions">Questions</button><button data-section="assessments">Assessment evidence</button>
       </nav>
 
-      <section class="content-section active" id="progression">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">VERTICAL PROGRESSION</p>
-            <h2>See exactly where understanding sits</h2>
-          </div>
-          <p>Start below Sai’s current year and move upward until understanding becomes fragile. The highest fully secure level is more useful than his age label.</p>
-        </div>
-        <div class="progression-grid" id="progressionGrid"></div>
-      </section>
+      <section class="content-section active" id="progression"><div class="section-heading"><div><p class="eyebrow">VERTICAL PROGRESSION</p><h2>See exactly where understanding sits</h2></div><p>Start below Sai’s current year and move upward until understanding becomes fragile. The highest fully secure level is more useful than his age label.</p></div><div class="progression-grid" id="progressionGrid"></div></section>
 
-      <section class="content-section" id="diagnose">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">COLD DIAGNOSTIC</p>
-            <h2>Find the edge of understanding</h2>
-          </div>
-          <p>Do not teach first. Ask, listen and record what goes wrong: knowledge, concept, question interpretation, procedure, fluency, reasoning or attention.</p>
-        </div>
-        <div class="diagnostic-panel">
-          <div class="diagnostic-controls">
-            <label>Start level
-              <select id="diagnosticYear"></select>
-            </label>
-            <label>Questions
-              <select id="diagnosticCount">
-                <option value="5">5</option>
-                <option value="8" selected>8</option>
-                <option value="10">10</option>
-              </select>
-            </label>
-            <button class="primary" id="buildDiagnostic">Build diagnostic</button>
-          </div>
-          <div id="diagnosticSet" class="question-stack empty-state">
-            Choose a starting level. The app will mix direct, explanation and reasoning questions at and around that level.
-          </div>
-        </div>
-      </section>
+      <section class="content-section" id="diagnose"><div class="section-heading"><div><p class="eyebrow">COLD DIAGNOSTIC</p><h2>Find the edge of understanding</h2></div><p>Do not teach first. Ask, listen and record what goes wrong: knowledge, concept, question interpretation, procedure, fluency, reasoning or attention.</p></div><div class="diagnostic-panel"><div class="diagnostic-controls"><label>Start level<select id="diagnosticYear"></select></label><label>Questions<select id="diagnosticCount"><option value="5">5</option><option value="8" selected>8</option><option value="10">10</option></select></label><button class="primary" id="buildDiagnostic">Build diagnostic</button></div><div id="diagnosticSet" class="question-stack empty-state">Choose a starting level. The app will mix direct, explanation and reasoning questions at and around that level.</div></div></section>
 
-      <section class="content-section" id="mastery">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">MASTERY STANDARD</p>
-            <h2>Not “can he do a worksheet?”</h2>
-          </div>
-          <p id="masteryRule"></p>
-        </div>
-        <div class="mastery-grid" id="masteryGrid"></div>
-        <div class="thresholds" id="thresholds"></div>
-      </section>
+      <section class="content-section" id="mastery"><div class="section-heading"><div><p class="eyebrow">MASTERY STANDARD</p><h2>Not “can he do a worksheet?”</h2></div><p id="masteryRule"></p></div><div class="mastery-grid" id="masteryGrid"></div><div class="thresholds" id="thresholds"></div></section>
 
-      <section class="content-section" id="misconceptions">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">SURFACE HIDDEN GAPS</p>
-            <h2>Misconceptions to deliberately probe</h2>
-          </div>
-          <p>A correct answer can still conceal brittle understanding. These are prompts for follow-up questions, not just mistakes to mark wrong.</p>
-        </div>
-        <div class="misconception-list" id="misconceptionList"></div>
-      </section>
+      <section class="content-section" id="misconceptions"><div class="section-heading"><div><p class="eyebrow">SURFACE HIDDEN GAPS</p><h2>Misconceptions to deliberately probe</h2></div><p>A correct answer can still conceal brittle understanding. These are prompts for follow-up questions, not just mistakes to mark wrong.</p></div><div class="misconception-list" id="misconceptionList"></div></section>
 
-      <section class="content-section" id="questions">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">QUESTION BANK</p>
-            <h2>Find a question quickly</h2>
-          </div>
-          <p>Filter by level and question style. Answers stay hidden until you reveal them.</p>
-        </div>
-        <div class="question-toolbar">
-          <select id="questionYear"><option value="all">All years</option></select>
-          <select id="questionType">
-            <option value="all">All styles</option>
-            <option value="short">Direct</option>
-            <option value="explain">Explain</option>
-            <option value="reasoning">Reasoning</option>
-          </select>
-          <button class="secondary" id="randomQuestion">Random question</button>
-        </div>
-        <div id="questionBank" class="question-stack"></div>
-      </section>
+      <section class="content-section" id="questions"><div class="section-heading"><div><p class="eyebrow">QUESTION BANK</p><h2>Find a question quickly</h2></div><p>Filter by level and question style. Answers stay hidden until you reveal them.</p></div><div class="question-toolbar"><select id="questionYear"><option value="all">All years</option></select><select id="questionType"><option value="all">All styles</option><option value="short">Direct</option><option value="explain">Explain</option><option value="reasoning">Reasoning</option></select><button class="secondary" id="randomQuestion">Random question</button></div><div id="questionBank" class="question-stack"></div></section>
 
-      <section class="factory" id="factory" hidden>
-        <div class="factory-head">
-          <div>
-            <p class="eyebrow">TOPIC FACTORY</p>
-            <h2>Generate the next syllabus topic</h2>
-          </div>
-          <button class="icon-button" id="closeFactory" aria-label="Close topic factory">×</button>
-        </div>
-        <p class="factory-intro">Once Place Value is refined, select any catalogue topic. Beyond 100 will create the exact data scaffold and a ready-to-use generation prompt so every topic follows the same depth, diagnostic logic and mastery standard.</p>
-        <div class="factory-grid">
-          <label>Subject<select id="factorySubject"></select></label>
-          <label>Topic<select id="factoryTopic"></select></label>
-          <label>Current learner year<select id="factoryCurrentYear"><option>Y5</option><option>Y4</option><option>Y6</option></select></label>
-        </div>
-        <div class="factory-actions">
-          <button class="primary" id="makeFactory">Create generator pack</button>
-          <button class="secondary" id="copyPrompt">Copy AI prompt</button>
-          <button class="secondary" id="copySchema">Copy JSON scaffold</button>
-        </div>
-        <div class="factory-output">
-          <h3>Generation prompt</h3>
-          <pre id="factoryPrompt"></pre>
-          <h3>JSON scaffold</h3>
-          <pre id="factorySchema"></pre>
-        </div>
-      </section>
+      <section class="content-section" id="assessments"><div class="section-heading"><div><p class="eyebrow">ASSESSMENT EVIDENCE</p><h2>Use Sai’s actual work to steer the syllabus</h2></div><p>Uploaded work is organised by topic, with the relevant year context, source pages, what the evidence suggests and the next questions to test. This sits separately from the curriculum so observed performance never gets mistaken for the curriculum itself.</p></div><div id="assessmentRoot"></div></section>
 
-      <footer>
-        <span>Beyond 100 · version loading…</span>
-        <span>Primary progression uses the England National Curriculum; KS3 is presented as a practical progression because statutory KS3 content spans Years 7–9.</span>
-      </footer>
+      <section class="factory" id="factory" hidden><div class="factory-head"><div><p class="eyebrow">TOPIC FACTORY</p><h2>Generate the next syllabus topic</h2></div><button class="icon-button" id="closeFactory" aria-label="Close topic factory">×</button></div><p class="factory-intro">Once Place Value is refined, select any catalogue topic. Beyond 100 will create the exact data scaffold and a ready-to-use generation prompt so every topic follows the same depth, diagnostic logic and mastery standard.</p><div class="factory-grid"><label>Subject<select id="factorySubject"></select></label><label>Topic<select id="factoryTopic"></select></label><label>Current learner year<select id="factoryCurrentYear"><option>Y5</option><option>Y4</option><option>Y6</option></select></label></div><div class="factory-actions"><button class="primary" id="makeFactory">Create generator pack</button><button class="secondary" id="copyPrompt">Copy AI prompt</button><button class="secondary" id="copySchema">Copy JSON scaffold</button></div><div class="factory-output"><h3>Generation prompt</h3><pre id="factoryPrompt"></pre><h3>JSON scaffold</h3><pre id="factorySchema"></pre></div></section>
+
+      <footer><span>Beyond 100 · version loading…</span><span>Primary progression uses the England National Curriculum; KS3 is presented as a practical progression because statutory KS3 content spans Years 7–9.</span></footer>
     </main>
   </div>
 
   <div class="scrim" id="scrim"></div>
-  <script src="data.js"></script>
-  <script src="versions-data.js"></script>
-  <script src="version-current.js"></script>
-  <script src="app.js"></script>
-  <script src="cloud-config.js"></script>
-  <script type="module" src="notes.js"></script>
-  <script type="module" src="review-link.js"></script>
+  <script src="data.js"></script><script src="assessment-data.js"></script><script src="versions-data.js"></script><script src="version-current.js"></script><script src="app.js"></script><script src="assessment.js"></script><script src="cloud-config.js"></script><script type="module" src="notes.js"></script><script type="module" src="review-link-v05.js"></script><script src="preview-bridge.js"></script>
 </body>
 </html>
