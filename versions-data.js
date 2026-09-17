@@ -1,13 +1,27 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.7.0',
+  currentVersion: '0.7.1',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.7.1',
+      date: '2026-09-17',
+      title: 'Learner Identity & Private Context',
+      ref: 'main',
+      status: 'current',
+      summary: 'Separates Beyond 100 as the app from Sai as the learner, resolves Sai’s existing learner profile in the shared Firebase project, migrates legacy Beyond 100 records, and adds a Firebase-only area for personal school context.',
+      areas: [
+        { id: 'identity-separation', title: 'App and learner identity separated', kind: 'architecture', summary: 'Beyond 100 remains the application name while learner data is routed to Sai’s existing Firebase learner profile rather than treating sai-beyond100 as a username.' },
+        { id: 'learner-resolution', title: 'Existing learner profile resolution', kind: 'data', summary: 'After parent authentication the app resolves Sai from the shared learner catalogue and routes subsequent notes, evidence and sessions to that learner record.' },
+        { id: 'legacy-migration', title: 'Legacy Beyond 100 migration', kind: 'data', summary: 'Existing Beyond 100 progress documents under the earlier app-specific learner path are copied into the resolved learner profile without deleting the originals.' },
+        { id: 'private-context', title: 'Firebase-only learner context', kind: 'privacy', summary: 'Adds an authenticated private context panel for school/source material, school observations, assessment context, parent observations, priorities and meeting aims without publishing that content in GitHub or the review feed.' }
+      ]
+    },
     {
       version: '0.7.0',
       date: '2026-09-17',
       title: 'Learning Evidence & Retention',
-      ref: 'main',
-      status: 'current',
+      ref: '5d40fdcdc3ae281010ec08dbcde5f1f325f90e52',
+      status: 'archive',
       summary: 'Turns diagnostic observations into longitudinal evidence: find the first fragile layer, separate knowledge from understanding and recall, require spaced retrieval and transfer before advancing, and build a half-term evidence brief.',
       areas: [
         { id: 'evidence-cycle', title: 'Evidence-gated learning cycle', kind: 'feature', summary: 'Tracks diagnose → teach → demonstrate understanding → practise → retrieve → retrieve again → apply in a new context → advance, with longer retention checks after advancement.' },
