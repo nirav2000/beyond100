@@ -11,8 +11,23 @@ window.BEYOND100_CLOUD = {
     appId: '1:821660665663:web:c708860329bb97dc24758a'
   },
   ownerUid: '2AJSfYdtg5URWHv7HCzpNMmKIlg2',
-  learnerId: 'sai-beyond100',
+
+  // Beyond 100 is the app. Sai's learner identity is resolved separately from
+  // the shared Firebase learner catalogue after the parent signs in.
   appId: 'beyond100',
+  appName: 'Beyond 100',
+  appMeaning: 'going beyond the average',
+  learnerLookup: {
+    preferredLabel: 'Sai',
+    legacyId: 'sai-beyond100'
+  },
+
+  // Kept only so existing Beyond 100 data can be discovered and migrated.
+  // New writes use learnerProgressBase once learner-profile.js resolves Sai's
+  // existing learner record in the shared kk-syllabus project.
+  legacyLearnerId: 'sai-beyond100',
+  legacyFirestoreBase: ['families', '2AJSfYdtg5URWHv7HCzpNMmKIlg2', 'learners', 'sai-beyond100', 'progress'],
+  learnerId: 'sai-beyond100',
   firestoreBase: ['families', '2AJSfYdtg5URWHv7HCzpNMmKIlg2', 'learners', 'sai-beyond100', 'progress']
 };
 
