@@ -86,6 +86,7 @@ async function resolveSaiProfile(force=false){
     PROFILE_CLOUD.learnerLabel=profile.label;
     PROFILE_CLOUD.learnerBase=['families',PROFILE_CLOUD.ownerUid,'learners',profile.id];
     PROFILE_CLOUD.learnerProgressBase=[...PROFILE_CLOUD.learnerBase,'progress'];
+    PROFILE_CLOUD.firestoreBase=PROFILE_CLOUD.learnerProgressBase;
     PROFILE_CLOUD.beyond100={
       appId:'beyond100',
       displayName:'Beyond 100',
