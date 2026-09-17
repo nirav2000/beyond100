@@ -1,13 +1,31 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.6.0',
+  currentVersion: '0.7.0',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.7.0',
+      date: '2026-09-17',
+      title: 'Learning Evidence & Retention',
+      ref: 'main',
+      status: 'current',
+      summary: 'Turns diagnostic observations into longitudinal evidence: find the first fragile layer, separate knowledge from understanding and recall, require spaced retrieval and transfer before advancing, and build a half-term evidence brief.',
+      areas: [
+        { id: 'evidence-cycle', title: 'Evidence-gated learning cycle', kind: 'feature', summary: 'Tracks diagnose → teach → demonstrate understanding → practise → retrieve → retrieve again → apply in a new context → advance, with longer retention checks after advancement.' },
+        { id: 'response-quality', title: 'Response quality and timing', kind: 'data', summary: 'Records correct + fast, correct + hesitant, understands after prompt, and incorrect / no concept alongside optional response time and K/C/Q/P/F/R/A error causes.' },
+        { id: 'first-breakdown', title: 'First breakdown diagnostic', kind: 'feature', summary: 'Adds an A–H Place Value ladder from tens and ones through reasoning so the first layer where fluency or explanation becomes fragile can be identified.' },
+        { id: 'five-dimensions', title: 'Five mastery dimensions', kind: 'feature', summary: 'Tracks Knowledge, Understanding, Recall, Application and Retention separately instead of treating one successful attempt as mastery.' },
+        { id: 'language-load', title: 'Language-load comparison', kind: 'diagnostic', summary: 'Pairs mathematically similar questions with different verbal demands to distinguish mathematical weakness from question-processing difficulty.' },
+        { id: 'half-term-brief', title: 'Half-term evidence plan', kind: 'workflow', summary: 'Builds evidence for secure vs fragile areas, recurring errors, prompting, retention, hesitation, language load and cross-subject patterns, with a copyable meeting brief.' },
+        { id: 'long-term-success', title: 'Observable success measures', kind: 'progress', summary: 'Tracks foundations, current-curriculum security, 30-day retention, fluency, reasoning, transfer, independence and speed without using a single test score as the primary target.' },
+        { id: 'notes-and-sessions', title: 'Notes and session reliability', kind: 'repair', summary: 'Uses generic annotation discovery, restores native mobile controls, adds contextual Place Value examples and keeps session identity local-first before Firebase sync.' }
+      ]
+    },
     {
       version: '0.6.0',
       date: '2026-09-16',
       title: 'Static Review Feed',
-      ref: 'main',
-      status: 'current',
+      ref: 'releases/v0.6.0',
+      status: 'archive',
       summary: 'Replaces the Firebase Functions dependency for ChatGPT review notes with a permanent GitHub Pages capability URL backed by one sanitized Firestore review-feed document.',
       areas: [
         { id: 'static-review-page', title: 'Static GitHub review page', kind: 'feature', summary: 'Adds review.html, a permanent GitHub Pages URL that reads the current review snapshot directly from Firestore.' },
