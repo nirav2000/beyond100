@@ -38,6 +38,7 @@
   }
 
   function autoSidebar(){
+    if(innerWidth<=980){applySidebar(false,true);return;}
     if(focusOn){applySidebar(true,true);return;}
     const pref=localStorage.getItem(PREF_KEY);
     if(pref==='collapsed'){applySidebar(true,false);return;}
@@ -92,8 +93,9 @@
     ];
     const context=qa('#placeValueContext > .topic-context-kid,#placeValueContext .topic-context-panels > details');
     const section=active?qa(selectors.slice(2).join(','),active):[];
+    const includeContext=!active||active.id==='progression';
     const seen=new Set();
-    return [...context,...section].filter(el=>{
+    return [...(includeContext?context:[]),...section].filter(el=>{
       if(seen.has(el)||el.hidden)return false;
       seen.add(el);
       return true;
