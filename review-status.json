@@ -1,6 +1,6 @@
 {
   "schema": "beyond100-review-status-v1",
-  "updatedAt": "2026-09-16T20:15:00Z",
+  "updatedAt": "2026-09-18T17:56:00Z",
   "notes": {
     "4ddc266d-25bf-46f5-a481-cfa8439a38aa": {
       "status": "actioned",
@@ -20,5 +20,35 @@
       "message": "Added expandable What is it, history, why useful, and parent-child discussion panels for Place Value.",
       "commit": "b5d9c0bb084bf6b9c4e1cce04659a0b86b1d425f"
     }
-  }
+  },
+  "matches": [
+    {
+      "contains": "double click this cards",
+      "status": "actioned",
+      "updatedAt": "2026-09-18T17:56:00Z",
+      "message": "Mastery cards now reveal their examples by double-click, keyboard Enter, or an explicit Reveal examples button.",
+      "commit": "98c4e81e0fc52062bf0b1687eb9a2153e5e5a803"
+    },
+    {
+      "contains": "distracted by alot of material",
+      "status": "actioned",
+      "updatedAt": "2026-09-18T17:56:00Z",
+      "message": "Added Focus view so one learning block is shown at a time with Previous/Next navigation.",
+      "commit": "98c4e81e0fc52062bf0b1687eb9a2153e5e5a803"
+    },
+    {
+      "contains": "collapse and auto collapse of topics",
+      "status": "actioned",
+      "updatedAt": "2026-09-18T17:56:00Z",
+      "message": "Added collapsible desktop topic navigation with automatic collapse on narrower layouts and while Focus mode is active.",
+      "commit": "98c4e81e0fc52062bf0b1687eb9a2153e5e5a803"
+    },
+    {
+      "contains": "select logo or topics area for note annotation",
+      "status": "actioned",
+      "updatedAt": "2026-09-18T17:56:00Z",
+      "message": "Expanded generic annotation discovery and click handling to cover the Beyond 100 brand, Topics sidebar, subject tabs and individual topic controls.",
+      "commit": "98c4e81e0fc52062bf0b1687eb9a2153e5e5a803"
+    }
+  ]
 }
