@@ -151,7 +151,7 @@
     }
     if(focusOn){
       focusIndex=0;
-      applySidebar(true,true);
+      applySidebar(innerWidth>980,true);
       refreshFocus(true);
     }else{
       qa('.focus-target-hidden').forEach(el=>el.classList.remove('focus-target-hidden'));
