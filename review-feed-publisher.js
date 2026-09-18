@@ -20,6 +20,17 @@ async function firebase(){
 }
 function cloudBase(){return CLOUD.firestoreBase||['families',CLOUD.ownerUid,'learners',CLOUD.learnerId,'progress']}
 function hashFeed(notes){return JSON.stringify(notes.map(n=>[n.id,n.updatedAt,n.status,n.text,n.anchorId]))}
+function normalizedText(value=''){return String(value).toLowerCase().replace(/[’']/g,"'").replace(/\s+/g,' ').trim()}
+function ledgerDecision(ledger,note){
+  const byId=ledger?.notes?.[note.id];if(byId)return byId;
+  const text=normalizedText(note.text);
+  return (ledger?.matches||[]).find(m=>{
+    if(m.anchorId&&m.anchorId!==note.anchorId)return false;
+    if(m.text&&normalizedText(m.text)!==text)return false;
+    if(m.contains&&!text.includes(normalizedText(m.contains)))return false;
+    return !!(m.text||m.contains);
+  })||null;
+}
 async function publish(force=false){
   const f=await firebase();if(!f.auth.currentUser||f.auth.currentUser.uid!==CLOUD.ownerUid)return false;
   let meta=feedMeta();if(!meta?.createdAt){meta={...meta,createdAt:new Date().toISOString()};saveFeedMeta(meta)}
@@ -35,7 +46,7 @@ async function applyStatusLedger(){
     const ledger=await response.json();if(ledger?.schema!=='beyond100-review-status-v1'||!ledger.notes||typeof ledger.notes!=='object')return false;
     const notes=loadJson(NOTES_STORAGE,[]);let changed=false;const writes=[];
     for(const note of notes){
-      const decision=ledger.notes[note.id];if(!decision?.status||!decision.updatedAt)continue;
+      const decision=ledgerDecision(ledger,note);if(!decision?.status||!decision.updatedAt)continue;
       const localStamp=Date.parse(note.reviewStatusUpdatedAt||note.updatedAt||0),remoteStamp=Date.parse(decision.updatedAt||0);if(!Number.isFinite(remoteStamp)||remoteStamp<=localStamp)continue;
       note.status=decision.status;note.reviewStatusUpdatedAt=decision.updatedAt;note.reviewStatusUpdatedVia='github-review-status';note.updatedAt=decision.updatedAt;
       if(decision.status==='actioned'){note.reviewRequired=false;note.actionedAt=decision.updatedAt}else{note.reviewRequired=true;delete note.actionedAt}
