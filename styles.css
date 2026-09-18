@@ -235,3 +235,52 @@ footer { display:flex; justify-content:space-between; gap:24px; border-top:1px s
   .factory h2 { font-size:32px; }
   footer { flex-direction:column; }
 }
+
+
+/* v0.7.2 focus view, collapsible topics and flippable mastery cards */
+.sidebar-collapse-button{flex:0 0 42px}
+body.sidebar-collapsed .app-shell{grid-template-columns:72px minmax(0,1fr)}
+body.sidebar-collapsed .sidebar{padding:20px 14px;overflow:hidden}
+body.sidebar-collapsed .sidebar-head>div,
+body.sidebar-collapsed .search-wrap,
+body.sidebar-collapsed .subject-tabs,
+body.sidebar-collapsed .topic-list,
+body.sidebar-collapsed .factory-link{display:none}
+body.sidebar-collapsed .sidebar-head{justify-content:center}
+body.sidebar-collapsed .sidebar-collapse-button{display:grid}
+.focus-mode-button{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--paper);border-radius:13px;height:42px;padding:0 13px;font-weight:700;color:var(--ink)}
+.focus-mode-button.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+.focus-controller{position:fixed;right:18px;bottom:max(18px,env(safe-area-inset-bottom));z-index:45;display:flex;align-items:center;gap:7px;padding:8px;background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);backdrop-filter:blur(12px)}
+.focus-controller[hidden]{display:none}
+.focus-controller button{border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 10px;font-weight:700;color:var(--ink)}
+.focus-controller button:disabled{opacity:.35}
+.focus-controller span{min-width:52px;text-align:center;font-size:11px;font-weight:700;color:var(--muted)}
+.focus-target-hidden{display:none!important}
+body.focus-mode .main{max-width:1050px;width:100%;margin:0 auto}
+body.focus-mode .section-heading{max-width:860px}
+.mastery-card{position:relative;min-height:180px;cursor:pointer;transition:transform .22s ease,box-shadow .22s ease}
+.mastery-card:focus{outline:3px solid rgba(77,139,117,.2);outline-offset:2px}
+.mastery-card:hover{box-shadow:0 10px 28px rgba(28,31,25,.08)}
+.mastery-front,.mastery-back{min-height:142px}
+.mastery-front{display:flex;flex-direction:column;justify-content:center;align-items:flex-start}
+.mastery-front p{margin:0 0 13px;color:var(--muted);font-size:12px;line-height:1.45}
+.mastery-back{display:none}
+.mastery-card.is-flipped{transform:rotateY(0deg);background:#f7faee}
+.mastery-card.is-flipped .mastery-front{display:none}
+.mastery-card.is-flipped .mastery-back{display:block}
+.mastery-flip-button{margin-top:10px;border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 9px;font-size:11px;font-weight:700;color:#42534d}
+@media(max-width:980px){
+  body.sidebar-collapsed .app-shell{grid-template-columns:1fr}
+  body.sidebar-collapsed .sidebar{padding:28px 22px 26px;overflow:auto}
+  body.sidebar-collapsed .sidebar-head>div,
+  body.sidebar-collapsed .search-wrap,
+  body.sidebar-collapsed .subject-tabs,
+  body.sidebar-collapsed .topic-list,
+  body.sidebar-collapsed .factory-link{display:initial}
+  .sidebar-collapse-button{display:none!important}
+}
+@media(max-width:700px){
+  .focus-mode-button span:last-child{display:none}
+  .focus-mode-button{width:42px;padding:0;justify-content:center}
+  .focus-controller{left:12px;right:12px;justify-content:center}
+}
