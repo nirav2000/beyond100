@@ -1,1 +1,59 @@
 .topic-context{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:18px;margin:0 0 26px}.topic-context-kid,.topic-context-panels{background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:var(--shadow)}.topic-context-kid h2{font-family:'DM Serif Display',serif;font-weight:400;font-size:32px;line-height:1.05;margin:7px 0 12px}.topic-context-kid p{line-height:1.58;color:#4e5651}.kid-example{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:16px 0}.kid-example span{display:flex;flex-direction:column;gap:4px;padding:12px 8px;border-radius:14px;background:#f2f5ef;text-align:center}.kid-example b{font-size:21px}.kid-example small{font-size:10px;color:#667069}.kid-sport-example{margin-top:16px;padding:14px 15px;border-radius:15px;background:#f7f2e8;border:1px solid #eadfc8}.kid-sport-example>strong{display:block;margin-bottom:5px;font-size:14px}.kid-sport-example p{margin:5px 0;font-size:13px}.topic-context-panels{display:flex;flex-direction:column;gap:8px}.topic-context-panels details{border:1px solid #dde2dd;border-radius:13px;padding:11px 13px;background:#fafbf8}.topic-context-panels summary{font-weight:700;cursor:pointer}.topic-context-panels p,.topic-context-panels li{font-size:13px;line-height:1.55;color:#4f5c56}.topic-context-panels ul{padding-left:20px}.firebase-panel-fixed>summary{cursor:default}.firebase-identity-card{display:flex;align-items:center;gap:10px;margin:10px 0 4px;padding:11px 12px;border-radius:13px;background:#f0f3f1;border:1px solid #dfe5e1}.firebase-identity-card>div{display:flex;flex-direction:column;gap:2px}.firebase-identity-card strong{font-size:13px}.firebase-identity-card span:not(.firebase-identity-dot){font-size:11px;color:#66716c}.firebase-identity-dot,.notes-firebase-dot{width:9px;height:9px;border-radius:50%;background:#8a918d;box-shadow:0 0 0 3px rgba(138,145,141,.12)}.firebase-identity-card[data-state='connected'] .firebase-identity-dot,.notes-firebase-dot[data-state='connected']{background:#26945d}.firebase-identity-card[data-state='error'] .firebase-identity-dot,.notes-firebase-dot[data-state='error']{background:#bd4937}.firebase-login-badge{display:inline-flex;align-items:center;border-radius:999px;padding:6px 9px;font-size:10px;font-weight:700;background:#edf0ee;color:#55625d}.firebase-login-badge[data-state='connected']{background:#e7f5ec;color:#24683f}.firebase-login-badge[data-state='error']{background:#fff0ec;color:#8e3e2d}.firebase-sync-detail{margin:5px 0 10px;font-size:11px;color:#65716c}.notes-firebase-dot{display:inline-block;flex:0 0 9px;margin-left:1px}.password-toggle,.notes-minimise{border:1px solid #cfd8d2!important;background:#fff!important;color:#29443b!important;border-radius:9px!important;padding:8px 10px!important;font-weight:700!important}.password-toggle{align-self:stretch}.notes-head{touch-action:none;cursor:grab}.notes-dialog.is-dragging .notes-head{cursor:grabbing}.notes-dialog.is-minimised{width:min(420px,calc(100vw - 24px));height:auto;max-height:none;border-radius:16px}.notes-dialog.is-minimised .notes-body{display:none}.notes-dialog.is-minimised .notes-shell{max-height:none}.notes-dialog.is-minimised .notes-head{border-bottom:0}.notes-dialog.is-minimised .notes-head>div:first-child .eyebrow{display:none}.notes-dialog.is-minimised .notes-head h2{font-size:18px;margin:0}.notes-insights>summary{cursor:pointer}.insight-period{padding:11px 0;border-top:1px solid #e5e9e5}.insight-period:first-child{border-top:0}.insight-numbers,.insight-categories{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}.insight-numbers span,.insight-categories span{background:#f2f5f2;border-radius:999px;padding:5px 8px;font-size:10px;color:#53615b}.insight-numbers b,.insight-categories b{color:#1e5745}.cloud-form [hidden]{display:none!important}@media(max-width:760px){.topic-context{grid-template-columns:1fr}.kid-example{grid-template-columns:repeat(2,1fr)}.firebase-login-badge{display:none}.notes-dialog.is-minimised{width:calc(100vw - 18px);left:9px!important;top:auto!important;bottom:calc(8px + env(safe-area-inset-bottom));margin:0!important}.notes-head{cursor:default}.notes-dialog:not(.is-minimised){left:0!important;top:auto!important}.password-toggle{grid-column:1/-1}}
+/* v0.7.4 notes, Firebase account and review-feed polish */
+.notes-head-actions #cloudStatus{display:none!important}
+.notes-cloud-compact{display:flex;align-items:center;gap:5px}
+.state-icon,.icon-action,.field-icon-button{display:inline-grid;place-items:center;border:0;background:transparent;padding:0;cursor:pointer;color:#7e8984}
+.state-icon{width:32px;height:32px;border-radius:10px}
+.state-icon svg,.icon-action svg,.field-icon-button svg,.password-toggle svg,.firebase-account-flame svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.firebase-state svg,.firebase-account-flame svg{fill:currentColor;stroke:none}
+.firebase-state[data-state="checking"],.firebase-state[data-state="signed-out"]{color:#a5aca8}
+.firebase-state[data-state="connected"],.firebase-account-card[data-state="connected"] .firebase-account-flame{color:#f4a623}
+.firebase-state[data-state="error"],.firebase-account-card[data-state="error"] .firebase-account-flame{color:#b84a3a}
+.sync-state[data-state="synced"],.firebase-account-card[data-state="connected"] #firebaseCardSync{color:#27835a}
+.sync-state[data-state="error"]{color:#b84a3a}
+.sync-state[data-state="syncing"] svg{animation:firebaseSyncSpin .8s linear infinite}
+.sync-state[data-state="synced"]{animation:firebaseSyncPulse .5s ease}
+.state-icon:disabled,.icon-action:disabled,.field-icon-button:disabled{opacity:.35;cursor:default}
+.firebase-account-panel{padding-top:14px}
+.firebase-account-panel>summary{margin-bottom:10px}
+.firebase-account-card{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 14px;border:1px solid #dfe5e1;border-radius:15px;background:#f7f9f7}
+.firebase-account-main{display:flex;align-items:center;gap:11px;min-width:0}
+.firebase-account-main>div{display:grid;gap:2px;min-width:0}
+.firebase-account-main strong{font-size:13px}
+.firebase-account-main span,.firebase-account-main small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:#68756f}
+.firebase-account-flame{display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;border-radius:11px;background:#eef1ef;color:#a5aca8}
+.firebase-account-actions{display:flex;gap:4px}
+.icon-action{width:36px;height:36px;border-radius:10px;border:1px solid #dde3df;background:white}
+.icon-action:not(:disabled):active,.field-icon-button:not(:disabled):active,.state-icon:not(:disabled):active{transform:scale(.96)}
+.firebase-account-panel .cloud-form{margin-top:12px}
+.firebase-account-panel #syncNow,.firebase-account-panel #firebaseSignOut{display:none!important}
+.password-field-wrap{position:relative;min-width:0}
+.password-field-wrap:has(input[hidden]){display:none}
+.password-field-wrap input{width:100%;height:100%;padding-right:42px}
+.password-toggle{position:absolute!important;right:4px;top:50%;transform:translateY(-50%);width:34px;height:34px;padding:0!important;border:0!important;background:transparent!important;color:#64726d!important;border-radius:9px!important;display:grid;place-items:center}
+.password-toggle:hover{background:#f0f3f1!important}
+.firebase-danger-zone{margin-top:16px;padding-top:14px;border-top:1px solid #ead9d6}
+.firebase-danger-zone[hidden]{display:none!important}
+#firebaseSignOutAll{width:100%;border:1px solid #e4bdb6;background:#fff4f1;color:#9a3f32;border-radius:11px;padding:10px 12px;font-weight:700}
+#firebaseSignOutAll:disabled{opacity:.55}
+.review-feed-panel{padding-top:14px}
+.review-feed-intro{margin:8px 0 12px}
+.review-link-list{display:grid;gap:10px}
+.review-link-row{display:grid;gap:5px;font-size:11px;font-weight:700;color:#56635e}
+.review-link-field{display:grid;grid-template-columns:minmax(0,1fr) 40px;align-items:center;border:1px solid #cfd8d2;border-radius:11px;background:white;overflow:hidden}
+.review-link-field input{min-width:0;border:0!important;border-radius:0!important;padding:10px 9px!important;background:transparent!important;font:500 11px/1.3 ui-monospace,SFMono-Regular,Menlo,monospace}
+.review-link-field input:focus{outline:none}
+.field-icon-button{width:40px;height:40px;border-left:1px solid #e1e5e2;color:#42534d}
+.review-feed-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}
+.review-feed-actions button{border:1px solid #cfd8d2;background:white;border-radius:10px;padding:9px 11px;font-weight:700;color:#29443b}
+.review-feed-actions button:first-child{background:#1e5745;color:white;border-color:#1e5745}
+.review-feed-actions button:disabled{opacity:.45;cursor:default}
+#staticReviewStatus{min-height:16px;margin:8px 0 0}
+.bridge-setup-help{margin-top:8px;border-top:1px solid #e7eae7;padding-top:8px}
+.bridge-setup-help summary{font-size:11px!important;color:#64716c;cursor:pointer!important}
+.bridge-setup-help p{margin:7px 0 0}
+.notes-toast{position:fixed;left:50%;bottom:max(24px,calc(env(safe-area-inset-bottom) + 12px));z-index:180;transform:translate(-50%,12px);opacity:0;pointer-events:none;background:#193f35;color:#fff;border-radius:999px;padding:9px 13px;font:700 12px/1 'DM Sans',sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.2);transition:opacity .18s ease,transform .18s ease}
+.notes-toast.show{opacity:1;transform:translate(-50%,0)}
+@keyframes firebaseSyncSpin{to{transform:rotate(360deg)}}
+@keyframes firebaseSyncPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+@media(max-width:700px){.firebase-account-card{padding:12px}.firebase-account-main span,.firebase-account-main small{max-width:48vw}.review-feed-actions{display:grid;grid-template-columns:1fr 1fr}.review-feed-actions button{width:100%}}

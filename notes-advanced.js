@@ -47,11 +47,27 @@ function touchLocalSession(final=false){
   return s;
 }
 
+function eyeIcon(showing=false){
+  return showing
+    ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 10.7a2 2 0 0 0 2.7 2.7"/><path d="M9.9 4.2A10.8 10.8 0 0 1 12 4c5.5 0 9 5 9 5a16.4 16.4 0 0 1-3.1 3.6"/><path d="M6.6 6.6C4.4 8.1 3 10 3 10s3.5 5 9 5c1 0 2-.2 2.8-.5"/></svg>'
+    : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12s3.5-5 9-5 9 5 9 5-3.5 5-9 5-9-5-9-5Z"/><circle cx="12" cy="12" r="2.4"/></svg>';
+}
 function installPasswordToggle(){
-  const input=q('#firebasePassword');if(!input||q('#toggleFirebasePassword'))return;
-  const button=document.createElement('button');button.id='toggleFirebasePassword';button.type='button';button.className='password-toggle';button.textContent='Show password';
-  input.insertAdjacentElement('afterend',button);
-  button.addEventListener('click',()=>{const showing=input.type==='text';input.type=showing?'password':'text';button.textContent=showing?'Show password':'Hide password';});
+  const input=q('#firebasePassword');if(!input)return;
+  let wrap=input.closest('.password-field-wrap');
+  if(!wrap){
+    wrap=document.createElement('div');wrap.className='password-field-wrap';
+    input.parentNode.insertBefore(wrap,input);wrap.appendChild(input);
+  }
+  if(q('#toggleFirebasePassword',wrap))return;
+  const button=document.createElement('button');button.id='toggleFirebasePassword';button.type='button';button.className='password-toggle';
+  button.setAttribute('aria-label','Show password');button.title='Show password';button.innerHTML=eyeIcon(false);
+  wrap.appendChild(button);
+  button.addEventListener('click',()=>{
+    const showing=input.type==='text';input.type=showing?'password':'text';
+    const label=showing?'Show password':'Hide password';
+    button.setAttribute('aria-label',label);button.title=label;button.innerHTML=eyeIcon(!showing);
+  });
 }
 
 function installMinimiseAndDrag(){
@@ -135,14 +151,26 @@ async function logoutAllDevices(){
   const S=await sdk();if(!S.auth.currentUser||S.auth.currentUser.uid!==ADV_CLOUD.ownerUid)return;
   const epoch=crypto.randomUUID(),{ref}=await epochRef();await S.F.setDoc(ref,{app:ADV_CLOUD.appId||'beyond100',kind:'auth-epoch',epoch,updatedAt:new Date().toISOString()},{merge:true});localStorage.removeItem(AUTH_EPOCH_KEY);await S.Auth.signOut(S.auth);
 }
+function updateDangerVisibility(signedIn){
+  const zone=q('#firebaseDangerZone');if(zone)zone.hidden=!signedIn;
+}
 function installLogoutAll(){
-  const actions=q('#firebaseSignOut')?.parentElement;if(!actions||q('#firebaseSignOutAll'))return;
-  const b=document.createElement('button');b.id='firebaseSignOutAll';b.type='button';b.textContent='Log out all devices';b.addEventListener('click',async()=>{b.disabled=true;b.textContent='Logging out…';try{await logoutAllDevices()}finally{b.disabled=false;b.textContent='Log out all devices'}});actions.appendChild(b);
+  const panel=q('#firebaseSignIn')?.closest('.cloud-panel');if(!panel||q('#firebaseSignOutAll'))return;
+  const zone=document.createElement('div');zone.id='firebaseDangerZone';zone.className='firebase-danger-zone';zone.hidden=true;
+  const b=document.createElement('button');b.id='firebaseSignOutAll';b.type='button';b.textContent='Log out from all devices';
+  b.addEventListener('click',async()=>{
+    b.disabled=true;b.textContent='Logging out…';
+    try{await logoutAllDevices();window.BEYOND100_NOTES_TOAST?.('Logged out from all devices')}
+    finally{b.disabled=false;b.textContent='Log out from all devices'}
+  });
+  zone.appendChild(b);panel.appendChild(zone);
+  updateDangerVisibility(q('#firebaseAccountCard')?.dataset.state==='connected');
 }
 
 function mount(){installPasswordToggle();installMinimiseAndDrag();installInsights();installLogoutAll()}
 if(!q('#notesDialog')){const mo=new MutationObserver(()=>{if(q('#notesDialog')){mount();mo.disconnect()}});mo.observe(document.documentElement,{subtree:true,childList:true})}else mount();
 window.addEventListener('beyond100-review-status-applied',renderSummary);
+window.addEventListener('beyond100-firebase-auth',e=>{mount();updateDangerVisibility(!!e.detail?.signedIn)});
 window.addEventListener('storage',e=>{if(e.key===NOTES_KEY)renderSummary()});
 setInterval(()=>{if(q('#notesDialog')){mount();renderSummary()}},4000);
 startSessionTracking().catch(()=>{});

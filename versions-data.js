@@ -1,13 +1,29 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.7.3',
+  currentVersion: '0.7.4',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.7.4',
+      date: '2026-09-18',
+      title: 'Notes & Firebase UI Polish',
+      ref: 'main',
+      status: 'current',
+      summary: 'Simplifies Notes into a product-style review and Firebase workflow with icon-led account/sync states, clearer review links, compact actions, password visibility controls and a distinct logout-all-devices danger action.',
+      areas: [
+        { id: 'firebase-icons', title: 'Firebase and sync state icons', kind: 'ux', summary: 'Replaces verbose header status pills with a Firebase flame and separate sync control, including signed-out, syncing, synced and error states.' },
+        { id: 'account-card', title: 'Cleaner Firebase account card', kind: 'ux', summary: 'Groups account identity, one-tap sync and disconnect controls together and shows last sync feedback without duplicating lower-page buttons.' },
+        { id: 'password-eye', title: 'Password eye control', kind: 'ux', summary: 'Moves password reveal into an eye icon inside the password field.' },
+        { id: 'review-links', title: 'Simplified review links', kind: 'workflow', summary: 'Renames technical bridge fields and actions, adds copy/open icons and reduces the workflow to create/refresh the review link and check reviewed notes.' },
+        { id: 'danger-zone', title: 'Logout-all danger action', kind: 'security', summary: 'Moves app-level logout from all devices into a separate full-width danger action at the bottom of the Firebase account section.' },
+        { id: 'feedback', title: 'Compact interaction feedback', kind: 'ux', summary: 'Adds disabled states, copy/sync toasts, sync animation and success feedback for touch-first use.' }
+      ]
+    },
     {
       version: '0.7.3',
       date: '2026-09-18',
       title: 'Semantic Version Guard',
       ref: 'main',
-      status: 'current',
+      status: 'archive',
       summary: 'Enforces a semantic-version increase on every push to main so every deployed change has a distinct app version.',
       areas: [
         { id: 'semver-per-push', title: 'Version bump required on every push', kind: 'workflow', summary: 'GitHub Actions now compares the pushed currentVersion with the version at the pre-push main revision and fails deployment unless the new version is valid SemVer and greater.' },

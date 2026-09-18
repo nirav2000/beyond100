@@ -4,7 +4,7 @@ const COLLECTION='beyond100_review_feeds';
 const STATUS_FILE='review-status.json';
 const CLOUD=window.BEYOND100_CLOUD;
 const ACCOUNT_CONFIG_DOC='beyond100-review-config';
-let sdkPromise=null,lastPublished='',statusSyncing=false,accountFeedLinked=false;
+let sdkPromise=null,lastPublished='',statusSyncing=false,accountFeedLinked=false,reviewSignedIn=false;
 
 function loadJson(key,fallback){try{return JSON.parse(localStorage.getItem(key)||JSON.stringify(fallback))}catch{return fallback}}
 function saveFeedMeta(value){localStorage.setItem(REVIEW_FEED_STORAGE,JSON.stringify(value))}
@@ -97,18 +97,59 @@ async function applyStatusLedger(){
 }
 async function replaceFeed(){lastPublished='';await publish(true)}
 async function revokeFeed(){throw new Error('Account-level review feeds are permanent. Rotate the bridge link instead if needed.')}
+function reviewIcon(name){
+  const icons={
+    copy:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="10" height="10" rx="2"/><path d="M6 15H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"/></svg>',
+    open:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6"/><path d="M20 4 11 13"/><path d="M18 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5"/></svg>'
+  };
+  return icons[name]||'';
+}
+function reviewToast(text){window.BEYOND100_NOTES_TOAST?.(text)}
+function setReviewControlsEnabled(signedIn){
+  reviewSignedIn=!!signedIn;
+  ['refreshStaticReview','syncReviewStatuses'].forEach(id=>{const b=document.getElementById(id);if(b)b.disabled=!reviewSignedIn});
+  renderPanel();
+}
+async function copyReviewLink(){
+  const id=feedMeta()?.id;if(!id)return;
+  try{await navigator.clipboard.writeText(rawUrl(id));reviewToast('Review link copied');setStatus('Review link copied.')}
+  catch{setStatus('Could not copy the review link.')}
+}
 function mount(){
   const body=document.querySelector('.notes-body');if(!body||document.querySelector('#staticReviewFeedPanel'))return false;
-  const el=document.createElement('details');el.className='cloud-panel';el.id='staticReviewFeedPanel';el.open=true;el.innerHTML=`<summary>Permanent ChatGPT review feed</summary><p class="muted">Beyond 100 publishes only notes marked for review. The feed identity is stored privately in your Firebase learner account so every device can use the same feed.</p><div class="cloud-form"><label class="muted">ChatGPT / GitHub bridge JSON link</label><input id="staticReviewRawUrl" readonly placeholder="Create / publish first"><label class="muted">Human review page</label><input id="staticReviewPageUrl" readonly placeholder="Create / publish first"><div class="cloud-actions"><button id="createStaticReview" type="button">Create / publish</button><button id="copyStaticReview" type="button">Copy bridge link</button><button id="openStaticReview" type="button">Open review page</button><button id="syncReviewStatuses" type="button">Sync statuses</button><button id="replaceStaticReview" type="button">Republish</button></div><p class="muted" id="staticReviewStatus"></p><p class="muted bridge-help">One-time bridge setup: use <b>Copy bridge link</b> as the value of the GitHub Actions secret <b>FBNOTES</b>. Firebase note sync remains separate and is shown by the green ✓ at the top of Notes.</p></div>`;
-  const firebasePanel=[...body.querySelectorAll('.cloud-panel')].find(x=>x!==el);body.insertBefore(el,firebasePanel||null);
-  el.querySelector('#createStaticReview').onclick=()=>publish(true).then(ok=>setStatus(ok?'Published current review notes.':'Sign in under Firebase sync first.')).catch(e=>setStatus(e.message));
-  el.querySelector('#copyStaticReview').onclick=async()=>{const id=feedMeta()?.id;if(!id)return;try{await navigator.clipboard.writeText(rawUrl(id));setStatus('ChatGPT JSON link copied.')}catch{}};
-  el.querySelector('#openStaticReview').onclick=()=>{const u=feedMeta()?.url;if(u)window.open(u,'_blank','noopener,noreferrer')};
-  el.querySelector('#syncReviewStatuses').onclick=()=>applyStatusLedger().then(changed=>setStatus(changed?'Review statuses applied.':'No newer review statuses found.'));
-  el.querySelector('#replaceStaticReview').onclick=()=>replaceFeed().then(()=>setStatus('Permanent review feed republished.')).catch(e=>setStatus(e.message));renderPanel();return true;
+  const el=document.createElement('details');el.className='cloud-panel review-feed-panel';el.id='staticReviewFeedPanel';el.open=true;
+  el.innerHTML=`<summary>Review feed</summary>
+    <p class="muted review-feed-intro">Only notes marked for review are included. The same review link is shared across your signed-in devices.</p>
+    <div class="review-link-list">
+      <label class="review-link-row"><span>Review link for ChatGPT</span><div class="review-link-field"><input id="staticReviewRawUrl" readonly placeholder="Create review link first"><button id="copyStaticReview" class="field-icon-button" type="button" aria-label="Copy review link" title="Copy review link">${reviewIcon('copy')}</button></div></label>
+      <label class="review-link-row"><span>Review page</span><div class="review-link-field"><input id="staticReviewPageUrl" readonly placeholder="Create review link first"><button id="openStaticReview" class="field-icon-button" type="button" aria-label="Open review page in browser" title="Open review page in browser">${reviewIcon('open')}</button></div></label>
+    </div>
+    <div class="review-feed-actions"><button id="refreshStaticReview" type="button">Create review link</button><button id="syncReviewStatuses" type="button">Check reviewed notes</button></div>
+    <p class="muted" id="staticReviewStatus" role="status"></p>
+    <details class="bridge-setup-help"><summary>Bridge setup</summary><p class="muted">For the GitHub bridge, copy the review link above into the <b>FBNOTES</b> Actions secret. This is separate from ordinary Firebase notes sync.</p></details>`;
+  const firebasePanel=[...body.querySelectorAll('.cloud-panel')].find(x=>x!==el&&x.querySelector('#firebaseSignIn'));body.insertBefore(el,firebasePanel||null);
+  el.querySelector('#refreshStaticReview').onclick=()=>publish(true).then(ok=>{setStatus(ok?'Review link refreshed.':'Sign in to Firebase first.');if(ok)reviewToast('Review link refreshed')}).catch(e=>setStatus(e.message));
+  el.querySelector('#copyStaticReview').onclick=copyReviewLink;
+  el.querySelector('#openStaticReview').onclick=()=>{const id=feedMeta()?.id;if(id)window.open(pageUrl(id),'_blank','noopener,noreferrer')};
+  el.querySelector('#syncReviewStatuses').onclick=()=>applyStatusLedger().then(changed=>{setStatus(changed?'Reviewed-note statuses updated.':'No newer reviewed-note statuses found.');reviewToast(changed?'Reviewed notes updated':'No new reviewed-note statuses')});
+  setReviewControlsEnabled(document.querySelector('#firebaseAccountCard')?.dataset.state==='connected');
+  renderPanel();return true;
 }
-function setStatus(t){const el=document.querySelector('#staticReviewStatus');if(el)el.textContent=t||''}
-function renderPanel(){const raw=document.querySelector('#staticReviewRawUrl'),page=document.querySelector('#staticReviewPageUrl');if(!raw||!page)return;const meta=feedMeta();raw.value=meta?.id?rawUrl(meta.id):'';page.value=meta?.id?pageUrl(meta.id):'';const account=accountFeedLinked?' · account feed ✓':'';setStatus(meta?.lastPublishedAt?`Review feed ✓${account} · ${pendingNotes().length} pending · published ${new Date(meta.lastPublishedAt).toLocaleString('en-GB')}.`:`Review feed ready${account} · ${pendingNotes().length} pending.`)}
+function setStatus(t){
+  const el=document.querySelector('#staticReviewStatus');if(el)el.textContent=t||'';
+}
+function renderPanel(){
+  const raw=document.querySelector('#staticReviewRawUrl'),page=document.querySelector('#staticReviewPageUrl');if(!raw||!page)return;
+  const meta=feedMeta(),hasLink=!!meta?.id;
+  raw.value=hasLink?rawUrl(meta.id):'';page.value=hasLink?pageUrl(meta.id):'';
+  const refresh=document.querySelector('#refreshStaticReview');if(refresh)refresh.textContent=hasLink?'Refresh review link':'Create review link';
+  const copy=document.querySelector('#copyStaticReview'),open=document.querySelector('#openStaticReview');
+  if(copy)copy.disabled=!hasLink;if(open)open.disabled=!hasLink;
+  ['refreshStaticReview','syncReviewStatuses'].forEach(id=>{const b=document.getElementById(id);if(b)b.disabled=!reviewSignedIn});
+  const account=accountFeedLinked?' · account link ready':'';
+  setStatus(meta?.lastPublishedAt?`Review feed ready${account} · ${pendingNotes().length} pending · refreshed ${new Date(meta.lastPublishedAt).toLocaleString('en-GB')}.`:`Review feed ${hasLink?'ready':'not created'}${account} · ${pendingNotes().length} pending.`);
+}
 if(!mount()){const mo=new MutationObserver(()=>{if(mount())mo.disconnect()});mo.observe(document.documentElement,{subtree:true,childList:true})}
+window.addEventListener('beyond100-firebase-auth',e=>setReviewControlsEnabled(!!e.detail?.signedIn));
 async function cycle(){await applyStatusLedger();await publish(false)}
 setInterval(()=>cycle().catch(()=>{}),5000);window.addEventListener('focus',()=>cycle().catch(()=>{}));window.addEventListener('online',()=>cycle().catch(()=>{}));cycle().catch(()=>{});
