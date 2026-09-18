@@ -3,12 +3,12 @@ const NOTES_STORAGE='beyond100.notes.v1';
 const COLLECTION='beyond100_review_feeds';
 const STATUS_FILE='review-status.json';
 const CLOUD=window.BEYOND100_CLOUD;
-const CANONICAL_FEED_ID='DaoXNg6gv502sSMOpNhsczn99sRwEulCIfrJ1HSP0hE';
+const ACCOUNT_CONFIG_DOC='beyond100-review-config';
 let sdkPromise=null,lastPublished='',statusSyncing=false;
 
 function loadJson(key,fallback){try{return JSON.parse(localStorage.getItem(key)||JSON.stringify(fallback))}catch{return fallback}}
 function saveFeedMeta(value){localStorage.setItem(REVIEW_FEED_STORAGE,JSON.stringify(value))}
-function feedMeta(){const saved=loadJson(REVIEW_FEED_STORAGE,null)||{};return {...saved,id:CANONICAL_FEED_ID}}
+function feedMeta(){return loadJson(REVIEW_FEED_STORAGE,null)}
 function randomId(){const bytes=new Uint8Array(32);crypto.getRandomValues(bytes);return btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
 function pendingNotes(){return loadJson(NOTES_STORAGE,[]).filter(n=>n&&n.reviewRequired!==false&&n.status!=='archived'&&n.status!=='actioned').map(n=>({id:n.id||'',status:n.status||'open',text:n.text||'',anchorId:n.anchorId||'',anchorLabel:n.anchorLabel||'',selectedText:n.selectedText||'',elementText:n.elementText||'',topic:n.topic||'',section:n.section||'',page:n.page||'',version:n.version||'',createdAt:n.createdAt||null,updatedAt:n.updatedAt||null}))}
 function appVersion(){return window.BEYOND100_RELEASES?.currentVersion||window.BEYOND100_DATA?.meta?.version||'0.0.0'}
@@ -19,6 +19,40 @@ async function firebase(){
   sdkPromise=(async()=>{const [A,Auth,F]=await Promise.all([import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js'),import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js'),import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js')]);const app=A.getApps()[0]||A.initializeApp(CLOUD.firebase),auth=Auth.getAuth(app);await auth.authStateReady();return {auth,F,db:F.getFirestore(app)}})();return sdkPromise;
 }
 function cloudBase(){return CLOUD.firestoreBase||['families',CLOUD.ownerUid,'learners',CLOUD.learnerId,'progress']}
+function configRef(f){return f.F.doc(f.db,...cloudBase(),ACCOUNT_CONFIG_DOC)}
+function parseFeedId(value=''){
+  const text=String(value).trim();
+  const hash=text.match(/#([A-Za-z0-9_-]{40,120})$/)?.[1];if(hash)return hash;
+  const path=text.match(/beyond100_review_feeds\/([A-Za-z0-9_-]{40,120})/)?.[1];if(path)return path;
+  return /^[A-Za-z0-9_-]{40,120}$/.test(text)?text:null;
+}
+async function accountFeedMeta(f){
+  const local=feedMeta();
+  try{
+    const snap=await f.F.getDoc(configRef(f));
+    if(snap.exists()&&parseFeedId(snap.data()?.feedId)){
+      const id=parseFeedId(snap.data().feedId);
+      if(local?.id!==id)saveFeedMeta({...local,id});
+      return {...local,id,createdAt:local?.createdAt||snap.data().createdAt||new Date().toISOString()};
+    }
+  }catch{}
+  if(local?.id){
+    await f.F.setDoc(configRef(f),{app:'beyond100',kind:'review-config',feedId:local.id,createdAt:local.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()},{merge:true});
+    return local;
+  }
+  const meta={id:randomId(),createdAt:new Date().toISOString()};
+  saveFeedMeta(meta);
+  await f.F.setDoc(configRef(f),{app:'beyond100',kind:'review-config',feedId:meta.id,createdAt:meta.createdAt,updatedAt:new Date().toISOString()},{merge:true});
+  return meta;
+}
+async function setAccountFeed(value){
+  const f=await firebase();if(!f.auth.currentUser||f.auth.currentUser.uid!==CLOUD.ownerUid)throw new Error('Sign in under Firebase sync first.');
+  const id=parseFeedId(value);if(!id)throw new Error('Paste a valid Beyond 100 review JSON link or feed ID.');
+  const meta={...(feedMeta()||{}),id,createdAt:feedMeta()?.createdAt||new Date().toISOString()};
+  saveFeedMeta(meta);
+  await f.F.setDoc(configRef(f),{app:'beyond100',kind:'review-config',feedId:id,createdAt:meta.createdAt,updatedAt:new Date().toISOString()},{merge:true});
+  lastPublished='';await publish(true);renderPanel();
+}
 function hashFeed(notes){return JSON.stringify(notes.map(n=>[n.id,n.updatedAt,n.status,n.text,n.anchorId]))}
 function normalizedText(value=''){return String(value).toLowerCase().replace(/[’']/g,"'").replace(/\s+/g,' ').trim()}
 function ledgerDecision(ledger,note){
@@ -33,7 +67,7 @@ function ledgerDecision(ledger,note){
 }
 async function publish(force=false){
   const f=await firebase();if(!f.auth.currentUser||f.auth.currentUser.uid!==CLOUD.ownerUid)return false;
-  let meta=feedMeta();if(!meta?.createdAt){meta={...meta,createdAt:new Date().toISOString()};saveFeedMeta(meta)}
+  let meta=await accountFeedMeta(f);if(!meta?.createdAt){meta={...meta,createdAt:new Date().toISOString()};saveFeedMeta(meta)}
   const notes=pendingNotes(),signature=hashFeed(notes);if(!force&&signature===lastPublished)return true;
   const payload={app:'beyond100',schema:'beyond100-static-review-v1',repository:'nirav2000/beyond100',version:appVersion(),updatedAt:new Date().toISOString(),createdAt:meta.createdAt||new Date().toISOString(),pendingCount:notes.length,notes};
   await f.F.setDoc(f.F.doc(f.db,COLLECTION,meta.id),payload,{merge:false});lastPublished=signature;saveFeedMeta({...meta,lastPublishedAt:payload.updatedAt,url:pageUrl(meta.id),rawUrl:rawUrl(meta.id)});renderPanel();return true;
@@ -57,21 +91,21 @@ async function applyStatusLedger(){
     return changed;
   }catch{return false}finally{statusSyncing=false}
 }
-async function replaceFeed(){if(!confirm('Beyond 100 now uses one permanent account-level review feed. Republish it now?'))return;lastPublished='';await publish(true)}
-async function revokeFeed(){const f=await firebase(),meta=feedMeta();if(!f.auth.currentUser||f.auth.currentUser.uid!==CLOUD.ownerUid)throw new Error('Sign in under Firebase sync first.');try{await f.F.deleteDoc(f.F.doc(f.db,COLLECTION,meta.id))}catch{}localStorage.removeItem(REVIEW_FEED_STORAGE);lastPublished='';renderPanel()}
+async function replaceFeed(){lastPublished='';await publish(true)}
+async function revokeFeed(){throw new Error('Account-level review feeds are permanent. Rotate the bridge link instead if needed.')}
 function mount(){
   const body=document.querySelector('.notes-body');if(!body||document.querySelector('#staticReviewFeedPanel'))return false;
-  const el=document.createElement('details');el.className='cloud-panel';el.id='staticReviewFeedPanel';el.open=true;el.innerHTML=`<summary>Permanent ChatGPT review feed</summary><p class="muted">Use the JSON link with ChatGPT. The human review page is for opening in Safari. While you are signed into Firebase, Beyond 100 keeps the limited review snapshot up to date and pulls completed-note statuses back from GitHub.</p><div class="cloud-form"><label class="muted">ChatGPT JSON link</label><input id="staticReviewRawUrl" readonly placeholder="Create / publish first"><label class="muted">Human review page</label><input id="staticReviewPageUrl" readonly placeholder="Create / publish first"><div class="cloud-actions"><button id="createStaticReview" type="button">Create / publish</button><button id="copyStaticReview" type="button">Copy ChatGPT link</button><button id="openStaticReview" type="button">Open review page</button><button id="syncReviewStatuses" type="button">Sync statuses</button><button id="replaceStaticReview" type="button">Replace</button><button id="revokeStaticReview" type="button">Revoke</button></div><p class="muted" id="staticReviewStatus"></p></div>`;
+  const el=document.createElement('details');el.className='cloud-panel';el.id='staticReviewFeedPanel';el.open=true;el.innerHTML=`<summary>Permanent ChatGPT review feed</summary><p class="muted">Use the JSON link with ChatGPT. The human review page is for opening in Safari. While you are signed into Firebase, Beyond 100 keeps the limited review snapshot up to date and pulls completed-note statuses back from GitHub.</p><div class="cloud-form"><label class="muted">ChatGPT JSON link</label><input id="staticReviewRawUrl" readonly placeholder="Create / publish first"><label class="muted">Human review page</label><input id="staticReviewPageUrl" readonly placeholder="Create / publish first"><label class="muted">Account bridge link (private)</label><input id="accountReviewFeedInput" placeholder="Paste the existing ChatGPT JSON link once to link all devices"><div class="cloud-actions"><button id="createStaticReview" type="button">Create / publish</button><button id="copyStaticReview" type="button">Copy ChatGPT link</button><button id="openStaticReview" type="button">Open review page</button><button id="syncReviewStatuses" type="button">Sync statuses</button><button id="setAccountReviewFeed" type="button">Link this account feed</button><button id="replaceStaticReview" type="button">Republish</button></div><p class="muted" id="staticReviewStatus"></p></div>`;
   const firebasePanel=[...body.querySelectorAll('.cloud-panel')].find(x=>x!==el);body.insertBefore(el,firebasePanel||null);
   el.querySelector('#createStaticReview').onclick=()=>publish(true).then(ok=>setStatus(ok?'Published current review notes.':'Sign in under Firebase sync first.')).catch(e=>setStatus(e.message));
   el.querySelector('#copyStaticReview').onclick=async()=>{const id=feedMeta()?.id;if(!id)return;try{await navigator.clipboard.writeText(rawUrl(id));setStatus('ChatGPT JSON link copied.')}catch{}};
   el.querySelector('#openStaticReview').onclick=()=>{const u=feedMeta()?.url;if(u)window.open(u,'_blank','noopener,noreferrer')};
   el.querySelector('#syncReviewStatuses').onclick=()=>applyStatusLedger().then(changed=>setStatus(changed?'Review statuses applied.':'No newer review statuses found.'));
-  el.querySelector('#replaceStaticReview').textContent='Republish';el.querySelector('#replaceStaticReview').onclick=()=>replaceFeed().then(()=>setStatus('Permanent review feed republished.')).catch(e=>setStatus(e.message));
-  el.querySelector('#revokeStaticReview').onclick=()=>revokeFeed().then(()=>setStatus('Review feed revoked.')).catch(e=>setStatus(e.message));renderPanel();return true;
+  el.querySelector('#setAccountReviewFeed').onclick=()=>setAccountFeed(el.querySelector('#accountReviewFeedInput').value).then(()=>setStatus('Account review feed linked and published.')).catch(e=>setStatus(e.message));
+  el.querySelector('#replaceStaticReview').onclick=()=>replaceFeed().then(()=>setStatus('Permanent review feed republished.')).catch(e=>setStatus(e.message));renderPanel();return true;
 }
 function setStatus(t){const el=document.querySelector('#staticReviewStatus');if(el)el.textContent=t||''}
-function renderPanel(){const raw=document.querySelector('#staticReviewRawUrl'),page=document.querySelector('#staticReviewPageUrl');if(!raw||!page)return;const meta=feedMeta();raw.value=rawUrl(CANONICAL_FEED_ID);page.value=pageUrl(CANONICAL_FEED_ID);setStatus(meta?.lastPublishedAt?`Review feed ✓ · ${pendingNotes().length} pending · published ${new Date(meta.lastPublishedAt).toLocaleString('en-GB')}. Firebase note sync is shown separately above.`:`Review feed ready · ${pendingNotes().length} pending. Firebase note sync is shown separately above.`)}
+function renderPanel(){const raw=document.querySelector('#staticReviewRawUrl'),page=document.querySelector('#staticReviewPageUrl');if(!raw||!page)return;const meta=feedMeta();raw.value=meta?.id?rawUrl(meta.id):'';page.value=meta?.id?pageUrl(meta.id):'';setStatus(meta?.lastPublishedAt?`Review feed ✓ · ${pendingNotes().length} pending · published ${new Date(meta.lastPublishedAt).toLocaleString('en-GB')}. Firebase note sync is shown separately above.`:`Review feed ready · ${pendingNotes().length} pending. Firebase note sync is shown separately above.`)}
 if(!mount()){const mo=new MutationObserver(()=>{if(mount())mo.disconnect()});mo.observe(document.documentElement,{subtree:true,childList:true})}
 async function cycle(){await applyStatusLedger();await publish(false)}
 setInterval(()=>cycle().catch(()=>{}),5000);window.addEventListener('focus',()=>cycle().catch(()=>{}));window.addEventListener('online',()=>cycle().catch(()=>{}));cycle().catch(()=>{});
