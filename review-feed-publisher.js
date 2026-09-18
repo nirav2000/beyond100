@@ -4,7 +4,7 @@ const COLLECTION='beyond100_review_feeds';
 const STATUS_FILE='review-status.json';
 const CLOUD=window.BEYOND100_CLOUD;
 const ACCOUNT_CONFIG_DOC='beyond100-review-config';
-let sdkPromise=null,lastPublished='',statusSyncing=false;
+let sdkPromise=null,lastPublished='',statusSyncing=false,accountFeedLinked=false;
 
 function loadJson(key,fallback){try{return JSON.parse(localStorage.getItem(key)||JSON.stringify(fallback))}catch{return fallback}}
 function saveFeedMeta(value){localStorage.setItem(REVIEW_FEED_STORAGE,JSON.stringify(value))}
@@ -33,16 +33,19 @@ async function accountFeedMeta(f){
     if(snap.exists()&&parseFeedId(snap.data()?.feedId)){
       const id=parseFeedId(snap.data().feedId);
       if(local?.id!==id)saveFeedMeta({...local,id});
+      accountFeedLinked=true;
       return {...local,id,createdAt:local?.createdAt||snap.data().createdAt||new Date().toISOString()};
     }
   }catch{}
   if(local?.id){
     await f.F.setDoc(configRef(f),{app:'beyond100',kind:'review-config',feedId:local.id,createdAt:local.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()},{merge:true});
+    accountFeedLinked=true;
     return local;
   }
   const meta={id:randomId(),createdAt:new Date().toISOString()};
   saveFeedMeta(meta);
   await f.F.setDoc(configRef(f),{app:'beyond100',kind:'review-config',feedId:meta.id,createdAt:meta.createdAt,updatedAt:new Date().toISOString()},{merge:true});
+  accountFeedLinked=true;
   return meta;
 }
 async function setAccountFeed(value){
@@ -51,6 +54,7 @@ async function setAccountFeed(value){
   const meta={...(feedMeta()||{}),id,createdAt:feedMeta()?.createdAt||new Date().toISOString()};
   saveFeedMeta(meta);
   await f.F.setDoc(configRef(f),{app:'beyond100',kind:'review-config',feedId:id,createdAt:meta.createdAt,updatedAt:new Date().toISOString()},{merge:true});
+  accountFeedLinked=true;
   lastPublished='';await publish(true);renderPanel();
 }
 function hashFeed(notes){return JSON.stringify(notes.map(n=>[n.id,n.updatedAt,n.status,n.text,n.anchorId]))}
@@ -95,17 +99,16 @@ async function replaceFeed(){lastPublished='';await publish(true)}
 async function revokeFeed(){throw new Error('Account-level review feeds are permanent. Rotate the bridge link instead if needed.')}
 function mount(){
   const body=document.querySelector('.notes-body');if(!body||document.querySelector('#staticReviewFeedPanel'))return false;
-  const el=document.createElement('details');el.className='cloud-panel';el.id='staticReviewFeedPanel';el.open=true;el.innerHTML=`<summary>Permanent ChatGPT review feed</summary><p class="muted">Use the JSON link with ChatGPT. The human review page is for opening in Safari. While you are signed into Firebase, Beyond 100 keeps the limited review snapshot up to date and pulls completed-note statuses back from GitHub.</p><div class="cloud-form"><label class="muted">ChatGPT JSON link</label><input id="staticReviewRawUrl" readonly placeholder="Create / publish first"><label class="muted">Human review page</label><input id="staticReviewPageUrl" readonly placeholder="Create / publish first"><label class="muted">Account bridge link (private)</label><input id="accountReviewFeedInput" placeholder="Paste the existing ChatGPT JSON link once to link all devices"><div class="cloud-actions"><button id="createStaticReview" type="button">Create / publish</button><button id="copyStaticReview" type="button">Copy ChatGPT link</button><button id="openStaticReview" type="button">Open review page</button><button id="syncReviewStatuses" type="button">Sync statuses</button><button id="setAccountReviewFeed" type="button">Link this account feed</button><button id="replaceStaticReview" type="button">Republish</button></div><p class="muted" id="staticReviewStatus"></p></div>`;
+  const el=document.createElement('details');el.className='cloud-panel';el.id='staticReviewFeedPanel';el.open=true;el.innerHTML=`<summary>Permanent ChatGPT review feed</summary><p class="muted">Beyond 100 publishes only notes marked for review. The feed identity is stored privately in your Firebase learner account so every device can use the same feed.</p><div class="cloud-form"><label class="muted">ChatGPT / GitHub bridge JSON link</label><input id="staticReviewRawUrl" readonly placeholder="Create / publish first"><label class="muted">Human review page</label><input id="staticReviewPageUrl" readonly placeholder="Create / publish first"><div class="cloud-actions"><button id="createStaticReview" type="button">Create / publish</button><button id="copyStaticReview" type="button">Copy bridge link</button><button id="openStaticReview" type="button">Open review page</button><button id="syncReviewStatuses" type="button">Sync statuses</button><button id="replaceStaticReview" type="button">Republish</button></div><p class="muted" id="staticReviewStatus"></p><p class="muted bridge-help">One-time bridge setup: use <b>Copy bridge link</b> as the value of the GitHub Actions secret <b>FBNOTES</b>. Firebase note sync remains separate and is shown by the green ✓ at the top of Notes.</p></div>`;
   const firebasePanel=[...body.querySelectorAll('.cloud-panel')].find(x=>x!==el);body.insertBefore(el,firebasePanel||null);
   el.querySelector('#createStaticReview').onclick=()=>publish(true).then(ok=>setStatus(ok?'Published current review notes.':'Sign in under Firebase sync first.')).catch(e=>setStatus(e.message));
   el.querySelector('#copyStaticReview').onclick=async()=>{const id=feedMeta()?.id;if(!id)return;try{await navigator.clipboard.writeText(rawUrl(id));setStatus('ChatGPT JSON link copied.')}catch{}};
   el.querySelector('#openStaticReview').onclick=()=>{const u=feedMeta()?.url;if(u)window.open(u,'_blank','noopener,noreferrer')};
   el.querySelector('#syncReviewStatuses').onclick=()=>applyStatusLedger().then(changed=>setStatus(changed?'Review statuses applied.':'No newer review statuses found.'));
-  el.querySelector('#setAccountReviewFeed').onclick=()=>setAccountFeed(el.querySelector('#accountReviewFeedInput').value).then(()=>setStatus('Account review feed linked and published.')).catch(e=>setStatus(e.message));
   el.querySelector('#replaceStaticReview').onclick=()=>replaceFeed().then(()=>setStatus('Permanent review feed republished.')).catch(e=>setStatus(e.message));renderPanel();return true;
 }
 function setStatus(t){const el=document.querySelector('#staticReviewStatus');if(el)el.textContent=t||''}
-function renderPanel(){const raw=document.querySelector('#staticReviewRawUrl'),page=document.querySelector('#staticReviewPageUrl');if(!raw||!page)return;const meta=feedMeta();raw.value=meta?.id?rawUrl(meta.id):'';page.value=meta?.id?pageUrl(meta.id):'';setStatus(meta?.lastPublishedAt?`Review feed ✓ · ${pendingNotes().length} pending · published ${new Date(meta.lastPublishedAt).toLocaleString('en-GB')}. Firebase note sync is shown separately above.`:`Review feed ready · ${pendingNotes().length} pending. Firebase note sync is shown separately above.`)}
+function renderPanel(){const raw=document.querySelector('#staticReviewRawUrl'),page=document.querySelector('#staticReviewPageUrl');if(!raw||!page)return;const meta=feedMeta();raw.value=meta?.id?rawUrl(meta.id):'';page.value=meta?.id?pageUrl(meta.id):'';const account=accountFeedLinked?' · account feed ✓':'';setStatus(meta?.lastPublishedAt?`Review feed ✓${account} · ${pendingNotes().length} pending · published ${new Date(meta.lastPublishedAt).toLocaleString('en-GB')}.`:`Review feed ready${account} · ${pendingNotes().length} pending.`)}
 if(!mount()){const mo=new MutationObserver(()=>{if(mount())mo.disconnect()});mo.observe(document.documentElement,{subtree:true,childList:true})}
 async function cycle(){await applyStatusLedger();await publish(false)}
 setInterval(()=>cycle().catch(()=>{}),5000);window.addEventListener('focus',()=>cycle().catch(()=>{}));window.addEventListener('online',()=>cycle().catch(()=>{}));cycle().catch(()=>{});
