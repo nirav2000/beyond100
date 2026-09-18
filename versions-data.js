@@ -1,13 +1,29 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.7.1',
+  currentVersion: '0.7.2',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.7.2',
+      date: '2026-09-18',
+      title: 'Focus & Review Reliability',
+      ref: 'main',
+      status: 'current',
+      summary: 'Makes the review feed account-level rather than browser-specific, preserves a quick Firebase sync indicator, adds a low-distraction focus view, collapsible topic navigation, flippable mastery cards and annotations on the brand/topics area.',
+      areas: [
+        { id: 'canonical-review-feed', title: 'One permanent review feed', kind: 'repair', summary: 'All devices now publish review notes to the same permanent Firestore capability document used by the GitHub bridge.' },
+        { id: 'firebase-sync-indicator', title: 'Firebase sync indicator retained', kind: 'ux', summary: 'The Notes UI keeps its quick signed-in/synced visual status while the separate review-feed state is shown independently.' },
+        { id: 'focus-view', title: 'Progressive focus view', kind: 'feature', summary: 'Adds a Focus control that presents one learning block at a time with previous/next navigation and temporarily collapses the topic sidebar.' },
+        { id: 'collapsible-topics', title: 'Collapsible topic sidebar', kind: 'feature', summary: 'Desktop topic navigation can be collapsed manually and auto-collapses on narrower desktop layouts or in Focus mode.' },
+        { id: 'flippable-mastery', title: 'Flippable mastery cards', kind: 'feature', summary: 'Mastery cards hide their examples until revealed by double-click, keyboard Enter or the explicit reveal button.' },
+        { id: 'broader-annotations', title: 'Brand and topics annotations', kind: 'repair', summary: 'Annotation discovery now includes the Beyond 100 brand, Topics sidebar, subject tabs and individual topic controls.' }
+      ]
+    },
     {
       version: '0.7.1',
       date: '2026-09-17',
       title: 'Learner Identity & Private Context',
       ref: 'main',
-      status: 'current',
+      status: 'archive',
       summary: 'Separates Beyond 100 as the app from Sai as the learner, resolves Sai’s existing learner profile in the shared Firebase project, migrates legacy Beyond 100 records, and adds a Firebase-only area for personal school context.',
       areas: [
         { id: 'identity-separation', title: 'App and learner identity separated', kind: 'architecture', summary: 'Beyond 100 remains the application name while learner data is routed to Sai’s existing Firebase learner profile rather than treating sai-beyond100 as a username.' },
