@@ -1,13 +1,25 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.7.2',
+  currentVersion: '0.7.3',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.7.3',
+      date: '2026-09-18',
+      title: 'Semantic Version Guard',
+      ref: 'main',
+      status: 'current',
+      summary: 'Enforces a semantic-version increase on every push to main so every deployed change has a distinct app version.',
+      areas: [
+        { id: 'semver-per-push', title: 'Version bump required on every push', kind: 'workflow', summary: 'GitHub Actions now compares the pushed currentVersion with the version at the pre-push main revision and fails deployment unless the new version is valid SemVer and greater.' },
+        { id: 'release-discipline', title: 'Patch by default', kind: 'workflow', summary: 'Routine fixes and small changes increment PATCH; backward-compatible feature releases increment MINOR; breaking releases increment MAJOR.' }
+      ]
+    },
     {
       version: '0.7.2',
       date: '2026-09-18',
       title: 'Focus & Review Reliability',
       ref: 'main',
-      status: 'current',
+      status: 'archive',
       summary: 'Makes the review feed account-level rather than browser-specific, preserves a quick Firebase sync indicator, adds a low-distraction focus view, collapsible topic navigation, flippable mastery cards and annotations on the brand/topics area.',
       areas: [
         { id: 'canonical-review-feed', title: 'One permanent review feed', kind: 'repair', summary: 'All devices now publish review notes to the same permanent Firestore capability document used by the GitHub bridge.' },

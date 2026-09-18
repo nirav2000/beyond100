@@ -23,6 +23,46 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Require semantic version bump on every push
+        if: github.event_name == 'push'
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const { execFileSync } = require('child_process');
+
+          const before = process.env.BEFORE_SHA;
+          if (!before || /^0+$/.test(before)) {
+            console.log('No prior push revision available; skipping version comparison.');
+            process.exit(0);
+          }
+
+          const currentText = fs.readFileSync('versions-data.js', 'utf8');
+          const previousText = execFileSync('git', ['show', `${before}:versions-data.js`], { encoding: 'utf8' });
+
+          const getVersion = text => {
+            const m = text.match(/currentVersion:\s*'([^']+)'/);
+            if (!m) throw new Error('Could not read currentVersion from versions-data.js');
+            return m[1];
+          };
+          const parse = value => {
+            const m = value.match(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/);
+            if (!m) throw new Error(`Invalid SemVer: ${value}`);
+            return m.slice(1, 4).map(Number);
+          };
+          const greater = (a,b) => a[0] > b[0] || (a[0] === b[0] && (a[1] > b[1] || (a[1] === b[1] && a[2] > b[2])));
+
+          const previous = getVersion(previousText);
+          const current = getVersion(currentText);
+          if (!greater(parse(current), parse(previous))) {
+            throw new Error(`Every push to main must increase currentVersion. Previous: ${previous}; pushed: ${current}`);
+          }
+          console.log(`Version bump verified: ${previous} -> ${current}`);
+          NODE
 
       - name: Validate JavaScript
         run: |
