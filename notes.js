@@ -285,8 +285,10 @@ function elementContext(el,selectedText=''){
 
 document.addEventListener('click',e=>{
   if(!state.annotationMode)return;
-  if(e.target.closest('.notes-dialog,.annotation-banner,.selection-note-button,#annotateButton,#notesButton,input,textarea,select,a,button'))return;
+  if(e.target.closest('.notes-dialog,.annotation-banner,.selection-note-button,#annotateButton,#notesButton,input,textarea,select'))return;
   const el=nearestAnnotatable(e.target);if(!el)return;
+  const control=e.target.closest('a,button');
+  if(control && !control.matches('[data-note-anchor]') && !control.closest('[data-note-anchor]'))return;
   e.preventDefault();e.stopPropagation();
   const sel=window.getSelection();const selected=sel&&!sel.isCollapsed&&el.contains(sel.anchorNode)&&el.contains(sel.focusNode)?sel.toString():'';
   toggleAnnotationMode(false);openComposer(elementContext(el,selected));
@@ -378,7 +380,7 @@ async function upsertCloud(note){
     setCloudStatus('syncing','Syncing…');
     const ref=F.doc(state.db,...cloudBase(),`beyond100-note-${note.id}`);
     await F.setDoc(ref,{app:CONFIG.appId||'beyond100',kind:'note',noteId:note.id,updatedAt:note.updatedAt,value:note},{merge:true});
-    setCloudStatus('synced','Firebase synced');
+    setCloudStatus('synced','✓ Firebase synced');
   }catch(e){setCloudStatus('error',friendlyFirebaseError(e));throw e}
 }
 async function syncCloud(force=false){
@@ -393,7 +395,7 @@ async function syncCloud(force=false){
     [...remote,...state.notes].forEach(n=>{const prior=merged.get(n.id);if(!prior||Date.parse(n.updatedAt||n.createdAt||0)>=Date.parse(prior.updatedAt||prior.createdAt||0))merged.set(n.id,n)});
     state.notes=[...merged.values()];saveLocal();
     await Promise.all(state.notes.map(n=>F.setDoc(F.doc(state.db,...cloudBase(),`beyond100-note-${n.id}`),{app:CONFIG.appId||'beyond100',kind:'note',noteId:n.id,updatedAt:n.updatedAt,value:n},{merge:true})));
-    setCloudStatus('synced','Firebase synced');renderNotesList();
+    setCloudStatus('synced','✓ Firebase synced');renderNotesList();
   }catch(e){setCloudStatus('error',friendlyFirebaseError(e));if(force)throw e}
 }
 function friendlyFirebaseError(e){
@@ -419,3 +421,10 @@ installTopbar();
 annotateDynamicElements();
 ensureDialog();
 firebaseReady().then(()=>state.auth.currentUser?syncCloud(false):setCloudStatus('local','Saved locally · sign in to sync')).catch(()=>setCloudStatus('local','Firebase unavailable · local notes safe'));
+
+window.addEventListener('beyond100-review-status-applied',()=>{
+  state.notes=loadLocal();
+  renderPins();
+  updateCount();
+  renderNotesList();
+});
