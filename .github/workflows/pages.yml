@@ -35,6 +35,8 @@ jobs:
           node --check learner-context.js
           node --check topic-context.js
           node --check notes-auto-anchors.js
+          node --check focus-mode.js
+          node --check learner-profile.js
           node --check notes.js
           node --check notes-ux.js
           node --check notes-advanced.js
