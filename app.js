@@ -88,13 +88,36 @@
 
   function renderMastery() {
     $("masteryGrid").innerHTML = topic.mastery.dimensions.map(d => `
-      <article class="mastery-card">
-        <h3>${escapeHtml(d.name)}</h3>
-        <ul>${d.examples.map(x => `<li>${escapeHtml(x)}</li>`).join("")}</ul>
+      <article class="mastery-card" tabindex="0" aria-expanded="false">
+        <div class="mastery-front">
+          <h3>${escapeHtml(d.name)}</h3>
+          <p>Double-click the card to reveal the examples.</p>
+          <button type="button" class="mastery-flip-button">Reveal examples</button>
+        </div>
+        <div class="mastery-back" aria-hidden="true">
+          <h3>${escapeHtml(d.name)}</h3>
+          <ul>${d.examples.map(x => `<li>${escapeHtml(x)}</li>`).join("")}</ul>
+          <button type="button" class="mastery-flip-button">Hide examples</button>
+        </div>
       </article>`).join("");
 
     $("thresholds").innerHTML = topic.mastery.thresholds.map(t => `
       <div class="threshold"><strong>${escapeHtml(t.status)}</strong><p>${escapeHtml(t.rule)}</p></div>`).join("");
+
+    qsa(".mastery-card").forEach(card => {
+      const flip = () => {
+        if (document.body.classList.contains("annotating")) return;
+        const on = !card.classList.contains("is-flipped");
+        card.classList.toggle("is-flipped", on);
+        card.setAttribute("aria-expanded", String(on));
+        qs(".mastery-back", card)?.setAttribute("aria-hidden", String(!on));
+      };
+      card.addEventListener("dblclick", e => { e.preventDefault(); flip(); });
+      qsa(".mastery-flip-button", card).forEach(btn => btn.addEventListener("click", e => { e.stopPropagation(); flip(); }));
+      card.addEventListener("keydown", e => {
+        if (e.key === "Enter") { e.preventDefault(); flip(); }
+      });
+    });
   }
 
   function renderMisconceptions() {
