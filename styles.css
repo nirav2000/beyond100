@@ -336,3 +336,17 @@ body.focus-mode .topic-context{margin-top:0}
   body.focus-mode .main{padding:104px 18px 36px}
   .focus-here-button{opacity:1}
 }
+
+
+/* v0.8.1 icon phase picker */
+.focus-session-bar{grid-template-columns:38px minmax(0,1fr) auto auto}
+.focus-phase-picker{display:flex;align-items:center;gap:5px}
+.focus-phase-picker input{display:none}
+.focus-phase-tile{position:relative;width:38px;height:38px;display:grid;place-items:center;border:1px solid #d9dfdb;background:#f7f9f7;color:#6d7872;border-radius:11px;padding:0;transition:.14s ease}
+.focus-phase-tile svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.focus-phase-tile:hover{background:#eef3ef;color:#36584b;transform:translateY(-1px)}
+.focus-phase-tile.selected{background:#1f5a46;border-color:#1f5a46;color:#fff;box-shadow:0 4px 12px rgba(31,90,70,.2)}
+.focus-phase-tile::after{content:attr(data-tip);position:absolute;top:calc(100% + 7px);left:50%;transform:translateX(-50%) translateY(-3px);opacity:0;pointer-events:none;white-space:nowrap;background:#17231f;color:#fff;padding:6px 8px;border-radius:7px;font-size:9px;font-weight:700;box-shadow:0 6px 18px rgba(0,0,0,.18);transition:.12s ease;z-index:80}
+.focus-phase-tile:hover::after,.focus-phase-tile:focus-visible::after{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(max-width:900px){.focus-session-bar{grid-template-columns:34px minmax(0,1fr) auto}.focus-phase-picker{grid-column:2/4;max-width:100%;overflow-x:auto;padding-bottom:2px}.focus-phase-tile{flex:0 0 38px}.focus-parent-toggle{grid-column:3;grid-row:1}}
+@media(max-width:520px){.focus-phase-tile{width:36px;height:36px;flex-basis:36px}.focus-phase-tile svg{width:18px;height:18px}}
