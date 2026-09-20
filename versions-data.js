@@ -1,13 +1,27 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.7.4',
+  currentVersion: '0.7.5',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.7.5',
+      date: '2026-09-20',
+      title: 'Notes Status & Chrome Cleanup',
+      ref: 'main',
+      status: 'current',
+      summary: 'Clarifies implemented-note status, automatically archives completed review notes, strengthens Firebase/sync controls, clarifies Notes minimise behaviour and removes the duplicate Version Lab control.',
+      areas: [
+        { id: 'implemented-status', title: 'Implemented status and auto-archive', kind: 'workflow', summary: 'Review decisions previously marked actioned now display as Status: implemented and move automatically into Archived.' },
+        { id: 'cloud-icons', title: 'Stronger Firebase and sync icons', kind: 'ux', summary: 'Makes the Firebase flame and sync controls larger, heavier and easier to recognise at a glance.' },
+        { id: 'minimise-clarity', title: 'Clear Notes minimise control', kind: 'ux', summary: 'Replaces the ambiguous boxed hyphen with explicit minimise/restore iconography and tooltips.' },
+        { id: 'version-lab-duplicate', title: 'Single Version Lab entry', kind: 'repair', summary: 'Removes the older duplicate top-bar Version Lab icon and keeps the version-labelled control.' }
+      ]
+    },
     {
       version: '0.7.4',
       date: '2026-09-18',
       title: 'Notes & Firebase UI Polish',
       ref: 'main',
-      status: 'current',
+      status: 'archive',
       summary: 'Simplifies Notes into a product-style review and Firebase workflow with icon-led account/sync states, clearer review links, compact actions, password visibility controls and a distinct logout-all-devices danger action.',
       areas: [
         { id: 'firebase-icons', title: 'Firebase and sync state icons', kind: 'ux', summary: 'Replaces verbose header status pills with a Firebase flame and separate sync control, including signed-out, syncing, synced and error states.' },

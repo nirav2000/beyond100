@@ -4,8 +4,8 @@ let authModulesPromise = null;
 function byId(id){ return document.getElementById(id); }
 function icon(name){
   const icons={
-    firebase:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.1 18.5 7.3 4.7c.1-.6.9-.8 1.3-.3l2.4 4.5 1.8-3.4c.3-.5 1-.5 1.3 0l4.8 9.1-6.9 4.2-6.9-4.3Z"/><path d="m5.1 18.5 6.9 3.1 6.9-7-3.1-2.2-10.7 6.1Z"/></svg>',
-    sync:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5"/><path d="M4 17v-5h5"/><path d="M6.1 8.1A7 7 0 0 1 18.5 6L20 8"/><path d="M17.9 15.9A7 7 0 0 1 5.5 18L4 16"/></svg>',
+    firebase:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.2 19.1 6.9 3.8c.1-.8 1.2-1 1.6-.3l2.7 5.1 2-3.8c.4-.7 1.4-.7 1.8 0l5 9.6-7.9 5.1-7.9-4.7Z"/><path d="m4.2 19.1 7.9 3.4 7.9-8.1-3.7-2.6-12.1 7.3Z"/></svg>',
+    sync:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.8 8.2A8 8 0 0 0 6.1 5.8L4 8"/><path d="M4 4v4h4"/><path d="M4.2 15.8a8 8 0 0 0 13.7 2.4L20 16"/><path d="M20 20v-4h-4"/></svg>',
     unlink:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.1.1l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1"/><path d="M14 11a5 5 0 0 0-7.1-.1l-2 2A5 5 0 0 0 12 20l1.1-1.1"/><path d="M3 3l18 18"/></svg>'
   };
   return icons[name]||'';

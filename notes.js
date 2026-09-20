@@ -14,8 +14,19 @@ const state = {
   cloudText: 'Saved on this device'
 };
 
+function normaliseNote(note){
+  if(!note||typeof note!=='object')return note;
+  if(note.status==='actioned'){
+    return {...note,status:'archived',implementationStatus:'implemented',implementedAt:note.actionedAt||note.reviewStatusUpdatedAt||note.updatedAt||note.createdAt,reviewRequired:false};
+  }
+  return note;
+}
 function loadLocal(){
-  try { return JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]'); }
+  try {
+    const notes=JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]').map(normaliseNote);
+    localStorage.setItem(LOCAL_KEY,JSON.stringify(notes));
+    return notes;
+  }
   catch { return []; }
 }
 function saveLocal(){
@@ -195,7 +206,7 @@ function renderNotesList(){
     <div class="saved-note-top"><strong>${esc(n.anchorLabel||'General note')}</strong>${n.reviewRequired!==false&&n.status!=='archived'?'<span class="review-note-badge">Review</span>':''}</div>
     ${n.selectedText?`<blockquote>“${esc(n.selectedText)}”</blockquote>`:''}
     <p>${esc(n.text)}</p>
-    <div class="saved-note-meta"><span>${esc(n.anchorId||'page:general')}</span><span>${esc(n.version||'')}</span><span>${formatDate(n.updatedAt)}</span><span>${esc(n.status||'open')}</span></div>
+    <div class="saved-note-meta"><span>${esc(n.anchorId||'page:general')}</span><span>${esc(n.version||'')}</span><span>${formatDate(n.updatedAt)}</span><span class="note-status">Status: ${esc(n.implementationStatus||n.status||'open')}</span></div>
     <div class="saved-note-actions"><button data-action="goto">Go to</button><button data-action="edit">Edit</button><button data-action="review">${n.reviewRequired===false?'Add to review':'Remove from review'}</button><button data-action="archive">${n.status==='archived'?'Restore':'Archive'}</button></div>
   </article>`).join('');
   list.querySelectorAll('.saved-note').forEach(card=>card.addEventListener('click',e=>{
@@ -204,7 +215,7 @@ function renderNotesList(){
     if(b.dataset.action==='goto')goToNote(note);
     if(b.dataset.action==='edit')openComposer(contextFromNote(note),note);
     if(b.dataset.action==='review'){note.reviewRequired=note.reviewRequired===false;note.updatedAt=now();saveLocal();upsertCloud(note).catch(()=>{});renderNotesList();}
-    if(b.dataset.action==='archive'){note.status=note.status==='archived'?'open':'archived';note.updatedAt=now();saveLocal();upsertCloud(note).catch(()=>{});renderNotesList();}
+    if(b.dataset.action==='archive'){note.status=note.status==='archived'?'open':'archived';if(note.status==='open'&&note.implementationStatus==='implemented')delete note.implementationStatus;note.updatedAt=now();saveLocal();upsertCloud(note).catch(()=>{});renderNotesList();}
   }));
 }
 function formatDate(s){

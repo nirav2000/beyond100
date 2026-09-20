@@ -73,9 +73,11 @@ function installPasswordToggle(){
 function installMinimiseAndDrag(){
   const d=q('#notesDialog'),head=q('.notes-head',d);if(!d||!head)return;
   if(!q('#minimiseNotes',d)){
-    const b=document.createElement('button');b.id='minimiseNotes';b.type='button';b.className='notes-minimise';b.setAttribute('aria-label','Minimise notes');b.textContent='—';
+    const b=document.createElement('button');b.id='minimiseNotes';b.type='button';b.className='notes-minimise';b.setAttribute('aria-label','Minimise notes');b.title='Minimise notes';
+    const draw=on=>{b.innerHTML=on?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9h10v10H5z"/><path d="M9 5h10v10"/></svg>':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12"/></svg>';};
+    draw(false);
     q('.notes-head-actions',d)?.insertBefore(b,q('#closeNotes',d));
-    b.addEventListener('click',()=>{const on=!d.classList.contains('is-minimised');d.classList.toggle('is-minimised',on);b.textContent=on?'▢':'—';b.setAttribute('aria-label',on?'Restore notes':'Minimise notes');});
+    b.addEventListener('click',()=>{const on=!d.classList.contains('is-minimised');d.classList.toggle('is-minimised',on);draw(on);const label=on?'Restore notes':'Minimise notes';b.setAttribute('aria-label',label);b.title=label;});
   }
   if(head.dataset.dragInstalled)return;head.dataset.dragInstalled='1';
   head.addEventListener('pointerdown',e=>{
@@ -106,13 +108,13 @@ function category(note){
 }
 function summaryStats(days){
   const since=Date.now()-days*86400000,notes=notesData().filter(n=>Date.parse(n.updatedAt||n.createdAt||0)>=since);
-  const cats={},statuses={open:0,actioned:0,archived:0};
-  for(const n of notes){cats[category(n)]=(cats[category(n)]||0)+1;const s=n.status||'open';statuses[s]=(statuses[s]||0)+1}
-  return{notes,cats,statuses,review:notes.filter(n=>n.reviewRequired!==false&&n.status!=='actioned'&&n.status!=='archived').length};
+  const cats={},statuses={open:0,implemented:0,archived:0};
+  for(const n of notes){cats[category(n)]=(cats[category(n)]||0)+1;const s=n.implementationStatus==='implemented'?'implemented':(n.status||'open');statuses[s]=(statuses[s]||0)+1}
+  return{notes,cats,statuses,review:notes.filter(n=>n.reviewRequired!==false&&n.status!=='archived').length};
 }
 function renderSummary(){
   const root=q('#notesInsights');if(!root)return;
-  const make=(label,days)=>{const s=summaryStats(days);const cats=Object.entries(s.cats).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<span>${k}: <b>${v}</b></span>`).join('')||'<span>No notes</span>';return `<div class="insight-period"><strong>${label}</strong><div class="insight-numbers"><span>Total <b>${s.notes.length}</b></span><span>Awaiting review <b>${s.review}</b></span><span>Actioned <b>${s.statuses.actioned||0}</b></span><span>Archived <b>${s.statuses.archived||0}</b></span></div><div class="insight-categories">${cats}</div></div>`};
+  const make=(label,days)=>{const s=summaryStats(days);const cats=Object.entries(s.cats).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<span>${k}: <b>${v}</b></span>`).join('')||'<span>No notes</span>';return `<div class="insight-period"><strong>${label}</strong><div class="insight-numbers"><span>Total <b>${s.notes.length}</b></span><span>Awaiting review <b>${s.review}</b></span><span>Implemented <b>${s.statuses.implemented||0}</b></span><span>Archived <b>${s.statuses.archived||0}</b></span></div><div class="insight-categories">${cats}</div></div>`};
   root.innerHTML=make('Last 7 days',7)+make('Last 30 days',30);
 }
 function installInsights(){

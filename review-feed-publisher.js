@@ -86,8 +86,9 @@ async function applyStatusLedger(){
     for(const note of notes){
       const decision=ledgerDecision(ledger,note);if(!decision?.status||!decision.updatedAt)continue;
       const localStamp=Date.parse(note.reviewStatusUpdatedAt||note.updatedAt||0),remoteStamp=Date.parse(decision.updatedAt||0);if(!Number.isFinite(remoteStamp)||remoteStamp<=localStamp)continue;
-      note.status=decision.status;note.reviewStatusUpdatedAt=decision.updatedAt;note.reviewStatusUpdatedVia='github-review-status';note.updatedAt=decision.updatedAt;
-      if(decision.status==='actioned'){note.reviewRequired=false;note.actionedAt=decision.updatedAt}else{note.reviewRequired=true;delete note.actionedAt}
+      const implemented=decision.status==='actioned'||decision.status==='implemented';
+      note.status=implemented?'archived':decision.status;note.reviewStatusUpdatedAt=decision.updatedAt;note.reviewStatusUpdatedVia='github-review-status';note.updatedAt=decision.updatedAt;
+      if(implemented){note.reviewRequired=false;note.implementationStatus='implemented';note.implementedAt=decision.updatedAt;note.actionedAt=decision.updatedAt}else{note.reviewRequired=true;delete note.actionedAt}
       if(decision.message)note.reviewStatusMessage=decision.message;if(decision.commit)note.reviewStatusCommit=decision.commit;changed=true;
       writes.push(f.F.setDoc(f.F.doc(f.db,...cloudBase(),`beyond100-note-${note.id}`),{app:CLOUD.appId||'beyond100',kind:'note',noteId:note.id,updatedAt:note.updatedAt,value:note},{merge:true}));
     }
