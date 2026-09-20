@@ -21,6 +21,17 @@
     ['diagnose','Diagnose'],['teach','Teach'],['demonstrate','Demonstrate understanding'],
     ['practise','Practise'],['retrieve1','Retrieve'],['retrieve2','Retrieve again'],['apply','Apply in a new context']
   ];
+  function phaseIcon(id){
+    const icons={
+      diagnose:'<svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="5.5"/><path d="m15 15 5 5"/><path d="M8 10.5h5M10.5 8v5"/></svg>',
+      teach:'<svg viewBox="0 0 24 24"><path d="M4 5.5c3-1 5-.5 8 1v12c-3-1.5-5-2-8-1z"/><path d="M20 5.5c-3-1-5-.5-8 1v12c3-1.5 5-2 8-1z"/></svg>',
+      demonstrate:'<svg viewBox="0 0 24 24"><path d="M5 18h14"/><path d="M7 15V7h10v8"/><path d="m9 11 2 2 4-4"/></svg>',
+      practise:'<svg viewBox="0 0 24 24"><path d="m5 19 3.5-.8L19 7.7 16.3 5 5.8 15.5z"/><path d="m14.8 6.5 2.7 2.7"/></svg>',
+      retrieve1:'<svg viewBox="0 0 24 24"><path d="M5 8a8 8 0 1 1 1 9"/><path d="M5 4v4h4"/><path d="M12 8v5l3 2"/></svg>',
+      retrieve2:'<svg viewBox="0 0 24 24"><path d="M5 8a8 8 0 1 1 1 9"/><path d="M5 4v4h4"/><path d="M9 10h6M9 14h6"/></svg>',
+      apply:'<svg viewBox="0 0 24 24"><path d="M4 12h11"/><path d="m12 7 5 5-5 5"/><path d="M17 5h3v14h-3"/></svg>'
+    };return icons[id]||'';
+  }
 
   function installSidebarControl(){
     const head=q('.sidebar-head');
@@ -113,9 +124,10 @@
           <strong id="focusScope"></strong>
           <small id="focusYear"></small>
         </div>
-        <label class="focus-phase-label">Phase
-          <select id="focusPhase">${PHASES.map(([id,label])=>`<option value="${id}">${esc(label)}</option>`).join('')}</select>
-        </label>
+        <div class="focus-phase-picker" role="group" aria-label="Learning phase">
+          <input type="hidden" id="focusPhase" value="diagnose">
+          ${PHASES.map(([id,label])=>`<button type="button" class="focus-phase-tile ${id==='diagnose'?'selected':''}" data-focus-phase="${id}" data-tip="${esc(label)}" aria-label="${esc(label)}" aria-pressed="${id==='diagnose'?'true':'false'}">${phaseIcon(id)}</button>`).join('')}
+        </div>
         <button type="button" id="focusParentToggle" class="focus-parent-toggle" aria-expanded="false">Parent controls</button>
       </div>
       <aside id="focusParentDrawer" class="focus-parent-drawer" hidden>
@@ -141,7 +153,15 @@
     q('#focusAddNote',el).onclick=()=>window.dispatchEvent(new CustomEvent('beyond100-focus-note',{detail:{target:focusTarget}}));
     qa('[data-focus-outcome]',el).forEach(b=>b.onclick=()=>selectOutcome(b.dataset.focusOutcome));
     qa('[data-focus-error]',el).forEach(b=>b.onclick=()=>selectError(b.dataset.focusError));
-    q('#focusPhase',el).onchange=()=>{persistFocus();updateNextStep()};
+    qa('[data-focus-phase]',el).forEach(b=>b.onclick=()=>selectPhase(b.dataset.focusPhase));
+  }
+
+  function selectPhase(id){
+    const input=q('#focusPhase');if(input)input.value=id;
+    qa('[data-focus-phase]').forEach(b=>{
+      const on=b.dataset.focusPhase===id;b.classList.toggle('selected',on);b.setAttribute('aria-pressed',String(on));
+    });
+    persistFocus();updateNextStep();
   }
 
   function toggleParent(open){
@@ -285,7 +305,7 @@
   function init(){
     installSidebarControl();installFocusButton();installWorkspace();installFocusHereButtons();autoSidebar();watch();
     addEventListener('resize',autoSidebar);
-    try{const p=JSON.parse(localStorage.getItem(FOCUS_KEY)||'{}');if(p.phase&&q('#focusPhase'))q('#focusPhase').value=p.phase}catch{}
+    try{const p=JSON.parse(localStorage.getItem(FOCUS_KEY)||'{}');if(p.phase)selectPhase(p.phase)}catch{}
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
