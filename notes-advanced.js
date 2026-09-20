@@ -74,7 +74,7 @@ function restoreNotesWindow(){
   const d=q('#notesDialog');if(!d||!d.classList.contains('is-minimised'))return false;
   if(d.open)d.close();
   d.classList.remove('is-minimised');
-  d.style.left='';d.style.top='';d.style.margin='';d.style.position='';
+  d.style.left='';d.style.top='';d.style.margin='';d.style.position='';d.style.width='';d.style.height='';d.style.maxHeight='';
   const b=q('#minimiseNotes',d);
   if(b){
     b.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12"/></svg>';
@@ -100,6 +100,9 @@ function installMinimiseAndDrag(){
         d.classList.add('is-minimised');draw(true);
         d.style.left='';d.style.top='';d.style.margin='';
         d.show();
+        d.style.setProperty('width','min(360px, calc(100vw - 24px))','important');
+        d.style.setProperty('height','58px','important');
+        d.style.setProperty('max-height','58px','important');
       }else{
         restoreNotesWindow();
       }
