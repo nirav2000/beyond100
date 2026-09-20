@@ -137,7 +137,7 @@
           <input type="hidden" id="focusPhase" value="diagnose">
           ${PHASES.map(([id,label])=>`<button type="button" class="focus-phase-tile ${id==='diagnose'?'selected':''}" data-focus-phase="${id}" data-tip="${esc(label)}" title="${esc(label)}" aria-label="${esc(label)}" aria-pressed="${id==='diagnose'?'true':'false'}">${phaseIcon(id)}</button>`).join('')}
         </div>
-        <div class="focus-phase-status" id="focusPhaseStatus"><strong>Diagnose</strong><span>Find the current edge before teaching.</span></div>
+        <div class="focus-phase-status" id="focusPhaseStatus" data-phase="diagnose"><strong>Diagnose</strong><span>Find the current edge before teaching.</span></div>
         <button type="button" id="focusParentToggle" class="focus-parent-toggle" aria-expanded="false">Parent controls</button>
       </div>
       <aside id="focusParentDrawer" class="focus-parent-drawer" hidden>
