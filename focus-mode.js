@@ -126,7 +126,7 @@
         </div>
         <div class="focus-phase-picker" role="group" aria-label="Learning phase">
           <input type="hidden" id="focusPhase" value="diagnose">
-          ${PHASES.map(([id,label])=>`<button type="button" class="focus-phase-tile ${id==='diagnose'?'selected':''}" data-focus-phase="${id}" data-tip="${esc(label)}" aria-label="${esc(label)}" aria-pressed="${id==='diagnose'?'true':'false'}">${phaseIcon(id)}</button>`).join('')}
+          ${PHASES.map(([id,label])=>`<button type="button" class="focus-phase-tile ${id==='diagnose'?'selected':''}" data-focus-phase="${id}" data-tip="${esc(label)}" title="${esc(label)}" aria-label="${esc(label)}" aria-pressed="${id==='diagnose'?'true':'false'}">${phaseIcon(id)}</button>`).join('')}
         </div>
         <button type="button" id="focusParentToggle" class="focus-parent-toggle" aria-expanded="false">Parent controls</button>
       </div>
