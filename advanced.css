@@ -73,3 +73,13 @@
 .sync-state{background:#f0f3f1;border:1px solid #dfe4e1}
 .sync-state[data-state="synced"]{background:#e8f5ee}
 .sync-state[data-state="error"]{background:#fff0ec}
+
+/* v0.8.0 true Notes minimisation */
+.notes-dialog.is-minimised{position:fixed!important;inset:auto 14px max(14px,env(safe-area-inset-bottom)) auto!important;width:min(520px,calc(100vw - 28px))!important;height:68px!important;min-height:0!important;max-height:68px!important;margin:0!important;padding:0!important;overflow:hidden!important;border-radius:16px!important;box-shadow:0 16px 42px rgba(0,0,0,.22)!important}
+.notes-dialog.is-minimised::backdrop{display:none!important}
+.notes-dialog.is-minimised .notes-shell{height:68px!important;min-height:0!important;max-height:68px!important;overflow:hidden!important}
+.notes-dialog.is-minimised .notes-head{height:68px!important;min-height:68px!important;padding:10px 14px!important;border:0!important}
+.notes-dialog.is-minimised .notes-body{display:none!important}
+.notes-dialog.is-minimised .notes-head-actions{margin-left:auto}
+.notes-dialog.is-minimised .notes-cloud-compact{display:flex}
+@media(max-width:700px){.notes-dialog.is-minimised{left:8px!important;right:8px!important;bottom:max(8px,env(safe-area-inset-bottom))!important;width:auto!important}}

@@ -77,7 +77,23 @@ function installMinimiseAndDrag(){
     const draw=on=>{b.innerHTML=on?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9h10v10H5z"/><path d="M9 5h10v10"/></svg>':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12"/></svg>';};
     draw(false);
     q('.notes-head-actions',d)?.insertBefore(b,q('#closeNotes',d));
-    b.addEventListener('click',()=>{const on=!d.classList.contains('is-minimised');d.classList.toggle('is-minimised',on);draw(on);const label=on?'Restore notes':'Minimise notes';b.setAttribute('aria-label',label);b.title=label;});
+    b.addEventListener('click',()=>{
+      const on=!d.classList.contains('is-minimised');
+      if(on){
+        // A modal dialog keeps the page inert even when visually tiny. Reopen it non-modally so
+        // the user can inspect and interact with the page while preserving the draft in the DOM.
+        if(d.open)d.close();
+        d.classList.add('is-minimised');draw(true);
+        d.style.left='';d.style.top='';d.style.margin='';
+        d.show();
+      }else{
+        if(d.open)d.close();
+        d.classList.remove('is-minimised');draw(false);
+        d.style.left='';d.style.top='';d.style.margin='';d.style.position='';
+        d.showModal();
+      }
+      const label=on?'Restore notes':'Minimise notes';b.setAttribute('aria-label',label);b.title=label;
+    });
   }
   if(head.dataset.dragInstalled)return;head.dataset.dragInstalled='1';
   head.addEventListener('pointerdown',e=>{
@@ -119,7 +135,7 @@ function renderSummary(){
 }
 function installInsights(){
   const body=q('.notes-body');if(!body||q('#notesInsightsPanel'))return;
-  const panel=document.createElement('details');panel.id='notesInsightsPanel';panel.className='cloud-panel notes-insights';panel.innerHTML='<summary>Review summary</summary><p class="muted">Weekly and monthly view of notes, review state and categories.</p><div id="notesInsights"></div>';
+  const panel=document.createElement('details');panel.id='notesInsightsPanel';panel.className='cloud-panel notes-insights';panel.open=false;panel.innerHTML='<summary>Notes activity summary</summary><p class="muted">Optional parent/admin view: counts notes created in the last 7 and 30 days, their review status and the parts of the app they relate to. It is not a learning-performance report.</p><div id="notesInsights"></div>';
   const firebase=[...body.querySelectorAll('.cloud-panel')].find(x=>x.querySelector('#firebaseSignIn'));body.insertBefore(panel,firebase||null);panel.addEventListener('toggle',()=>{if(panel.open)renderSummary()});renderSummary();
 }
 

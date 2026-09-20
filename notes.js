@@ -440,3 +440,10 @@ window.addEventListener('beyond100-review-status-applied',()=>{
   updateCount();
   renderNotesList();
 });
+
+
+window.addEventListener('beyond100-focus-note',e=>{
+  const el=e.detail?.target;
+  if(el&&document.contains(el))openComposer(elementContext(el,''));
+  else openComposer({anchorId:'page:general',anchorLabel:'Focused learning note',selectedText:'',elementText:'',section:document.querySelector('.content-section.active')?.id||''});
+});

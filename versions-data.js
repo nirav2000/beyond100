@@ -1,13 +1,29 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.7.6',
+  currentVersion: '0.8.0',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.8.0',
+      date: '2026-09-20',
+      title: 'Guided Focus Workspace',
+      ref: 'main',
+      status: 'current',
+      summary: 'Rebuilds Focus as a parent-guided learning workspace: preserve meaningful context, hide peripheral chrome, expose response timing and diagnostic controls, record evidence, suggest the next learning action, and make Notes minimise into a true floating non-modal state.',
+      areas: [
+        { id: 'focus-workspace', title: 'Context-preserving Focus', kind: 'feature', summary: 'Focus is now entered at a meaningful learning block or active section rather than stepping through arbitrary DOM cards.' },
+        { id: 'parent-controls', title: 'Parent control drawer', kind: 'feature', summary: 'Adds timer, response quality, K/C/Q/P/F/R/A cause classification, contextual notes, session stats and a suggested next learning action.' },
+        { id: 'cycle-aware', title: 'Learning-cycle phase', kind: 'feature', summary: 'Focused observations can be recorded against Diagnose, Teach, Demonstrate, Practise, Retrieve, Retrieve again or Apply and feed the existing evidence model.' },
+        { id: 'focus-here', title: 'Focus here actions', kind: 'ux', summary: 'Relevant learning blocks expose a Focus here action so the parent chooses the pedagogical scope instead of the app hiding cards arbitrarily.' },
+        { id: 'notes-minimise', title: 'True Notes minimisation', kind: 'repair', summary: 'Minimising Notes now reopens it non-modally as a compact floating header so the underlying page remains visible and usable while a draft is preserved.' },
+        { id: 'notes-summary', title: 'Clearer Notes activity summary', kind: 'ux', summary: 'Renames Review summary to Notes activity summary, explains that it is note-workflow administration rather than learner performance, and keeps it collapsed by default.' }
+      ]
+    },
     {
       version: '0.7.6',
       date: '2026-09-20',
       title: 'Implemented Status Sync',
       ref: 'main',
-      status: 'current',
+      status: 'archive',
       summary: 'Ensures implemented notes are normalised to archived status whenever local and Firebase note data merge, including on a new device.',
       areas: [
         { id: 'implemented-sync', title: 'Implemented status survives cloud merge', kind: 'repair', summary: 'Any legacy actioned note is converted to Status: implemented and archived whenever notes are saved after Firebase reconciliation.' }

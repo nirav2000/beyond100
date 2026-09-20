@@ -247,3 +247,24 @@ async function syncCloud(){if(!cloudReady)return;const S=await sdk(),u=S.auth.cu
 function setCloud(text,status='local'){const el=$('#evidenceCloudStatus');if(el){el.textContent=text;el.dataset.state=status}}
 
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
+
+
+function recordFocusResponse(detail={}){
+  const at=now(),skill=detail.skill||'Focused learning',phase=detail.phase||'diagnose';
+  const event={
+    id:crypto.randomUUID(),kind:'focus-response',app:'beyond100',topicId:topicId(),subject:subject(),
+    skill,prompt:detail.prompt||'',outcome:detail.outcome||'noConcept',errorCode:detail.errorCode||null,
+    responseSeconds:Number.isFinite(detail.responseSeconds)?detail.responseSeconds:null,phase,
+    anchorId:detail.anchorId||null,anchorLabel:detail.anchorLabel||'',year:detail.year||'',
+    source:'focus-mode',sessionId:sessionId(),createdAt:at,updatedAt:at
+  };
+  state.events.push(event);
+  const c=ensureCycle(skill);
+  if(phase==='teach'||phase==='practise')c.steps[phase]={outcome:'completed',at,sourceEventId:event.id};
+  else if(['diagnose','demonstrate','retrieve1','retrieve2','apply'].includes(phase))c.steps[phase]={outcome:event.outcome,at,sourceEventId:event.id};
+  c.updatedAt=at;saveState();
+  window.dispatchEvent(new CustomEvent('beyond100-evidence-updated',{detail:{event}}));
+  return event;
+}
+window.BEYOND100_EVIDENCE={recordFocusResponse,getState:()=>JSON.parse(JSON.stringify(state)),outcomes:OUTCOMES,cycle:CYCLE};
+window.addEventListener('beyond100-focus-response',e=>recordFocusResponse(e.detail||{}));
