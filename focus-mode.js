@@ -21,6 +21,15 @@
     ['diagnose','Diagnose'],['teach','Teach'],['demonstrate','Demonstrate understanding'],
     ['practise','Practise'],['retrieve1','Retrieve'],['retrieve2','Retrieve again'],['apply','Apply in a new context']
   ];
+  const PHASE_HELP={
+    diagnose:'Find the current edge before teaching.',
+    teach:'Explain or model the missing idea.',
+    demonstrate:'Ask Sai to show or explain what he understands.',
+    practise:'Build accuracy and fluency with varied examples.',
+    retrieve1:'Bring it back later without a prompt.',
+    retrieve2:'Retrieve it again after a longer gap.',
+    apply:'Use the idea in unfamiliar wording or context.'
+  };
   function phaseIcon(id){
     const icons={
       diagnose:'<svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="5.5"/><path d="m15 15 5 5"/><path d="M8 10.5h5M10.5 8v5"/></svg>',
@@ -128,6 +137,7 @@
           <input type="hidden" id="focusPhase" value="diagnose">
           ${PHASES.map(([id,label])=>`<button type="button" class="focus-phase-tile ${id==='diagnose'?'selected':''}" data-focus-phase="${id}" data-tip="${esc(label)}" title="${esc(label)}" aria-label="${esc(label)}" aria-pressed="${id==='diagnose'?'true':'false'}">${phaseIcon(id)}</button>`).join('')}
         </div>
+        <div class="focus-phase-status" id="focusPhaseStatus"><strong>Diagnose</strong><span>Find the current edge before teaching.</span></div>
         <button type="button" id="focusParentToggle" class="focus-parent-toggle" aria-expanded="false">Parent controls</button>
       </div>
       <aside id="focusParentDrawer" class="focus-parent-drawer" hidden>
@@ -159,8 +169,19 @@
   function selectPhase(id){
     const input=q('#focusPhase');if(input)input.value=id;
     qa('[data-focus-phase]').forEach(b=>{
-      const on=b.dataset.focusPhase===id;b.classList.toggle('selected',on);b.setAttribute('aria-pressed',String(on));
+      const on=b.dataset.focusPhase===id;
+      b.classList.toggle('selected',on);
+      b.setAttribute('aria-pressed',String(on));
     });
+    const label=PHASES.find(([key])=>key===id)?.[1]||id;
+    const status=q('#focusPhaseStatus');
+    if(status){
+      status.innerHTML=`<strong>${esc(label)}</strong><span>${esc(PHASE_HELP[id]||'')}</span>`;
+      status.dataset.phase=id;
+      status.classList.remove('phase-pulse');
+      requestAnimationFrame(()=>status.classList.add('phase-pulse'));
+    }
+    window.BEYOND100_NOTES_TOAST?.(`Phase: ${label}`);
     persistFocus();updateNextStep();
   }
 
