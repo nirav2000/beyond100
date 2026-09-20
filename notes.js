@@ -45,7 +45,9 @@ function now(){ return new Date().toISOString(); }
 function byUpdated(a,b){ return Date.parse(b.updatedAt || b.createdAt || 0) - Date.parse(a.updatedAt || a.createdAt || 0); }
 function openNotes(){
   ensureDialog();
-  document.querySelector('#notesDialog').showModal();
+  const d=document.querySelector('#notesDialog');
+  if(d.classList.contains('is-minimised'))window.BEYOND100_RESTORE_NOTES?.();
+  else if(!d.open)d.showModal();
   renderNotesPanel();
 }
 function closeNotes(){ document.querySelector('#notesDialog')?.close(); }
