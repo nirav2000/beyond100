@@ -30,6 +30,7 @@ function loadLocal(){
   catch { return []; }
 }
 function saveLocal(){
+  state.notes=state.notes.map(normaliseNote);
   localStorage.setItem(LOCAL_KEY, JSON.stringify(state.notes));
   renderPins();
   updateCount();

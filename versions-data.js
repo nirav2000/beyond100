@@ -1,13 +1,24 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.7.5',
+  currentVersion: '0.7.6',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.7.6',
+      date: '2026-09-20',
+      title: 'Implemented Status Sync',
+      ref: 'main',
+      status: 'current',
+      summary: 'Ensures implemented notes are normalised to archived status whenever local and Firebase note data merge, including on a new device.',
+      areas: [
+        { id: 'implemented-sync', title: 'Implemented status survives cloud merge', kind: 'repair', summary: 'Any legacy actioned note is converted to Status: implemented and archived whenever notes are saved after Firebase reconciliation.' }
+      ]
+    },
     {
       version: '0.7.5',
       date: '2026-09-20',
       title: 'Notes Status & Chrome Cleanup',
       ref: 'main',
-      status: 'current',
+      status: 'archive',
       summary: 'Clarifies implemented-note status, automatically archives completed review notes, strengthens Firebase/sync controls, clarifies Notes minimise behaviour and removes the duplicate Version Lab control.',
       areas: [
         { id: 'implemented-status', title: 'Implemented status and auto-archive', kind: 'workflow', summary: 'Review decisions previously marked actioned now display as Status: implemented and move automatically into Archived.' },
