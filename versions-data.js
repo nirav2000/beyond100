@@ -1,13 +1,27 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.8.1',
+  currentVersion: '0.8.2',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.8.2',
+      date: '2026-09-20',
+      title: 'Vivid Focus & Notes Defaults',
+      ref: 'main',
+      status: 'current',
+      summary: 'Makes Focus phases distinctive and explanatory, hardens Notes minimisation, opens Notes history by default, collapses the technical review feed, and enlarges Notes activity visuals.',
+      areas: [
+        { id: 'phase-themes', title: 'Memorable phase themes', kind: 'ux', summary: 'Each Focus phase now has its own visual identity with themed colour, gradient/glow, a persistent phase description and immediate selection feedback.' },
+        { id: 'compact-notes', title: 'Reliable compact Notes bar', kind: 'repair', summary: 'Minimised Notes is forced into a compact non-modal bar and hides Firebase/sync controls so minimisation cannot be mistaken for a sync-state change.' },
+        { id: 'notes-defaults', title: 'Better Notes defaults', kind: 'ux', summary: 'Notes history is expanded by default while the technical Review feed is collapsed.' },
+        { id: 'activity-scale', title: 'Larger Notes activity visuals', kind: 'ux', summary: 'Increases the size and legibility of Notes-at-a-glance text, icons, totals, recent activity and category bars.' }
+      ]
+    },
     {
       version: '0.8.1',
       date: '2026-09-20',
       title: 'Notes Insight & Focus Phase Polish',
       ref: 'main',
-      status: 'current',
+      status: 'archive',
       summary: 'Makes the minimised Notes window annotatable and directly restorable, turns Notes activity into a graphical all-time dashboard, and replaces the Focus phase dropdown with an icon-tile phase bank.',
       areas: [
         { id: 'annotate-minimised-notes', title: 'Annotate the minimised Notes window', kind: 'repair', summary: 'Narrows the self-annotation safeguard so the compact Notes window is a valid annotation target while the full editor remains protected.' },
