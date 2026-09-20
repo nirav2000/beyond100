@@ -1,6 +1,6 @@
 (()=>{
   const CANDIDATES='[data-note-anchor],section,article,details,[class*="card"],[class*="panel"],[class*="block"],.brand,.sidebar,.sidebar-head,.subject-tabs,.topic-list,.topic-item';
-  const IGNORE='[data-note-ignore="true"],.notes-dialog,.annotation-banner,.selection-note-button,.section-nav,footer,script,style';
+  const IGNORE='[data-note-ignore="true"],.notes-dialog:not(.is-minimised),.annotation-banner,.selection-note-button,.section-nav,footer,script,style';
 
   function slugify(value=''){
     return String(value).toLowerCase().replace(/&/g,'and').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,80);
@@ -43,7 +43,10 @@
   }
 
   function useful(el){
-    if(el.matches(IGNORE)||el.closest('.notes-dialog'))return false;
+    if(el.matches(IGNORE))return false;
+    const notesDialog=el.closest('.notes-dialog');
+    if(notesDialog&&!notesDialog.classList.contains('is-minimised'))return false;
+    if(notesDialog&&el!==notesDialog)return false;
     if(el.dataset.noteIgnore==='true')return false;
     if(el.hidden)return false;
     const text=(el.textContent||'').trim();
