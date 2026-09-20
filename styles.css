@@ -350,3 +350,58 @@ body.focus-mode .topic-context{margin-top:0}
 .focus-phase-tile:hover::after,.focus-phase-tile:focus-visible::after{opacity:1;transform:translateX(-50%) translateY(0)}
 @media(max-width:900px){.focus-session-bar{grid-template-columns:34px minmax(0,1fr) auto}.focus-phase-picker{grid-column:2/4;max-width:100%;overflow-x:auto;padding-bottom:2px}.focus-phase-tile{flex:0 0 38px}.focus-parent-toggle{grid-column:3;grid-row:1}}
 @media(max-width:520px){.focus-phase-tile{width:36px;height:36px;flex-basis:36px}.focus-phase-tile svg{width:18px;height:18px}}
+
+
+/* v0.8.2 memorable Focus phase themes */
+.focus-session-bar{grid-template-columns:38px minmax(180px,1fr) auto minmax(170px,220px) auto}
+.focus-phase-picker{gap:7px}
+.focus-phase-tile{
+  --phase-a:#60706a;--phase-b:#41514b;--phase-soft:#f3f5f3;--phase-glow:rgba(65,81,75,.22);
+  width:42px;height:42px;border-radius:12px;border:1px solid color-mix(in srgb,var(--phase-a) 24%,#d9dfdb);
+  background:linear-gradient(180deg,var(--phase-soft),#fff);
+  color:var(--phase-a);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9);
+}
+.focus-phase-tile svg{width:22px;height:22px;stroke-width:1.95}
+.focus-phase-tile[data-focus-phase="diagnose"]{--phase-a:#0b88c9;--phase-b:#225dd8;--phase-soft:#edf8ff;--phase-glow:rgba(26,130,222,.42)}
+.focus-phase-tile[data-focus-phase="teach"]{--phase-a:#d17a00;--phase-b:#ef9f18;--phase-soft:#fff7e6;--phase-glow:rgba(239,159,24,.42)}
+.focus-phase-tile[data-focus-phase="demonstrate"]{--phase-a:#7b4ed1;--phase-b:#a363e8;--phase-soft:#f6efff;--phase-glow:rgba(144,82,222,.42)}
+.focus-phase-tile[data-focus-phase="practise"]{--phase-a:#319153;--phase-b:#57b85f;--phase-soft:#eef9f0;--phase-glow:rgba(60,171,88,.4)}
+.focus-phase-tile[data-focus-phase="retrieve1"]{--phase-a:#008b8b;--phase-b:#18b6ad;--phase-soft:#eafafa;--phase-glow:rgba(0,157,157,.42)}
+.focus-phase-tile[data-focus-phase="retrieve2"]{--phase-a:#4956c8;--phase-b:#6474ef;--phase-soft:#eef0ff;--phase-glow:rgba(79,93,220,.42)}
+.focus-phase-tile[data-focus-phase="apply"]{--phase-a:#c03b7b;--phase-b:#e35b9b;--phase-soft:#fff0f7;--phase-glow:rgba(214,67,139,.42)}
+.focus-phase-tile:hover{background:linear-gradient(180deg,var(--phase-soft),#fff);color:var(--phase-b);border-color:color-mix(in srgb,var(--phase-a) 50%,white);box-shadow:0 4px 13px var(--phase-glow);transform:translateY(-2px)}
+.focus-phase-tile.selected{
+  color:#fff;border-color:transparent;
+  background:linear-gradient(135deg,var(--phase-a),var(--phase-b));
+  box-shadow:0 0 0 1px color-mix(in srgb,var(--phase-a) 60%,white),0 0 18px var(--phase-glow),0 8px 18px color-mix(in srgb,var(--phase-a) 24%,transparent),inset 0 1px 0 rgba(255,255,255,.35);
+  transform:translateY(-1px) scale(1.04);
+}
+.focus-phase-tile.selected svg{filter:drop-shadow(0 0 4px rgba(255,255,255,.42))}
+.focus-phase-status{
+  --phase-a:#0b88c9;--phase-soft:#edf8ff;
+  min-width:0;display:grid;gap:2px;padding:7px 10px;border-radius:11px;
+  background:linear-gradient(135deg,var(--phase-soft),rgba(255,255,255,.96));
+  border:1px solid color-mix(in srgb,var(--phase-a) 28%,#e0e5e2);
+  border-left:4px solid var(--phase-a);
+}
+.focus-phase-status[data-phase="teach"]{--phase-a:#d17a00;--phase-soft:#fff7e6}
+.focus-phase-status[data-phase="demonstrate"]{--phase-a:#7b4ed1;--phase-soft:#f6efff}
+.focus-phase-status[data-phase="practise"]{--phase-a:#319153;--phase-soft:#eef9f0}
+.focus-phase-status[data-phase="retrieve1"]{--phase-a:#008b8b;--phase-soft:#eafafa}
+.focus-phase-status[data-phase="retrieve2"]{--phase-a:#4956c8;--phase-soft:#eef0ff}
+.focus-phase-status[data-phase="apply"]{--phase-a:#c03b7b;--phase-soft:#fff0f7}
+.focus-phase-status strong{font-size:11px;color:var(--phase-a)}
+.focus-phase-status span{font-size:9px;line-height:1.25;color:#66716c}
+.focus-phase-status.phase-pulse{animation:phaseStatusPulse .42s ease}
+@keyframes phaseStatusPulse{0%{transform:scale(.97);box-shadow:0 0 0 0 color-mix(in srgb,var(--phase-a) 38%,transparent)}55%{transform:scale(1.015);box-shadow:0 0 0 7px color-mix(in srgb,var(--phase-a) 0%,transparent)}100%{transform:scale(1);box-shadow:none}}
+@media(max-width:1180px){
+  .focus-session-bar{grid-template-columns:38px minmax(150px,1fr) auto auto}
+  .focus-phase-status{grid-column:2/5;grid-row:2}
+}
+@media(max-width:900px){
+  .focus-session-bar{grid-template-columns:34px minmax(0,1fr) auto}
+  .focus-phase-picker{grid-column:2/4;overflow-x:auto;padding:1px 2px 4px}
+  .focus-phase-status{grid-column:2/4;grid-row:3}
+  .focus-phase-tile{flex:0 0 42px}
+}
