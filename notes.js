@@ -101,13 +101,16 @@ function ensureDialog(){
           <div><button class="notes-close" id="cancelNote" type="button" style="font-size:13px;margin-right:8px">Cancel</button><button class="note-save" id="saveNote" type="button">Save note</button></div>
         </div>
       </section>
-      <div class="notes-filter" id="notesFilter">
-        <button data-filter="open" class="active">Open</button>
-        <button data-filter="review">For review</button>
-        <button data-filter="all">All</button>
-        <button data-filter="archived">Archived</button>
-      </div>
-      <div class="notes-list" id="notesList"></div>
+      <details class="notes-history-panel" id="notesHistoryPanel" open>
+        <summary>Notes history</summary>
+        <div class="notes-filter" id="notesFilter">
+          <button data-filter="open" class="active">Open</button>
+          <button data-filter="review">For review</button>
+          <button data-filter="all">All</button>
+          <button data-filter="archived">Archived</button>
+        </div>
+        <div class="notes-list" id="notesList"></div>
+      </details>
       <details class="cloud-panel">
         <summary>Firebase sync</summary>
         <p class="muted">Notes save locally immediately. If your existing Firebase session is available they also sync to the shared kk-syllabus project.</p>
