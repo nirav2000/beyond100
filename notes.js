@@ -76,6 +76,8 @@ function ensureDialog(){
   const d=document.createElement('dialog');
   d.id='notesDialog';
   d.className='notes-dialog';
+  d.dataset.noteAnchor='ui:notes-window';
+  d.dataset.noteLabel='Notes window';
   d.innerHTML=`<div class="notes-shell">
     <header class="notes-head">
       <div><p class="eyebrow">ANNOTATIONS</p><h2>Notes for review</h2></div>
@@ -297,13 +299,17 @@ function elementContext(el,selectedText=''){
 
 document.addEventListener('click',e=>{
   if(!state.annotationMode)return;
-  if(e.target.closest('.notes-dialog,.annotation-banner,.selection-note-button,#annotateButton,#notesButton,input,textarea,select'))return;
+  const notesDialog=e.target.closest('.notes-dialog');
+  if(notesDialog&&!notesDialog.classList.contains('is-minimised'))return;
+  if(e.target.closest('.annotation-banner,.selection-note-button,#annotateButton,#notesButton,input,textarea,select'))return;
   const el=nearestAnnotatable(e.target);if(!el)return;
   const control=e.target.closest('a,button');
   if(control && !control.matches('[data-note-anchor]') && !control.closest('[data-note-anchor]'))return;
   e.preventDefault();e.stopPropagation();
   const sel=window.getSelection();const selected=sel&&!sel.isCollapsed&&el.contains(sel.anchorNode)&&el.contains(sel.focusNode)?sel.toString():'';
-  toggleAnnotationMode(false);openComposer(elementContext(el,selected));
+  toggleAnnotationMode(false);
+  if(el.matches('#notesDialog.is-minimised'))window.BEYOND100_RESTORE_NOTES?.();
+  openComposer(elementContext(el,selected));
 },true);
 
 let selectionTimer=null;
