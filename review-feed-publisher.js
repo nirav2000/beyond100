@@ -118,7 +118,7 @@ async function copyReviewLink(){
 }
 function mount(){
   const body=document.querySelector('.notes-body');if(!body||document.querySelector('#staticReviewFeedPanel'))return false;
-  const el=document.createElement('details');el.className='cloud-panel review-feed-panel';el.id='staticReviewFeedPanel';el.open=true;
+  const el=document.createElement('details');el.className='cloud-panel review-feed-panel';el.id='staticReviewFeedPanel';el.open=false;
   el.innerHTML=`<summary>Review feed</summary>
     <p class="muted review-feed-intro">Only notes marked for review are included. The same review link is shared across your signed-in devices.</p>
     <div class="review-link-list">
