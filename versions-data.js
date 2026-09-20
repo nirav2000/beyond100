@@ -1,13 +1,27 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.8.0',
+  currentVersion: '0.8.1',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.8.1',
+      date: '2026-09-20',
+      title: 'Notes Insight & Focus Phase Polish',
+      ref: 'main',
+      status: 'current',
+      summary: 'Makes the minimised Notes window annotatable and directly restorable, turns Notes activity into a graphical all-time dashboard, and replaces the Focus phase dropdown with an icon-tile phase bank.',
+      areas: [
+        { id: 'annotate-minimised-notes', title: 'Annotate the minimised Notes window', kind: 'repair', summary: 'Narrows the self-annotation safeguard so the compact Notes window is a valid annotation target while the full editor remains protected.' },
+        { id: 'restore-notes-body', title: 'Tap mini Notes to restore', kind: 'ux', summary: 'Clicking or tapping the non-control area of the minimised Notes header restores the full Notes window.' },
+        { id: 'notes-dashboard', title: 'Graphical Notes activity dashboard', kind: 'ux', summary: 'Adds all-time workflow tiles, recent activity, implemented share and category bars; archived notes remain represented even when older than 30 days.' },
+        { id: 'phase-tiles', title: 'Icon learning-phase bank', kind: 'ux', summary: 'Replaces the Focus phase combo box with seven rounded icon tiles, hover descriptions and a coloured active state.' }
+      ]
+    },
     {
       version: '0.8.0',
       date: '2026-09-20',
       title: 'Guided Focus Workspace',
       ref: 'main',
-      status: 'current',
+      status: 'archive',
       summary: 'Rebuilds Focus as a parent-guided learning workspace: preserve meaningful context, hide peripheral chrome, expose response timing and diagnostic controls, record evidence, suggest the next learning action, and make Notes minimise into a true floating non-modal state.',
       areas: [
         { id: 'focus-workspace', title: 'Context-preserving Focus', kind: 'feature', summary: 'Focus is now entered at a meaningful learning block or active section rather than stepping through arbitrary DOM cards.' },
