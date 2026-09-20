@@ -70,6 +70,20 @@ function installPasswordToggle(){
   });
 }
 
+function restoreNotesWindow(){
+  const d=q('#notesDialog');if(!d||!d.classList.contains('is-minimised'))return false;
+  if(d.open)d.close();
+  d.classList.remove('is-minimised');
+  d.style.left='';d.style.top='';d.style.margin='';d.style.position='';
+  const b=q('#minimiseNotes',d);
+  if(b){
+    b.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12"/></svg>';
+    b.setAttribute('aria-label','Minimise notes');b.title='Minimise notes';
+  }
+  d.showModal();return true;
+}
+window.BEYOND100_RESTORE_NOTES=restoreNotesWindow;
+
 function installMinimiseAndDrag(){
   const d=q('#notesDialog'),head=q('.notes-head',d);if(!d||!head)return;
   if(!q('#minimiseNotes',d)){
@@ -87,12 +101,18 @@ function installMinimiseAndDrag(){
         d.style.left='';d.style.top='';d.style.margin='';
         d.show();
       }else{
-        if(d.open)d.close();
-        d.classList.remove('is-minimised');draw(false);
-        d.style.left='';d.style.top='';d.style.margin='';d.style.position='';
-        d.showModal();
+        restoreNotesWindow();
       }
       const label=on?'Restore notes':'Minimise notes';b.setAttribute('aria-label',label);b.title=label;
+    });
+  }
+  if(!head.dataset.restoreInstalled){
+    head.dataset.restoreInstalled='1';
+    head.addEventListener('click',e=>{
+      if(!d.classList.contains('is-minimised'))return;
+      if(document.body.classList.contains('annotating'))return;
+      if(e.target.closest('button,a,input,select,textarea'))return;
+      restoreNotesWindow();
     });
   }
   if(head.dataset.dragInstalled)return;head.dataset.dragInstalled='1';
@@ -122,20 +142,57 @@ function category(note){
   if((note.text||'').toLowerCase().includes('firebase')||(note.text||'').toLowerCase().includes('notes'))return'App / workflow';
   return'Content / general';
 }
-function summaryStats(days){
-  const since=Date.now()-days*86400000,notes=notesData().filter(n=>Date.parse(n.updatedAt||n.createdAt||0)>=since);
-  const cats={},statuses={open:0,implemented:0,archived:0};
-  for(const n of notes){cats[category(n)]=(cats[category(n)]||0)+1;const s=n.implementationStatus==='implemented'?'implemented':(n.status||'open');statuses[s]=(statuses[s]||0)+1}
+function summaryStats(days=null){
+  const all=notesData();
+  const notes=days==null?all:all.filter(n=>Date.parse(n.updatedAt||n.createdAt||0)>=Date.now()-days*86400000);
+  const cats={},statuses={open:0,implemented:0,archived:0,manualArchived:0};
+  for(const n of notes){
+    cats[category(n)]=(cats[category(n)]||0)+1;
+    if(n.implementationStatus==='implemented')statuses.implemented++;
+    if(n.status==='archived'){
+      statuses.archived++;
+      if(n.implementationStatus!=='implemented')statuses.manualArchived++;
+    }else statuses.open++;
+  }
   return{notes,cats,statuses,review:notes.filter(n=>n.reviewRequired!==false&&n.status!=='archived').length};
+}
+function summaryTile(icon,label,value,tone,detail=''){
+  return `<article class="notes-stat-tile" data-tone="${tone}"><span class="notes-stat-icon">${icon}</span><div><b>${value}</b><strong>${label}</strong>${detail?`<small>${detail}</small>`:''}</div></article>`;
+}
+function renderCategoryBars(cats,total){
+  const entries=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+  if(!entries.length)return'<div class="notes-summary-empty">No note categories yet.</div>';
+  return entries.map(([label,count],i)=>{
+    const pct=Math.max(6,Math.round(count/Math.max(1,total)*100));
+    return `<div class="notes-category-row" data-index="${i%6}"><div><span>${label}</span><b>${count}</b></div><div class="notes-category-track"><i style="width:${pct}%"></i></div></div>`;
+  }).join('');
 }
 function renderSummary(){
   const root=q('#notesInsights');if(!root)return;
-  const make=(label,days)=>{const s=summaryStats(days);const cats=Object.entries(s.cats).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<span>${k}: <b>${v}</b></span>`).join('')||'<span>No notes</span>';return `<div class="insight-period"><strong>${label}</strong><div class="insight-numbers"><span>Total <b>${s.notes.length}</b></span><span>Awaiting review <b>${s.review}</b></span><span>Implemented <b>${s.statuses.implemented||0}</b></span><span>Archived <b>${s.statuses.archived||0}</b></span></div><div class="insight-categories">${cats}</div></div>`};
-  root.innerHTML=make('Last 7 days',7)+make('Last 30 days',30);
+  const all=summaryStats(),week=summaryStats(7),month=summaryStats(30);
+  const implementedPct=all.notes.length?Math.round(all.statuses.implemented/all.notes.length*100):0;
+  const archiveDetail=all.statuses.manualArchived?`${all.statuses.manualArchived} manually archived`:'Includes implemented notes';
+  root.innerHTML=`
+    <div class="notes-summary-hero">
+      <div class="notes-summary-ring" style="--implemented:${implementedPct}"><div><b>${all.notes.length}</b><span>all notes</span></div></div>
+      <div class="notes-summary-copy"><strong>Notes at a glance</strong><span>All-time totals are shown here, so older archived notes remain visible in the summary.</span></div>
+    </div>
+    <div class="notes-stat-grid">
+      ${summaryTile('✎','Open',all.statuses.open,'open','Not archived')}
+      ${summaryTile('✦','For review',all.review,'review','Awaiting review')}
+      ${summaryTile('✓','Implemented',all.statuses.implemented,'implemented','Automatically archived')}
+      ${summaryTile('▣','Archived',all.statuses.archived,'archived',archiveDetail)}
+    </div>
+    <div class="notes-activity-periods">
+      <article><span>Last 7 days</span><b>${week.notes.length}</b><small>${week.review} awaiting review · ${week.statuses.implemented} implemented</small></article>
+      <article><span>Last 30 days</span><b>${month.notes.length}</b><small>${month.review} awaiting review · ${month.statuses.implemented} implemented</small></article>
+    </div>
+    <div class="notes-category-chart"><div class="notes-chart-head"><strong>Where the notes are</strong><span>all time</span></div>${renderCategoryBars(all.cats,all.notes.length)}</div>
+  `;
 }
 function installInsights(){
   const body=q('.notes-body');if(!body||q('#notesInsightsPanel'))return;
-  const panel=document.createElement('details');panel.id='notesInsightsPanel';panel.className='cloud-panel notes-insights';panel.open=false;panel.innerHTML='<summary>Notes activity summary</summary><p class="muted">Optional parent/admin view: counts notes created in the last 7 and 30 days, their review status and the parts of the app they relate to. It is not a learning-performance report.</p><div id="notesInsights"></div>';
+  const panel=document.createElement('details');panel.id='notesInsightsPanel';panel.className='cloud-panel notes-insights';panel.open=false;panel.innerHTML='<summary>Notes activity summary</summary><p class="muted">A visual overview of the notes workflow: all-time open, review, implemented and archived totals, recent activity, and where notes are concentrated. It is separate from Sai’s learning-performance evidence.</p><div id="notesInsights"></div>';
   const firebase=[...body.querySelectorAll('.cloud-panel')].find(x=>x.querySelector('#firebaseSignIn'));body.insertBefore(panel,firebase||null);panel.addEventListener('toggle',()=>{if(panel.open)renderSummary()});renderSummary();
 }
 
