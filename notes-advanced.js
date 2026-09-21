@@ -219,7 +219,7 @@ function renderSummary(){
 }
 function installInsights(){
   const body=q('.notes-body');if(!body||q('#notesInsightsPanel'))return;
-  const panel=document.createElement('details');panel.id='notesInsightsPanel';panel.className='cloud-panel notes-insights';panel.open=false;panel.innerHTML='<summary>Notes activity summary</summary><p class="muted">A visual overview of the notes workflow: all-time open, review, implemented and archived totals, recent activity, and where notes are concentrated. It is separate from Sai’s learning-performance evidence.</p><div id="notesInsights"></div>';
+  const panel=document.createElement('details');panel.id='notesInsightsPanel';panel.className='cloud-panel notes-insights';panel.open=true;panel.innerHTML='<summary>Notes activity summary</summary><p class="muted">A visual overview of the notes workflow: all-time open, review, implemented and archived totals, recent activity, and where notes are concentrated. It is separate from Sai’s learning-performance evidence.</p><div id="notesInsights"></div>';
   const firebase=[...body.querySelectorAll('.cloud-panel')].find(x=>x.querySelector('#firebaseSignIn'));body.insertBefore(panel,firebase||null);panel.addEventListener('toggle',()=>{if(panel.open)renderSummary()});renderSummary();
 }
 
