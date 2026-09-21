@@ -34,6 +34,13 @@
     ['hint','Hint'],
     ['explained','Explained']
   ];
+  const OBSERVATIONS=[
+    ['selfCorrected','Self-corrected'],
+    ['guessed','Guessed'],
+    ['clearExplain','Explained clearly'],
+    ['repeatRead','Needed re-reading'],
+    ['offTask','Attention drift']
+  ];
   const CONFIDENCE=[
     ['gotit','😄','Got it'],
     ['sense','🙂','Makes sense'],
@@ -81,7 +88,7 @@
       topic:TOPIC?.id||'maths-place-value',topicLabel:'Place Value & Number Structure',
       year:meta.year||'Y5',scope:meta.scope||'Place Value',startedAt:now(),updatedAt:now(),
       phaseLog:log,responses:[],confidence:[],promptLevel:'independent',
-      currentOutcome:'',currentError:'',currentConfidence:'',childDone:false,recordedCurrent:false,parentNote:''
+      currentOutcome:'',currentError:'',currentConfidence:'',currentObservations:[],childDone:false,recordedCurrent:false,parentNote:''
     };
   }
 
@@ -327,6 +334,8 @@
       '<div class="focus-v9-parent-group"><span>Response</span><div class="focus-v9-outcomes">'+OUTCOMES.map(o=>'<button type="button" data-outcome="'+o[0]+'" class="'+(session?.currentOutcome===o[0]?'selected':'')+'">'+esc(o[1])+'</button>').join('')+'</div></div>'+
       '<div class="focus-v9-parent-group"><span>Prompt used</span><div class="focus-v9-prompts">'+PROMPTS.map(p=>'<button type="button" data-prompt="'+p[0]+'" class="'+(promptLevel===p[0]?'selected':'')+'">'+esc(p[1])+'</button>').join('')+'</div></div>'+
       '<div class="focus-v9-parent-group"><span>If it broke down, why?</span><div class="focus-v9-errors">'+ERRORS.map(e=>'<button type="button" data-error="'+e[0]+'" class="'+(session?.currentError===e[0]?'selected':'')+'" title="'+esc(e[1])+'"><b>'+e[0]+'</b><small>'+esc(e[1])+'</small></button>').join('')+'</div></div>'+
+      '<div class="focus-v9-parent-group"><span>Other observation</span><div class="focus-v9-observations">'+OBSERVATIONS.map(o=>'<button type="button" data-observation="'+o[0]+'" class="'+((session?.currentObservations||[]).includes(o[0])?'selected':'')+'">'+esc(o[1])+'</button>').join('')+'</div></div>'+
+      (!session?.childDone&&currentTask()?.kind==='question'?'<button id="focusParentDone" type="button" class="focus-v9-parent-done">Mark answer done</button>':'')+
       (currentTask()?.answer?'<details class="focus-v9-parent-answer"><summary>Reveal answer</summary><p>'+esc(currentTask().answer)+'</p></details>':'')+
       '<div class="focus-v9-suggestion"><span>Suggested next step</span><strong>'+esc(suggestedNext())+'</strong></div>'+
       '<div class="focus-v9-parent-actions">'+
@@ -510,6 +519,13 @@
     qa('[data-prompt]',q('#focusV9Dock')).forEach(b=>b.addEventListener('click',()=>{
       session.promptLevel=b.dataset.prompt;saveSession();expandParent();
     }));
+    qa('[data-observation]',q('#focusV9Dock')).forEach(b=>b.addEventListener('click',()=>{
+      const value=b.dataset.observation;
+      const set=new Set(session.currentObservations||[]);
+      set.has(value)?set.delete(value):set.add(value);
+      session.currentObservations=[...set];saveSession();expandParent();
+    }));
+    q('#focusParentDone')?.addEventListener('click',completeChildTask);
     q('#focusRecordResponse')?.addEventListener('click',recordCurrentResponse);
     q('#focusNextTask')?.addEventListener('click',nextTask);
     q('#focusAddNote')?.addEventListener('click',()=>window.dispatchEvent(new CustomEvent('beyond100-focus-note',{detail:{target:focusTarget}})));
@@ -551,6 +567,7 @@
       id:crypto.randomUUID(),taskId:task.id,taskIndex:session.index,prompt:task.prompt,skill:task.skill,
       year:task.year,type:task.type,phase:session.phase,outcome:session.currentOutcome||'observed',
       errorCode:session.currentError||null,promptLevel:session.promptLevel||'independent',
+      observations:[...(session.currentObservations||[])],
       responseSeconds:seconds||null,confidence:session.currentConfidence||null,createdAt:now()
     };
     session.responses.push(response);
@@ -562,7 +579,7 @@
       window.BEYOND100_EVIDENCE?.recordFocusResponse?.({
         skill:task.skill,prompt:task.prompt,outcome:response.outcome,errorCode:response.errorCode,
         responseSeconds:response.responseSeconds,phase:response.phase,year:task.year,
-        promptLevel:response.promptLevel,confidence:response.confidence,source:'focus-v9'
+        promptLevel:response.promptLevel,observations:response.observations,confidence:response.confidence,source:'focus-v9'
       });
     }
     render();
@@ -572,7 +589,7 @@
   }
 
   function resetForTask(){
-    session.currentOutcome='';session.currentError='';session.currentConfidence='';
+    session.currentOutcome='';session.currentError='';session.currentConfidence='';session.currentObservations=[];
     session.promptLevel='independent';session.childDone=false;session.recordedCurrent=false;
     timerElapsed=0;timerStart=0;clearInterval(timerTick);timerTick=null;
   }
@@ -722,6 +739,11 @@
     return d;
   }
 
+  function setPairingStatus(text,state='loading'){
+    const d=ensurePairingDialog(),el=q('#parentPairStatus',d);if(!el)return;
+    el.dataset.state=state;el.innerHTML=state==='loading'?'<i class="parent-pair-mini-spinner" aria-hidden="true"></i><span>'+esc(text)+'</span>':esc(text);
+  }
+
   function renderPairing(token,error=''){
     const d=ensurePairingDialog();
     const learner=CLOUD.learnerLabel||CLOUD.learner?.label||'Sai';
@@ -748,18 +770,34 @@
   async function shareParentController(){
     const d=ensurePairingDialog();
     if(!d.open)d.showModal();
-    q('#parentPairStatus',d).textContent='Preparing persistent controller…';
+    const cached=cachedController();
+    if(cached?.token){
+      controllerToken=cached.token;
+      renderPairing(cached.token);
+      setPairingStatus('Checking '+(CLOUD.learnerLabel||'Sai')+' controller…','loading');
+    }else{
+      setPairingStatus('Checking Firebase sign-in…','loading');
+    }
     try{
-      const S=await remoteSdk();await S.auth.authStateReady();
-      if(!S.auth.currentUser||S.auth.currentUser.uid!==CLOUD.ownerUid)throw new Error('Sign in to Firebase on this device first.');
+      const S=await remoteSdk();
+      await S.auth.authStateReady();
+      if(!S.auth.currentUser||S.auth.currentUser.uid!==CLOUD.ownerUid){
+        if(cached?.token){
+          renderPairing(cached.token);
+          setPairingStatus('QR ready from this device · owner sign-in is needed only to revoke or replace it','ready');
+          return;
+        }
+        throw new Error('Firebase is not signed in on this device. Open Notes → Firebase account and sign in first.');
+      }
+      setPairingStatus('Firebase signed in · finding '+(CLOUD.learnerLabel||'Sai')+' profile…','loading');
       if(window.BEYOND100_RESOLVE_LEARNER)await window.BEYOND100_RESOLVE_LEARNER().catch(()=>{});
+      setPairingStatus('Loading persistent controller for '+(CLOUD.learnerLabel||'Sai')+'…','loading');
       const token=await ensureControllerCapability(S);
       renderPairing(token);
+      setPairingStatus('Ready for '+(CLOUD.learnerLabel||'Sai')+' · no extra login on the paired device','ready');
       await startRemoteBridge();
     }catch(e){
-      // The authenticated controller remains available as a fallback until the
-      // capability Firestore rule has been deployed.
-      renderPairing('',(e?.message||'Could not create the controller key.')+' You can still open the controller and sign in.');
+      renderPairing(cached?.token||'',e?.message||'Could not create the controller key.');
     }
   }
 
@@ -773,6 +811,7 @@
       learnerId:CLOUD.learnerId||CLOUD.legacyLearnerId,learnerLabel:CLOUD.learnerLabel||CLOUD.learner?.label||'Sai',
       task:task?{id:task.id,kind:task.kind,prompt:task.prompt,answer:task.answer,skill:task.skill,year:task.year,instruction:task.instruction}:null,
       promptLevel:session.promptLevel,currentOutcome:session.currentOutcome,currentError:session.currentError,
+      currentObservations:[...(session.currentObservations||[])],
       childDone:!!session.childDone,recordedCurrent:session.recordedCurrent,currentConfidence:session.currentConfidence||null,
       stats:session.responses,startedAt:session.startedAt,updatedAt:now(),
       timer:{running:!!timerStart,elapsed:elapsed(),startedAt:timerStart?now():null}
@@ -917,6 +956,11 @@
     if(action==='set-outcome'&&session){session.currentOutcome=p.outcome||'';saveSession();render();return}
     if(action==='set-error'&&session){session.currentError=p.error||'';saveSession();render();return}
     if(action==='set-prompt'&&session){session.promptLevel=p.prompt||'independent';saveSession();render();return}
+    if(action==='set-observation'&&session){
+      const set=new Set(session.currentObservations||[]);
+      p.enabled===false?set.delete(p.observation):set.add(p.observation);
+      session.currentObservations=[...set];saveSession();render();return
+    }
     if(action==='complete'){completeChildTask();return}
     if(action==='record'){recordCurrentResponse();return}
     if(action==='next'){nextTask();return}
