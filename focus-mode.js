@@ -255,16 +255,33 @@
     if(!task)return launcherMarkup();
     const number=(session.index||0)+1,total=session.tasks.length;
     const eyebrow=session.mode==='diagnostic'?'DIAGNOSTIC · QUESTION '+number+' OF '+total:currentPhase().label.toUpperCase();
-    const answer=session.recordedCurrent&&task.answer
-      ? '<details class="focus-v9-answer"><summary>Parent: reveal answer</summary><p>'+esc(task.answer)+'</p></details>'
-      : '';
     return '<article class="focus-v9-task" data-kind="'+esc(task.kind)+'">'+
       '<div class="focus-v9-task-meta"><span>'+esc(eyebrow)+'</span><span>'+esc(task.year||'')+(task.skill?' · '+esc(task.skill):'')+'</span></div>'+
       '<div class="focus-v9-instruction">'+esc(task.instruction||'')+'</div>'+
       '<div class="focus-v9-prompt">'+esc(task.prompt).replace(/\n/g,'<br>')+'</div>'+
       (task.kind==='explanation'?confidenceMarkup():(session.recordedCurrent?confidenceMarkup():''))+
-      answer+
     '</article>';
+  }
+
+  function taskForPhase(id,skill,year){
+    const matching=(TOPIC?.questions||[]).filter(x=>!skill||x.skill===skill);
+    const nearest=matching[0]||(TOPIC?.questions||[]).find(x=>x.year===year)||(TOPIC?.questions||[])[0];
+    const reasoning=matching.find(x=>x.type==='reasoning')||(TOPIC?.questions||[]).find(x=>x.type==='reasoning')||nearest;
+    if(id==='teach')return{id:'teach-'+crypto.randomUUID(),kind:'explanation',phase:id,prompt:'Work on one idea only: '+skill+'. Explain it in a different way or with a concrete example, then ask Sai to tell you what the idea means.',answer:'',skill,year,type:'explanation',instruction:'Parent explains; Sai only needs to focus on this one idea.'};
+    if(id==='demonstrate')return{id:'demonstrate-'+crypto.randomUUID(),kind:'question',phase:id,prompt:'Explain '+skill+' in your own words and show one example that proves you understand it.',answer:'A clear explanation plus a valid example.',skill,year,type:'explain',instruction:'This is not memory of the parent’s words — explain it your own way.'};
+    if(id==='practise')return{id:'practise-'+crypto.randomUUID(),kind:'question',phase:id,prompt:nearest?.prompt||('Try a new example using '+skill+'.'),answer:nearest?.answer||'',skill,year:nearest?.year||year,type:nearest?.type||'short',instruction:'Try this while the learning is still fresh.'};
+    if(id==='retrieve1'||id==='retrieve2')return{id:id+'-'+crypto.randomUUID(),kind:'question',phase:id,prompt:nearest?.prompt||('Without looking back, show what you remember about '+skill+'.'),answer:nearest?.answer||'',skill,year:nearest?.year||year,type:'retrieval',instruction:id==='retrieve1'?'Try this later, cold, with no reminder first.':'Try this after another gap, again without a reminder.'};
+    if(id==='apply')return{id:'apply-'+crypto.randomUUID(),kind:'question',phase:id,prompt:reasoning?.prompt||('Use '+skill+' in a new situation and explain why your method works.'),answer:reasoning?.answer||'',skill,year:reasoning?.year||year,type:'reasoning',instruction:'This should feel a little different from the practice examples.'};
+    return{id:'diagnose-'+crypto.randomUUID(),kind:'question',phase:'diagnose',prompt:nearest?.prompt||('Show what you know about '+skill+'.'),answer:nearest?.answer||'',skill,year:nearest?.year||year,type:nearest?.type||'short',instruction:'Read it yourself first. No teaching before the first attempt.'};
+  }
+
+  function replaceTaskForPhase(id){
+    if(!session)return;
+    const current=currentTask();
+    const skill=current?.skill||session.scope||'Place Value';
+    const year=current?.year||session.year||'Y5';
+    session.tasks=[taskForPhase(id,skill,year)];
+    session.index=0;resetForTask();
   }
 
   function parentCompactMarkup(){
@@ -285,9 +302,10 @@
       '<div class="focus-v9-parent-group"><span>Response</span><div class="focus-v9-outcomes">'+OUTCOMES.map(o=>'<button type="button" data-outcome="'+o[0]+'" class="'+(session?.currentOutcome===o[0]?'selected':'')+'">'+esc(o[1])+'</button>').join('')+'</div></div>'+
       '<div class="focus-v9-parent-group"><span>Prompt used</span><div class="focus-v9-prompts">'+PROMPTS.map(p=>'<button type="button" data-prompt="'+p[0]+'" class="'+(promptLevel===p[0]?'selected':'')+'">'+esc(p[1])+'</button>').join('')+'</div></div>'+
       '<div class="focus-v9-parent-group"><span>If it broke down, why?</span><div class="focus-v9-errors">'+ERRORS.map(e=>'<button type="button" data-error="'+e[0]+'" class="'+(session?.currentError===e[0]?'selected':'')+'" title="'+esc(e[1])+'"><b>'+e[0]+'</b><small>'+esc(e[1])+'</small></button>').join('')+'</div></div>'+
+      (currentTask()?.answer?'<details class="focus-v9-parent-answer"><summary>Reveal answer</summary><p>'+esc(currentTask().answer)+'</p></details>':'')+
       '<div class="focus-v9-suggestion"><span>Suggested next step</span><strong>'+esc(suggestedNext())+'</strong></div>'+
       '<div class="focus-v9-parent-actions">'+
-        '<button id="focusRecordResponse" type="button" class="primary">'+(session?.recordedCurrent?'Saved ✓':'Save response')+'</button>'+
+        '<button id="focusRecordResponse" type="button" class="primary">'+(session?.recordedCurrent?'Saved ✓':(currentTask()?.kind==='explanation'?'Mark phase complete':'Save response'))+'</button>'+
         '<button id="focusNextTask" type="button" '+(!session?.recordedCurrent&&currentTask()?.kind==='question'?'disabled':'')+'>'+nextTaskLabel()+'</button>'+
       '</div>'+
       '<div class="focus-v9-parent-subactions"><button id="focusAddNote" type="button">Add note</button><button id="focusPhoneControl" type="button">📱 Use iPhone</button><button id="focusGuide" type="button">? Guide</button></div>'+
@@ -399,16 +417,21 @@
     if(!session)return;
     const old=session.phase;
     if(old===id)return;
-    if(session.phaseLog?.[old]?.state==='current'&&direct){
+    if(session.phaseLog?.[old]?.state==='current'&&(session.recordedCurrent||session.currentConfidence)){
       session.phaseLog[old].state='done';
       session.phaseLog[old].completedAt=now();
-      session.phaseLog[old].detail='Manually completed';
+      session.phaseLog[old].detail=session.currentOutcome
+        ? (OUTCOMES.find(x=>x[0]===session.currentOutcome)?.[1]||session.currentOutcome)
+        : 'Completed';
+    }else if(session.phaseLog?.[old]?.state==='current'){
+      session.phaseLog[old].state='future';
     }
     session.phase=id;
     Object.keys(session.phaseLog||{}).forEach(k=>{
       if(session.phaseLog[k].state==='current')session.phaseLog[k].state='future';
     });
     if(session.phaseLog?.[id])session.phaseLog[id].state='current';
+    replaceTaskForPhase(id);
     saveSession();render();
   }
 
