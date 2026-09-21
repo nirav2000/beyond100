@@ -766,6 +766,9 @@
   function controllerIndexRef(S){
     return S.F.doc(S.db,...(CLOUD.firestoreBase||CLOUD.legacyFirestoreBase),'beyond100-parent-controller');
   }
+  function legacyRemoteRef(S){
+    return S.F.doc(S.db,...(CLOUD.firestoreBase||CLOUD.legacyFirestoreBase),'beyond100-focus-live');
+  }
   function capabilityRef(S,token=controllerToken){
     if(!validControllerToken(token))throw new Error('Parent controller key is not available.');
     return S.F.doc(S.db,CONTROLLER_COLLECTION,token);
@@ -825,16 +828,28 @@
       const S=await remoteSdk();await S.auth.authStateReady();
       if(!S.auth.currentUser||S.auth.currentUser.uid!==CLOUD.ownerUid)return;
       if(window.BEYOND100_RESOLVE_LEARNER)await window.BEYOND100_RESOLVE_LEARNER().catch(()=>{});
-      const token=await ensureControllerCapability(S);
       unsubscribeRemote?.();
-      unsubscribeRemote=S.F.onSnapshot(capabilityRef(S,token),snap=>{
-        const data=snap.data()||{};
-        controllerPresence=data.controllerPresence||null;
-        if(pairingDialog?.open)renderPairing(token);
-        const cmd=data.command;
-        if(!cmd?.id||cmd.id===lastCommandId)return;
-        lastCommandId=cmd.id;applyRemoteCommand(cmd).catch(()=>{});
-      });
+
+      try{
+        const token=await ensureControllerCapability(S);
+        unsubscribeRemote=S.F.onSnapshot(capabilityRef(S,token),snap=>{
+          const data=snap.data()||{};
+          controllerPresence=data.controllerPresence||null;
+          if(pairingDialog?.open)renderPairing(token);
+          const cmd=data.command;
+          if(!cmd?.id||cmd.id===lastCommandId)return;
+          lastCommandId=cmd.id;applyRemoteCommand(cmd).catch(()=>{});
+        });
+      }catch{
+        // Keep the previous signed-in controller working until the capability
+        // security rule has been deployed.
+        controllerToken='';
+        unsubscribeRemote=S.F.onSnapshot(legacyRemoteRef(S),snap=>{
+          const data=snap.data()||{},cmd=data.command;
+          if(!cmd?.id||cmd.id===lastCommandId)return;
+          lastCommandId=cmd.id;applyRemoteCommand(cmd).catch(()=>{});
+        });
+      }
       await publishRemoteState();
     }catch{}
   }
@@ -847,13 +862,18 @@
     try{
       const S=await remoteSdk();await S.auth.authStateReady();
       if(!S.auth.currentUser||S.auth.currentUser.uid!==CLOUD.ownerUid)return;
-      if(!validControllerToken(controllerToken))await ensureControllerCapability(S);
-      await S.F.setDoc(capabilityRef(S),{
-        app:'beyond100',kind:'parent-controller-capability',controllerVersion:1,active:true,
-        ownerUid:CLOUD.ownerUid,learnerId:CLOUD.learnerId||CLOUD.legacyLearnerId,
-        learnerLabel:CLOUD.learnerLabel||CLOUD.learner?.label||'Sai',
-        updatedAt:now(),state:remoteState(),commandAck:lastCommandId||null
-      },{merge:true});
+      if(validControllerToken(controllerToken)){
+        await S.F.setDoc(capabilityRef(S),{
+          app:'beyond100',kind:'parent-controller-capability',controllerVersion:1,active:true,
+          ownerUid:CLOUD.ownerUid,learnerId:CLOUD.learnerId||CLOUD.legacyLearnerId,
+          learnerLabel:CLOUD.learnerLabel||CLOUD.learner?.label||'Sai',
+          updatedAt:now(),state:remoteState(),commandAck:lastCommandId||null
+        },{merge:true});
+      }else{
+        await S.F.setDoc(legacyRemoteRef(S),{
+          app:'beyond100',kind:'focus-live',updatedAt:now(),state:remoteState(),commandAck:lastCommandId||null
+        },{merge:true});
+      }
     }catch{}
   }
 
