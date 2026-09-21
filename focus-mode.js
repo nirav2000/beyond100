@@ -483,7 +483,10 @@
     if(timerStart){timerElapsed+=(performance.now()-timerStart)/1000;timerStart=0}
     clearInterval(timerTick);timerTick=null;updateTimerDisplays();return timerElapsed;
   }
-  function toggleTimer(){timerStart?stopTimer():startTimer()}
+  function toggleTimer(){
+    timerStart?stopTimer():startTimer();
+    publishRemoteState();
+  }
   function elapsed(){
     return timerElapsed+(timerStart?(performance.now()-timerStart)/1000:0);
   }
@@ -495,7 +498,7 @@
   }
 
   function recordCurrentResponse(){
-    const task=currentTask();if(!task||!session)return;
+    const task=currentTask();if(!task||!session||session.recordedCurrent)return;
     if(task.kind==='question'&&!session.currentOutcome){
       window.BEYOND100_NOTES_TOAST?.('Choose the response first.');
       return;
