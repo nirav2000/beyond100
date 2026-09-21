@@ -7,7 +7,6 @@ const PHASES=[
 const OUTCOMES=[['fast','Correct + fast'],['hesitant','Correct + hesitant'],['prompted','Incorrect → understands after prompt'],['noConcept','Incorrect / no concept']];
 const ERRORS=[['K','Knowledge'],['C','Concept'],['Q','Question interpretation'],['P','Procedure'],['F','Fluency'],['R','Reasoning'],['A','Attention']];
 const PROMPTS=[['independent','Independent'],['read','Read aloud'],['clarify','Clarified wording'],['hint','Hint'],['explained','Explained']];
-const OBSERVATIONS=[['selfCorrected','Self-corrected'],['guessed','Guessed'],['clearExplain','Explained clearly'],['repeatRead','Needed re-reading'],['offTask','Attention drift']];
 const CONFIDENCE={gotit:'😄 Got it',sense:'🙂 Makes sense',half:'🤔 Half sure',lost:'😕 Don’t understand'};
 const q=(s,r=document)=>r.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -154,10 +153,6 @@ function phaseRail(){
 function controlButtons(items,attr,current){
   return items.map(x=>'<button type="button" data-'+attr+'="'+x[0]+'" class="'+(current===x[0]?'selected':'')+'">'+esc(x[1])+'</button>').join('');
 }
-function observationButtons(){
-  const selected=new Set(state?.currentObservations||[]);
-  return OBSERVATIONS.map(x=>'<button type="button" data-observation="'+x[0]+'" class="'+(selected.has(x[0])?'selected':'')+'">'+esc(x[1])+'</button>').join('');
-}
 function errorButtons(){
   return ERRORS.map(x=>'<button type="button" data-error="'+x[0]+'" class="'+(state?.currentError===x[0]?'selected':'')+'"><b>'+x[0]+'</b><small>'+esc(x[1])+'</small></button>').join('');
 }
@@ -191,9 +186,6 @@ function render(){
   q('#parentOutcomes').innerHTML=controlButtons(OUTCOMES,'outcome',state.currentOutcome);
   q('#parentPrompts').innerHTML=controlButtons(PROMPTS,'prompt',state.promptLevel||'independent');
   q('#parentErrors').innerHTML=errorButtons();
-  q('#parentObservations').innerHTML=observationButtons();
-  q('#parentDone').hidden=!!state.childDone||state.task?.kind!=='question';
-  q('#parentDone').textContent=state.childDone?'Answer done ✓':'Answer done';
   q('#parentRecord').textContent=state.recordedCurrent?'Saved ✓':(state.task?.kind==='explanation'?'Mark phase complete':'Save response');
   q('#parentSuggestion').textContent=suggestion();
   q('#parentNext').disabled=state.task?.kind==='question'&&!state.recordedCurrent;
@@ -208,7 +200,6 @@ function bindDynamic(){
   q('#parentOutcomes').querySelectorAll('[data-outcome]').forEach(b=>b.onclick=()=>command('set-outcome',{outcome:b.dataset.outcome}));
   q('#parentPrompts').querySelectorAll('[data-prompt]').forEach(b=>b.onclick=()=>command('set-prompt',{prompt:b.dataset.prompt}));
   q('#parentErrors').querySelectorAll('[data-error]').forEach(b=>b.onclick=()=>command('set-error',{error:state.currentError===b.dataset.error?'':b.dataset.error}));
-  q('#parentObservations').querySelectorAll('[data-observation]').forEach(b=>b.onclick=()=>command('set-observation',{observation:b.dataset.observation,enabled:!b.classList.contains('selected')}));
 }
 function updateTimer(){
   clearInterval(timerInterval);
@@ -227,7 +218,6 @@ async function init(){
   q('#parentSignOut').onclick=signOut;
   q('#parentRefresh').onclick=subscribe;
   q('#parentTimer').onclick=()=>command('timer');
-  q('#parentDone').onclick=()=>command('complete');
   q('#parentRecord').onclick=()=>command('record');
   q('#parentNext').onclick=()=>command('next');
   q('#saveParentNote').onclick=()=>command('parent-note',{text:q('#parentNote').value});
