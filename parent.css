@@ -30,3 +30,6 @@ button,input,textarea{font:inherit}
 .parent-suggestion{margin:12px 0 0;padding:10px 11px;border-radius:12px;background:#f3f6ee;display:grid;gap:3px}
 .parent-suggestion span{font-size:8px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:#727b75}
 .parent-suggestion strong{font-size:10px;line-height:1.45;color:#34483f}
+
+.parent-return-link{display:inline-flex;justify-content:center;text-decoration:none;border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 11px;font-size:10px;font-weight:800;color:#2d5143}
+#parentPairIdentity{display:block;margin-top:4px;font-size:8px;color:#78837d}
