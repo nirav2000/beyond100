@@ -1,12 +1,20 @@
-(()=> {
-  const PREF_KEY='beyond100.sidebar.preference.v1';
-  const FOCUS_KEY='beyond100.focus.state.v2';
-  const EVIDENCE_KEY='beyond100.learning-evidence.v1';
-  let focusOn=false,focusTarget=null,timerStarted=0,timerTick=null,lastOutcome='',lastError='',autoCollapsed=false;
+(()=>{
+  'use strict';
 
-  const q=(s,r=document)=>r.querySelector(s);
-  const qa=(s,r=document)=>[...r.querySelectorAll(s)];
-  const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const CLOUD=window.BEYOND100_CLOUD;
+  const DATA=window.BEYOND100_DATA;
+  const TOPIC=DATA?.detailedTopics?.['Place Value & Number Structure'];
+  const SESSION_KEY='beyond100.focus.session.v3';
+  const PREF_KEY='beyond100.sidebar.preference.v1';
+  const PHASES=[
+    {id:'diagnose',label:'Diagnose',help:'Find the first fragile layer before teaching.',icon:'⌕'},
+    {id:'teach',label:'Teach',help:'Explain or model only what is missing.',icon:'▤'},
+    {id:'demonstrate',label:'Demonstrate',help:'Ask Sai to show or explain the idea back.',icon:'▣'},
+    {id:'practise',label:'Practise',help:'Build accuracy with a few varied examples.',icon:'✎'},
+    {id:'retrieve1',label:'Retrieve',help:'Bring it back later without a reminder.',icon:'↶'},
+    {id:'retrieve2',label:'Retrieve again',help:'Bring it back again after a longer gap.',icon:'↺'},
+    {id:'apply',label:'Apply',help:'Use it in unfamiliar wording or context.',icon:'→'}
+  ];
   const OUTCOMES=[
     ['fast','Correct + fast'],
     ['hesitant','Correct + hesitant'],
@@ -17,29 +25,130 @@
     ['K','Knowledge'],['C','Concept'],['Q','Question interpretation'],['P','Procedure'],
     ['F','Fluency'],['R','Reasoning'],['A','Attention']
   ];
-  const PHASES=[
-    ['diagnose','Diagnose'],['teach','Teach'],['demonstrate','Demonstrate understanding'],
-    ['practise','Practise'],['retrieve1','Retrieve'],['retrieve2','Retrieve again'],['apply','Apply in a new context']
+  const PROMPTS=[
+    ['independent','Independent'],
+    ['read','Read aloud'],
+    ['clarify','Clarified wording'],
+    ['hint','Hint'],
+    ['explained','Explained']
   ];
-  const PHASE_HELP={
-    diagnose:'Find the current edge before teaching.',
-    teach:'Explain or model the missing idea.',
-    demonstrate:'Ask Sai to show or explain what he understands.',
-    practise:'Build accuracy and fluency with varied examples.',
-    retrieve1:'Bring it back later without a prompt.',
-    retrieve2:'Retrieve it again after a longer gap.',
-    apply:'Use the idea in unfamiliar wording or context.'
-  };
-  function phaseIcon(id){
-    const icons={
-      diagnose:'<svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="5.5"/><path d="m15 15 5 5"/><path d="M8 10.5h5M10.5 8v5"/></svg>',
-      teach:'<svg viewBox="0 0 24 24"><path d="M4 5.5c3-1 5-.5 8 1v12c-3-1.5-5-2-8-1z"/><path d="M20 5.5c-3-1-5-.5-8 1v12c3-1.5 5-2 8-1z"/></svg>',
-      demonstrate:'<svg viewBox="0 0 24 24"><path d="M5 18h14"/><path d="M7 15V7h10v8"/><path d="m9 11 2 2 4-4"/></svg>',
-      practise:'<svg viewBox="0 0 24 24"><path d="m5 19 3.5-.8L19 7.7 16.3 5 5.8 15.5z"/><path d="m14.8 6.5 2.7 2.7"/></svg>',
-      retrieve1:'<svg viewBox="0 0 24 24"><path d="M5 8a8 8 0 1 1 1 9"/><path d="M5 4v4h4"/><path d="M12 8v5l3 2"/></svg>',
-      retrieve2:'<svg viewBox="0 0 24 24"><path d="M5 8a8 8 0 1 1 1 9"/><path d="M5 4v4h4"/><path d="M9 10h6M9 14h6"/></svg>',
-      apply:'<svg viewBox="0 0 24 24"><path d="M4 12h11"/><path d="m12 7 5 5-5 5"/><path d="M17 5h3v14h-3"/></svg>'
-    };return icons[id]||'';
+  const CONFIDENCE=[
+    ['gotit','😄','Got it'],
+    ['sense','🙂','Makes sense'],
+    ['half','🤔','Half sure'],
+    ['lost','😕','Don’t understand']
+  ];
+
+  let focusOn=false;
+  let focusTarget=null;
+  let session=loadSession();
+  let timerStart=0;
+  let timerElapsed=0;
+  let timerTick=null;
+  let remoteSdkPromise=null;
+  let unsubscribeRemote=null;
+  let lastCommandId='';
+  let syncTimer=null;
+
+  const q=(s,r=document)=>r.querySelector(s);
+  const qa=(s,r=document)=>Array.from(r.querySelectorAll(s));
+  const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const now=()=>new Date().toISOString();
+  const phaseById=id=>PHASES.find(p=>p.id===id)||PHASES[0];
+  const currentPhase=()=>phaseById(session?.phase||'diagnose');
+  const currentTask=()=>session?.tasks?.[session.index||0]||null;
+
+  function loadSession(){
+    try{return JSON.parse(localStorage.getItem(SESSION_KEY)||'null')}catch{return null}
+  }
+  function saveSession(){
+    if(!session)return;
+    session.updatedAt=now();
+    localStorage.setItem(SESSION_KEY,JSON.stringify(session));
+    scheduleRemoteSync();
+  }
+  function freshSession(mode,phase,tasks,meta={}){
+    const log={};
+    PHASES.forEach(p=>log[p.id]={state:'future',completedAt:null,detail:''});
+    log[phase]={state:'current',completedAt:null,detail:''};
+    return{
+      id:crypto.randomUUID(),active:true,mode,phase,tasks,index:0,
+      topic:TOPIC?.id||'maths-place-value',topicLabel:'Place Value & Number Structure',
+      year:meta.year||'Y5',scope:meta.scope||'Place Value',startedAt:now(),updatedAt:now(),
+      phaseLog:log,responses:[],confidence:[],promptLevel:'independent',
+      currentOutcome:'',currentError:'',recordedCurrent:false,parentNote:''
+    };
+  }
+
+  function stageYearFrom(el){
+    return el?.querySelector?.('.year-pill strong,.badge')?.textContent?.trim()||
+      q('.hero-card strong')?.textContent?.trim()||'Y5';
+  }
+  function stageFromYear(year){return TOPIC?.stages?.find(s=>s.year===year)||TOPIC?.stages?.find(s=>s.year==='Y5')||TOPIC?.stages?.[0]}
+  function targetLabel(el){
+    if(!el)return 'Place Value';
+    return el.dataset.noteLabel||
+      el.querySelector?.('h1,h2,h3,h4,strong,.question-prompt')?.textContent?.trim()||
+      'Place Value';
+  }
+  function targetText(el){
+    if(!el)return '';
+    const clone=el.cloneNode(true);
+    clone.querySelectorAll('button,.focus-here-button,.score-row,.response-recorder').forEach(x=>x.remove());
+    return clone.innerText.trim().replace(/\n{3,}/g,'\n\n');
+  }
+
+  function chooseDiagnosticQuestions(year,count=6){
+    const yearNum=Number(String(year).replace(/\D/g,''))||5;
+    const qs=[...(TOPIC?.questions||[])].sort((a,b)=>{
+      const ad=Math.abs((Number(String(a.year).replace(/\D/g,''))||99)-yearNum);
+      const bd=Math.abs((Number(String(b.year).replace(/\D/g,''))||99)-yearNum);
+      return ad-bd;
+    });
+    return qs.slice(0,count).map((x,i)=>({
+      id:x.id||('diag-'+i),kind:'question',phase:'diagnose',prompt:x.prompt,answer:x.answer||'',
+      skill:x.skill||'Place value',year:x.year||year,type:x.type||'short',
+      instruction:'Read the question yourself first.'
+    }));
+  }
+  function quickCheckTasks(stage){
+    return (stage?.quickChecks||[]).map((prompt,i)=>({
+      id:'quick-'+stage.year+'-'+i,kind:'question',phase:'diagnose',prompt,answer:'',
+      skill:stage.label||'Place value',year:stage.year,type:'quick',
+      instruction:'Read the question yourself first.'
+    }));
+  }
+  function explanationTasks(el){
+    const text=targetText(el);
+    const parts=text.split(/\n+/).map(x=>x.trim()).filter(x=>x.length>20).slice(0,5);
+    return (parts.length?parts:[text||'Look at this idea together.']).map((prompt,i)=>({
+      id:'explain-'+i,kind:'explanation',phase:'teach',prompt,answer:'',skill:targetLabel(el),
+      year:stageYearFrom(el),type:'explanation',instruction:'Read or discuss just this part.'
+    }));
+  }
+  function retrievalCandidates(){
+    let evidence={};try{evidence=JSON.parse(localStorage.getItem('beyond100.learning-evidence.v1')||'{}')}catch{}
+    const rows=[];
+    Object.values(evidence.cycles||{}).forEach(c=>{
+      const s=c.steps||{};
+      if(s.practise&&!s.retrieve1){
+        const due=Date.parse(s.practise.at||0)+86400000;
+        if(Date.now()>=due)rows.push({skill:c.skill,phase:'retrieve1',due});
+      }else if(s.retrieve1&&!s.retrieve2){
+        const due=Date.parse(s.retrieve1.at||0)+3*86400000;
+        if(Date.now()>=due)rows.push({skill:c.skill,phase:'retrieve2',due});
+      }
+    });
+    return rows.sort((a,b)=>a.due-b.due);
+  }
+  function retrievalTask(row){
+    const match=(TOPIC?.questions||[]).find(x=>x.skill===row.skill)||null;
+    return{
+      id:'retrieve-'+crypto.randomUUID(),kind:'question',phase:row.phase,
+      prompt:match?.prompt||('Without looking back, show me what you remember about '+row.skill+'. Explain your thinking.'),
+      answer:match?.answer||'',skill:row.skill,year:match?.year||'',
+      type:'retrieval',instruction:'Try this cold. No reminder or hint first.'
+    };
   }
 
   function installSidebarControl(){
@@ -51,24 +160,10 @@
     head.appendChild(b);
     b.addEventListener('click',()=>{
       const collapsed=!document.body.classList.contains('sidebar-collapsed');
-      localStorage.setItem(PREF_KEY,collapsed?'collapsed':'expanded');applySidebar(collapsed,false);
+      localStorage.setItem(PREF_KEY,collapsed?'collapsed':'expanded');
+      document.body.classList.toggle('sidebar-collapsed',collapsed);
+      b.textContent=collapsed?'›':'‹';
     });
-  }
-
-  function applySidebar(collapsed,isAuto){
-    autoCollapsed=!!isAuto;
-    document.body.classList.toggle('sidebar-collapsed',collapsed);
-    const b=q('#toggleSidebarCollapse');
-    if(b){b.textContent=collapsed?'›':'‹';b.setAttribute('aria-label',collapsed?'Expand topics':'Collapse topics');b.title=collapsed?'Expand topics':'Collapse topics'}
-  }
-
-  function autoSidebar(){
-    if(innerWidth<=980){applySidebar(false,true);return}
-    if(focusOn){applySidebar(true,true);return}
-    const pref=localStorage.getItem(PREF_KEY);
-    if(pref==='collapsed'){applySidebar(true,false);return}
-    if(pref==='expanded'){applySidebar(false,false);return}
-    applySidebar(innerWidth<1280,true);
   }
 
   function installFocusButton(){
@@ -78,292 +173,502 @@
     b.id='focusModeButton';b.className='focus-mode-button';b.type='button';
     b.innerHTML='<span aria-hidden="true">◎</span><span>Focus</span>';
     b.title='Start a focused learning session';
-    b.addEventListener('click',()=>focusOn?setFocus(false):setFocus(true,null));
+    b.addEventListener('click',()=>focusOn?exitFocus():enterFocus(null));
     bar.insertBefore(b,nav||null);
-  }
-
-  function focusLabel(el){
-    if(!el)return currentSectionLabel();
-    return el.dataset.noteLabel||
-      el.querySelector?.('h1,h2,h3,h4,strong,.stage-title strong,.question-prompt')?.textContent?.trim()||
-      currentSectionLabel();
-  }
-  function currentSectionLabel(){
-    return q('.content-section.active .section-heading h2')?.textContent?.trim()||
-      q('#topicTitle')?.textContent?.trim()||'Learning session';
-  }
-  function topicLabel(){return q('#topicTitle')?.textContent?.trim()||'Beyond 100'}
-  function yearLabel(el){
-    return el?.querySelector?.('.year-pill strong,.badge')?.textContent?.trim()||
-      q('.hero-card strong')?.textContent?.trim()||'';
   }
 
   function focusableBlocks(){
     return qa([
-      '#placeValueContext .topic-context-kid',
-      '#placeValueContext details',
-      '.stage-card','.diagnostic-panel','.question-card.diagnostic',
-      '.mastery-card','.threshold','.misconception','.question-card',
-      '.breakdown-focus','.diagnostic-ladder','.mastery-dimensions-panel',
-      '.learning-cycle','.half-term-panel','.evidence-log-panel',
+      '#placeValueContext .topic-context-kid','#placeValueContext details',
+      '.stage-card','.question-card','.mastery-card','.threshold','.misconception',
       '.assessment-topic','.assessment-card'
     ].join(',')).filter(el=>!el.closest('.notes-dialog')&&!el.hidden);
   }
-
   function installFocusHereButtons(){
     focusableBlocks().forEach(el=>{
-      if(el.dataset.focusPrepared)return;
-      el.dataset.focusPrepared='1';
+      if(el.dataset.focusV9Prepared)return;
+      el.dataset.focusV9Prepared='1';
       const b=document.createElement('button');
-      b.type='button';b.className='focus-here-button';b.textContent='Focus here';
-      b.setAttribute('aria-label',`Focus on ${focusLabel(el)}`);
-      b.addEventListener('click',e=>{e.stopPropagation();setFocus(true,el)});
+      b.className='focus-here-button';b.type='button';b.textContent='Focus here';
+      b.addEventListener('click',e=>{
+        e.preventDefault();e.stopPropagation();
+        enterFocus(el);
+      });
       el.appendChild(b);
     });
   }
 
-  function installWorkspace(){
-    if(q('#focusWorkspace'))return;
-    const el=document.createElement('div');el.id='focusWorkspace';el.className='focus-workspace';el.hidden=true;
-    el.innerHTML=`
-      <div class="focus-session-bar">
-        <button type="button" id="focusExit" class="focus-session-exit" aria-label="Exit focus">×</button>
-        <div class="focus-breadcrumb">
-          <span id="focusTopic"></span>
-          <strong id="focusScope"></strong>
-          <small id="focusYear"></small>
-        </div>
-        <div class="focus-phase-picker" role="group" aria-label="Learning phase">
-          <input type="hidden" id="focusPhase" value="diagnose">
-          ${PHASES.map(([id,label])=>`<button type="button" class="focus-phase-tile ${id==='diagnose'?'selected':''}" data-focus-phase="${id}" data-tip="${esc(label)}" title="${esc(label)}" aria-label="${esc(label)}" aria-pressed="${id==='diagnose'?'true':'false'}">${phaseIcon(id)}</button>`).join('')}
-        </div>
-        <div class="focus-phase-status" id="focusPhaseStatus" data-phase="diagnose">
-          <div class="focus-phase-copy"><strong id="focusPhaseName">Diagnose</strong><span id="focusPhaseHelp">Find the current edge before teaching.</span></div>
-          <div class="focus-phase-nav">
-            <button type="button" id="focusPhasePrev" aria-label="Previous learning phase">←</button>
-            <button type="button" id="focusPhaseNext">Next: Teach →</button>
-          </div>
-        </div>
-        <button type="button" id="focusParentToggle" class="focus-parent-toggle" aria-expanded="false">Parent controls</button>
-      </div>
-      <aside id="focusParentDrawer" class="focus-parent-drawer" hidden>
-        <div class="focus-parent-head"><div><p class="eyebrow">PARENT VIEW</p><h3>Observe, record, decide</h3></div><button type="button" id="focusParentClose" aria-label="Close parent controls">×</button></div>
-        <div class="focus-timer-row">
-          <button type="button" id="focusTimerButton">Start timer</button>
-          <strong id="focusTimer">0.0s</strong>
-          <span>Response time</span>
-        </div>
-        <div class="focus-control-group"><span class="focus-control-label">Response</span><div class="focus-outcomes">${OUTCOMES.map(([id,label])=>`<button type="button" data-focus-outcome="${id}">${esc(label)}</button>`).join('')}</div></div>
-        <div class="focus-control-group"><span class="focus-control-label">Why did it break down?</span><div class="focus-errors">${ERRORS.map(([id,label])=>`<button type="button" data-focus-error="${id}" title="${esc(label)}"><b>${id}</b><span>${esc(label)}</span></button>`).join('')}</div></div>
-        <div class="focus-next-step"><span>Suggested next step</span><strong id="focusNextStep">Observe the response before deciding what to do next.</strong></div>
-        <div class="focus-parent-actions"><button type="button" id="focusRecord">Record response</button><button type="button" id="focusAddNote">Add note</button></div>
-        <div class="focus-session-stats" id="focusSessionStats"></div>
-      </aside>
-    `;
-    document.body.appendChild(el);
-    q('#focusExit',el).onclick=()=>setFocus(false);
-    q('#focusParentToggle',el).onclick=()=>toggleParent(true);
-    q('#focusParentClose',el).onclick=()=>toggleParent(false);
-    q('#focusTimerButton',el).onclick=toggleTimer;
-    q('#focusRecord',el).onclick=recordResponse;
-    q('#focusAddNote',el).onclick=()=>window.dispatchEvent(new CustomEvent('beyond100-focus-note',{detail:{target:focusTarget}}));
-    qa('[data-focus-outcome]',el).forEach(b=>b.onclick=()=>selectOutcome(b.dataset.focusOutcome));
-    qa('[data-focus-error]',el).forEach(b=>b.onclick=()=>selectError(b.dataset.focusError));
-    qa('[data-focus-phase]',el).forEach(b=>b.onclick=()=>selectPhase(b.dataset.focusPhase));
-    q('#focusPhasePrev',el).onclick=()=>movePhase(-1);
-    q('#focusPhaseNext',el).onclick=()=>movePhase(1);
+  function phaseMarkup(){
+    return PHASES.map((p,i)=>{
+      const state=session?.phaseLog?.[p.id]?.state||(p.id===session?.phase?'current':'future');
+      const log=session?.phaseLog?.[p.id]||{};
+      const title=state==='done'&&log.completedAt
+        ? p.label+' — completed '+new Date(log.completedAt).toLocaleString('en-GB')+(log.detail?' · '+log.detail:'')
+        : p.label+' — '+p.help;
+      const arrow=i<PHASES.length-1?'<span class="focus-v9-phase-arrow" aria-hidden="true">›</span>':'';
+      return '<button type="button" class="focus-v9-phase-tile" data-phase="'+p.id+'" data-state="'+state+'" title="'+esc(title)+'" aria-label="'+esc(title)+'">'+
+        '<span class="focus-v9-phase-icon">'+p.icon+'</span>'+
+        '<span class="focus-v9-phase-check">✓</span>'+
+      '</button>'+arrow;
+    }).join('');
   }
 
-  function phaseIndex(id){return Math.max(0,PHASES.findIndex(([key])=>key===id))}
-  function updatePhaseNav(id){
-    const i=phaseIndex(id),prev=q('#focusPhasePrev'),next=q('#focusPhaseNext');
-    if(prev){
-      prev.disabled=i===0;
-      prev.textContent=i>0?`← ${PHASES[i-1][1]}`:'←';
-      prev.title=i===0?'Already at the first phase':`Go back to ${PHASES[i-1][1]}`;
-    }
-    if(next){
-      next.disabled=i===PHASES.length-1;
-      if(i===PHASES.length-1)next.textContent='Cycle complete';
-      else if(id==='practise')next.textContent='Retrieve later →';
-      else next.textContent=`Next: ${PHASES[i+1][1]} →`;
-      next.title=id==='practise'
-        ?'Move to retrieval when you return later, ideally after a gap and without a prompt.'
-        :(next.disabled?'This is the last phase':`Move to ${PHASES[i+1][1]}`);
-    }
-  }
-  function movePhase(direction){
-    const current=q('#focusPhase')?.value||'diagnose',i=phaseIndex(current),target=PHASES[i+direction];
-    if(!target)return;
-    selectPhase(target[0]);
-    if(current==='practise'&&direction>0){
-      window.BEYOND100_NOTES_TOAST?.('Retrieval should normally happen later, without a prompt.');
-    }
+  function launcherMarkup(){
+    const year=stageYearFrom(focusTarget);
+    const stage=stageFromYear(year);
+    const retrievals=retrievalCandidates();
+    const continueButton=session?.tasks?.length
+      ? '<button class="focus-v9-launch-card continue" data-launch="continue"><span>↺</span><strong>Continue last session</strong><small>'+esc(session.scope||'Place Value')+'</small></button>'
+      : '';
+    const quick=focusTarget?.matches?.('.stage-card')
+      ? '<button class="focus-v9-launch-card" data-launch="quick"><span>⚡</span><strong>Quick check this stage</strong><small>One question at a time</small></button>'
+      : '';
+    const discuss=focusTarget
+      ? '<button class="focus-v9-launch-card" data-launch="discuss"><span>◉</span><strong>Focus on this section</strong><small>'+esc(targetLabel(focusTarget))+'</small></button>'
+      : '';
+    const retrieval=retrievals.length
+      ? '<button class="focus-v9-launch-card due" data-launch="retrieve"><span>⏱</span><strong>Retrieval due</strong><small>'+esc(retrievals[0].skill)+'</small></button>'
+      : '<button class="focus-v9-launch-card muted" disabled><span>⏱</span><strong>No retrieval due</strong><small>It will appear here when due</small></button>';
+    return '<div class="focus-v9-launcher">'+
+      '<p class="eyebrow">FOCUS MODE</p>'+
+      '<h1>What are we doing?</h1>'+
+      '<p>Show Sai one small thing at a time. Parent controls stay out of the way until you need them.</p>'+
+      '<div class="focus-v9-launch-grid">'+
+        continueButton+
+        '<button class="focus-v9-launch-card primary" data-launch="diagnostic"><span>⌕</span><strong>Run '+esc(year)+' diagnostic</strong><small>Question-by-question · child reads first</small></button>'+
+        quick+retrieval+discuss+
+      '</div>'+
+      '<div class="focus-v9-launch-actions"><button data-launch="guide">How Focus works</button><button data-launch="phone">Use iPhone as parent controller</button></div>'+
+    '</div>';
   }
 
-  function selectPhase(id){
-    const input=q('#focusPhase');if(input)input.value=id;
-    qa('[data-focus-phase]').forEach(b=>{
-      const on=b.dataset.focusPhase===id;
-      b.classList.toggle('selected',on);
-      b.setAttribute('aria-pressed',String(on));
+  function confidenceMarkup(){
+    return '<div class="focus-v9-confidence">'+
+      '<div><strong>How did that feel?</strong><span>There is no right choice — tap what feels true.</span></div>'+
+      '<div class="focus-v9-confidence-grid">'+CONFIDENCE.map(c=>
+        '<button type="button" data-confidence="'+c[0]+'" class="'+(c[0]==='gotit'?'gotit':'')+'"><span>'+c[1]+'</span><strong>'+esc(c[2])+'</strong></button>'
+      ).join('')+'</div>'+
+    '</div>';
+  }
+
+  function taskMarkup(task){
+    if(!task)return launcherMarkup();
+    const number=(session.index||0)+1,total=session.tasks.length;
+    const eyebrow=session.mode==='diagnostic'?'DIAGNOSTIC · QUESTION '+number+' OF '+total:currentPhase().label.toUpperCase();
+    const answer=session.recordedCurrent&&task.answer
+      ? '<details class="focus-v9-answer"><summary>Parent: reveal answer</summary><p>'+esc(task.answer)+'</p></details>'
+      : '';
+    return '<article class="focus-v9-task" data-kind="'+esc(task.kind)+'">'+
+      '<div class="focus-v9-task-meta"><span>'+esc(eyebrow)+'</span><span>'+esc(task.year||'')+(task.skill?' · '+esc(task.skill):'')+'</span></div>'+
+      '<div class="focus-v9-instruction">'+esc(task.instruction||'')+'</div>'+
+      '<div class="focus-v9-prompt">'+esc(task.prompt).replace(/\n/g,'<br>')+'</div>'+
+      (task.kind==='explanation'?confidenceMarkup():(session.recordedCurrent?confidenceMarkup():''))+
+      answer+
+    '</article>';
+  }
+
+  function parentCompactMarkup(){
+    const task=currentTask();
+    const recorded=session?.recordedCurrent;
+    return '<div class="focus-v9-dock-compact">'+
+      '<button id="focusDockTimer" type="button" title="Start or stop response timer"><span>⏱</span><strong id="focusDockTime">0.0s</strong></button>'+
+      '<span class="focus-v9-dock-state">'+(session?.currentOutcome?esc(OUTCOMES.find(x=>x[0]===session.currentOutcome)?.[1]||session.currentOutcome):(recorded?'Recorded':'Awaiting response'))+'</span>'+
+      '<button id="focusDockExpand" type="button">Parent ▴</button>'+
+    '</div>';
+  }
+
+  function parentExpandedMarkup(){
+    const promptLevel=session?.promptLevel||'independent';
+    return '<div class="focus-v9-parent-expanded">'+
+      '<div class="focus-v9-parent-head"><div><p class="eyebrow">PARENT</p><h3>Observe · record · decide</h3></div><button id="focusDockCollapse" type="button" aria-label="Collapse parent controls">×</button></div>'+
+      '<div class="focus-v9-parent-row timer"><button id="focusTimerButton" type="button">'+(timerStart?'Stop timer':'Start timer')+'</button><strong id="focusTimerValue">0.0s</strong><span>Auto-starts for each question</span></div>'+
+      '<div class="focus-v9-parent-group"><span>Response</span><div class="focus-v9-outcomes">'+OUTCOMES.map(o=>'<button type="button" data-outcome="'+o[0]+'" class="'+(session?.currentOutcome===o[0]?'selected':'')+'">'+esc(o[1])+'</button>').join('')+'</div></div>'+
+      '<div class="focus-v9-parent-group"><span>Prompt used</span><div class="focus-v9-prompts">'+PROMPTS.map(p=>'<button type="button" data-prompt="'+p[0]+'" class="'+(promptLevel===p[0]?'selected':'')+'">'+esc(p[1])+'</button>').join('')+'</div></div>'+
+      '<div class="focus-v9-parent-group"><span>If it broke down, why?</span><div class="focus-v9-errors">'+ERRORS.map(e=>'<button type="button" data-error="'+e[0]+'" class="'+(session?.currentError===e[0]?'selected':'')+'" title="'+esc(e[1])+'"><b>'+e[0]+'</b><small>'+esc(e[1])+'</small></button>').join('')+'</div></div>'+
+      '<div class="focus-v9-suggestion"><span>Suggested next step</span><strong>'+esc(suggestedNext())+'</strong></div>'+
+      '<div class="focus-v9-parent-actions">'+
+        '<button id="focusRecordResponse" type="button" class="primary">'+(session?.recordedCurrent?'Saved ✓':'Save response')+'</button>'+
+        '<button id="focusNextTask" type="button" '+(!session?.recordedCurrent&&currentTask()?.kind==='question'?'disabled':'')+'>'+nextTaskLabel()+'</button>'+
+      '</div>'+
+      '<div class="focus-v9-parent-subactions"><button id="focusAddNote" type="button">Add note</button><button id="focusPhoneControl" type="button">📱 Use iPhone</button><button id="focusGuide" type="button">? Guide</button></div>'+
+      '<div class="focus-v9-parent-stats">'+statsMarkup()+'</div>'+
+    '</div>';
+  }
+
+  function suggestedNext(){
+    if(!session?.currentOutcome)return currentTask()?.kind==='question'
+      ?'Let Sai answer before helping. If needed, move through the prompt ladder.'
+      :'Discuss only this part, then ask Sai how it felt.';
+    if(session.currentOutcome==='noConcept')return session.currentError==='Q'
+      ?'Try reading the same wording aloud. If that fixes it, language processing may be the barrier.'
+      :'Step back one layer and teach the missing idea rather than repeating the same question.';
+    if(session.currentOutcome==='prompted')return'Count this as supported understanding, then retrieve the same idea later without the prompt.';
+    if(session.currentOutcome==='hesitant')return'Try one varied example. If still correct, schedule retrieval rather than over-practising.';
+    if(session.phase==='diagnose')return'Continue until you find the first layer where fluency or explanation becomes fragile.';
+    if(session.phase==='retrieve1'||session.phase==='retrieve2')return'If this was fluent and independent, keep the next spaced check rather than reteaching.';
+    return'Use a different example or representation before moving on.';
+  }
+
+  function statsMarkup(){
+    const responses=session?.responses||[];
+    const c={fast:0,hesitant:0,prompted:0,noConcept:0};
+    responses.forEach(r=>{if(c[r.outcome]!==undefined)c[r.outcome]++});
+    return '<span><b>'+responses.length+'</b> recorded</span>'+
+      '<span><b>'+c.fast+'</b> fast</span><span><b>'+c.hesitant+'</b> hesitant</span>'+
+      '<span><b>'+c.prompted+'</b> prompted</span><span><b>'+c.noConcept+'</b> no concept</span>';
+  }
+  function nextTaskLabel(){
+    if(!session?.tasks?.length)return'Next';
+    if(session.index>=session.tasks.length-1)return session.mode==='diagnostic'?'Finish diagnostic':'Finish';
+    return'Next task →';
+  }
+
+  function render(){
+    const overlay=q('#focusV9');
+    if(!overlay)return;
+    const task=currentTask();
+    overlay.hidden=!focusOn;
+    document.body.classList.toggle('focus-mode',focusOn);
+    if(!focusOn)return;
+
+    q('#focusV9PhaseRail').innerHTML=session?.tasks?.length?phaseMarkup():'';
+    q('#focusV9Child').innerHTML=task?taskMarkup(task):launcherMarkup();
+    q('#focusV9Dock').innerHTML=session?.tasks?.length?parentCompactMarkup():'';
+
+    bindLauncher();
+    bindChildConfidence();
+    bindPhaseRail();
+    bindCompactDock();
+
+    if(task&&task.kind==='question'&&!session.recordedCurrent&&!timerStart)startTimer();
+    updateTimerDisplays();
+    publishRemoteState();
+  }
+
+  function bindLauncher(){
+    qa('[data-launch]',q('#focusV9Child')).forEach(b=>b.addEventListener('click',()=>{
+      const action=b.dataset.launch;
+      if(action==='continue'){
+        session.active=true;focusOn=true;render();return;
+      }
+      if(action==='diagnostic'){
+        const year=stageYearFrom(focusTarget);
+        session=freshSession('diagnostic','diagnose',chooseDiagnosticQuestions(year,6),{year,scope:year+' diagnostic'});
+        saveSession();render();return;
+      }
+      if(action==='quick'){
+        const year=stageYearFrom(focusTarget),stage=stageFromYear(year);
+        session=freshSession('diagnostic','diagnose',quickCheckTasks(stage),{year,scope:year+' quick check'});
+        saveSession();render();return;
+      }
+      if(action==='retrieve'){
+        const row=retrievalCandidates()[0];if(!row)return;
+        session=freshSession('retrieval',row.phase,[retrievalTask(row)],{year:'',scope:row.skill});
+        saveSession();render();return;
+      }
+      if(action==='discuss'){
+        const year=stageYearFrom(focusTarget);
+        session=freshSession('learning','teach',explanationTasks(focusTarget),{year,scope:targetLabel(focusTarget)});
+        saveSession();render();return;
+      }
+      if(action==='guide'){window.BEYOND100_OPEN_GUIDE?.('focus');return}
+      if(action==='phone'){shareParentController();return}
+    }));
+  }
+
+  function bindChildConfidence(){
+    qa('[data-confidence]',q('#focusV9Child')).forEach(b=>b.addEventListener('click',()=>{
+      const value=b.dataset.confidence;
+      qa('[data-confidence]',q('#focusV9Child')).forEach(x=>x.classList.toggle('selected',x===b));
+      const task=currentTask();if(!task)return;
+      const entry={id:crypto.randomUUID(),taskId:task.id,value,at:now(),phase:session.phase};
+      session.confidence.push(entry);session.currentConfidence=value;saveSession();
+      window.BEYOND100_EVIDENCE?.recordConfidence?.({
+        skill:task.skill,prompt:task.prompt,confidence:value,phase:session.phase,taskId:task.id
+      });
+      window.BEYOND100_NOTES_TOAST?.('Thanks — '+(CONFIDENCE.find(x=>x[0]===value)?.[2]||value));
+      publishRemoteState();
+    }));
+  }
+
+  function bindPhaseRail(){
+    qa('[data-phase]',q('#focusV9PhaseRail')).forEach(b=>b.addEventListener('click',()=>selectPhase(b.dataset.phase,true)));
+  }
+
+  function selectPhase(id,direct=false){
+    if(!session)return;
+    const old=session.phase;
+    if(old===id)return;
+    if(session.phaseLog?.[old]?.state==='current'&&direct){
+      session.phaseLog[old].state='done';
+      session.phaseLog[old].completedAt=now();
+      session.phaseLog[old].detail='Manually completed';
+    }
+    session.phase=id;
+    Object.keys(session.phaseLog||{}).forEach(k=>{
+      if(session.phaseLog[k].state==='current')session.phaseLog[k].state='future';
     });
-    const label=PHASES.find(([key])=>key===id)?.[1]||id;
-    const status=q('#focusPhaseStatus'),name=q('#focusPhaseName'),help=q('#focusPhaseHelp');
-    if(name)name.textContent=label;
-    if(help)help.textContent=PHASE_HELP[id]||'';
-    if(status){
-      status.dataset.phase=id;
-      status.classList.remove('phase-pulse');
-      requestAnimationFrame(()=>status.classList.add('phase-pulse'));
-    }
-    updatePhaseNav(id);
-    window.BEYOND100_NOTES_TOAST?.(`Phase: ${label}`);
-    persistFocus();updateNextStep();
+    if(session.phaseLog?.[id])session.phaseLog[id].state='current';
+    saveSession();render();
   }
 
-  function toggleParent(open){
-    const drawer=q('#focusParentDrawer'),button=q('#focusParentToggle');if(!drawer||!button)return;
-    drawer.hidden=!open;button.setAttribute('aria-expanded',String(open));
-    document.body.classList.toggle('focus-parent-open',open);
+  function markPhaseDone(detail=''){
+    if(!session?.phaseLog?.[session.phase])return;
+    const log=session.phaseLog[session.phase];
+    log.state='done';log.completedAt=now();log.detail=detail;
   }
 
-  function selectOutcome(id){
-    lastOutcome=id;qa('[data-focus-outcome]').forEach(b=>b.classList.toggle('selected',b.dataset.focusOutcome===id));updateNextStep();
+  function bindCompactDock(){
+    q('#focusDockTimer')?.addEventListener('click',toggleTimer);
+    q('#focusDockExpand')?.addEventListener('click',expandParent);
   }
-  function selectError(id){
-    lastError=lastError===id?'':id;qa('[data-focus-error]').forEach(b=>b.classList.toggle('selected',b.dataset.focusError===lastError));updateNextStep();
+  function expandParent(){
+    const dock=q('#focusV9Dock');if(!dock)return;
+    dock.classList.add('expanded');
+    dock.innerHTML=parentExpandedMarkup();
+    bindExpandedParent();
+    updateTimerDisplays();
+  }
+  function collapseParent(){
+    const dock=q('#focusV9Dock');if(!dock)return;
+    dock.classList.remove('expanded');dock.innerHTML=parentCompactMarkup();bindCompactDock();updateTimerDisplays();
+  }
+  function bindExpandedParent(){
+    q('#focusDockCollapse')?.addEventListener('click',collapseParent);
+    q('#focusTimerButton')?.addEventListener('click',toggleTimer);
+    qa('[data-outcome]',q('#focusV9Dock')).forEach(b=>b.addEventListener('click',()=>{
+      session.currentOutcome=b.dataset.outcome;saveSession();expandParent();
+    }));
+    qa('[data-error]',q('#focusV9Dock')).forEach(b=>b.addEventListener('click',()=>{
+      session.currentError=session.currentError===b.dataset.error?'':b.dataset.error;saveSession();expandParent();
+    }));
+    qa('[data-prompt]',q('#focusV9Dock')).forEach(b=>b.addEventListener('click',()=>{
+      session.promptLevel=b.dataset.prompt;saveSession();expandParent();
+    }));
+    q('#focusRecordResponse')?.addEventListener('click',recordCurrentResponse);
+    q('#focusNextTask')?.addEventListener('click',nextTask);
+    q('#focusAddNote')?.addEventListener('click',()=>window.dispatchEvent(new CustomEvent('beyond100-focus-note',{detail:{target:focusTarget}})));
+    q('#focusPhoneControl')?.addEventListener('click',shareParentController);
+    q('#focusGuide')?.addEventListener('click',()=>window.BEYOND100_OPEN_GUIDE?.('focus'));
   }
 
-  function nextStepText(){
-    const phase=q('#focusPhase')?.value||'diagnose';
-    if(!lastOutcome)return phase==='teach'?'Teach the idea, then ask Sai to explain it back in his own words.':'Observe the response before deciding what to do next.';
-    if(lastOutcome==='noConcept')return lastError==='Q'?'Simplify the wording without changing the maths. If performance improves, language load may be the bottleneck.':'Step back one layer, test the prerequisite, then teach the missing idea.';
-    if(lastOutcome==='prompted')return 'Remove the prompt and test the same idea again later. Do not count prompted success as secure retrieval.';
-    if(lastOutcome==='hesitant')return 'Try a varied example. If correct again, schedule retrieval rather than advancing immediately.';
-    if(phase==='diagnose')return 'Probe explanation or move one layer harder to find the true edge of understanding.';
-    if(phase==='retrieve1'||phase==='retrieve2')return 'Record the fluent retrieval and keep the next spaced check; do not reteach unnecessarily.';
-    if(phase==='apply')return 'If the new-context answer is fluent and explained, this is evidence toward advancement.';
-    return 'Try a different representation or context to test transfer before advancing.';
-  }
-  function updateNextStep(){const el=q('#focusNextStep');if(el)el.textContent=nextStepText()}
-
-  function toggleTimer(){
-    if(timerStarted){stopTimer();return}
-    timerStarted=performance.now();q('#focusTimerButton').textContent='Stop timer';
-    clearInterval(timerTick);timerTick=setInterval(()=>{
-      const t=q('#focusTimer');if(t)t.textContent=((performance.now()-timerStarted)/1000).toFixed(1)+'s';
-    },100);
+  function startTimer(){
+    timerElapsed=0;timerStart=performance.now();
+    clearInterval(timerTick);timerTick=setInterval(updateTimerDisplays,100);
   }
   function stopTimer(){
-    if(!timerStarted)return parseFloat(q('#focusTimer')?.textContent)||0;
-    const seconds=(performance.now()-timerStarted)/1000;timerStarted=0;clearInterval(timerTick);timerTick=null;
-    q('#focusTimerButton').textContent='Restart timer';q('#focusTimer').textContent=seconds.toFixed(1)+'s';return seconds;
+    if(timerStart){timerElapsed+=(performance.now()-timerStart)/1000;timerStart=0}
+    clearInterval(timerTick);timerTick=null;updateTimerDisplays();return timerElapsed;
   }
-  function resetRecorder(){
-    timerStarted=0;clearInterval(timerTick);timerTick=null;lastOutcome='';lastError='';
-    if(q('#focusTimer'))q('#focusTimer').textContent='0.0s';
-    if(q('#focusTimerButton'))q('#focusTimerButton').textContent='Start timer';
-    qa('[data-focus-outcome]').forEach(b=>b.classList.remove('selected'));
-    qa('[data-focus-error]').forEach(b=>b.classList.remove('selected'));updateNextStep();
+  function toggleTimer(){timerStart?stopTimer():startTimer()}
+  function elapsed(){
+    return timerElapsed+(timerStart?(performance.now()-timerStart)/1000:0);
   }
-
-  function evidenceState(){try{return JSON.parse(localStorage.getItem(EVIDENCE_KEY)||'{}')}catch{return{}}}
-  function currentStats(){
-    const events=evidenceState().events||[];
-    const today=new Date();today.setHours(0,0,0,0);
-    const rows=events.filter(e=>Date.parse(e.createdAt||e.updatedAt||0)>=today.getTime()&&['focus-response','diagnostic-response'].includes(e.kind));
-    const counts={total:rows.length,fast:0,hesitant:0,prompted:0,noConcept:0};
-    rows.forEach(e=>{if(counts[e.outcome]!==undefined)counts[e.outcome]++});
-    return counts;
-  }
-  function renderStats(){
-    const root=q('#focusSessionStats');if(!root)return;const s=currentStats();
-    root.innerHTML=`<span><b>${s.total}</b> today</span><span><b>${s.fast}</b> fast</span><span><b>${s.hesitant}</b> hesitant</span><span><b>${s.prompted}</b> prompted</span><span><b>${s.noConcept}</b> no concept</span>`;
+  function updateTimerDisplays(){
+    const value=elapsed().toFixed(1)+'s';
+    const a=q('#focusDockTime'),b=q('#focusTimerValue');
+    if(a)a.textContent=value;if(b)b.textContent=value;
+    const btn=q('#focusTimerButton');if(btn)btn.textContent=timerStart?'Stop timer':'Start timer';
   }
 
-  function recordResponse(){
-    if(!lastOutcome){q('#focusRecord')?.classList.add('needs-selection');setTimeout(()=>q('#focusRecord')?.classList.remove('needs-selection'),700);return}
+  function recordCurrentResponse(){
+    const task=currentTask();if(!task||!session)return;
+    if(task.kind==='question'&&!session.currentOutcome){
+      window.BEYOND100_NOTES_TOAST?.('Choose the response first.');
+      return;
+    }
     const seconds=stopTimer();
-    const detail={
-      skill:focusLabel(focusTarget),
-      prompt:focusTarget?.querySelector?.('.question-prompt')?.textContent?.trim()||focusTarget?.innerText?.trim().slice(0,500)||currentSectionLabel(),
-      outcome:lastOutcome,errorCode:lastError||null,responseSeconds:seconds||null,
-      phase:q('#focusPhase')?.value||'diagnose',
-      anchorId:focusTarget?.dataset.noteAnchor||null,anchorLabel:focusTarget?.dataset.noteLabel||focusLabel(focusTarget),
-      year:yearLabel(focusTarget),source:'focus-mode'
+    const response={
+      id:crypto.randomUUID(),taskId:task.id,taskIndex:session.index,prompt:task.prompt,skill:task.skill,
+      year:task.year,type:task.type,phase:session.phase,outcome:session.currentOutcome||'observed',
+      errorCode:session.currentError||null,promptLevel:session.promptLevel||'independent',
+      responseSeconds:seconds||null,confidence:session.currentConfidence||null,createdAt:now()
     };
-    if(window.BEYOND100_EVIDENCE?.recordFocusResponse)window.BEYOND100_EVIDENCE.recordFocusResponse(detail);
-    else window.dispatchEvent(new CustomEvent('beyond100-focus-response',{detail}));
-    window.BEYOND100_NOTES_TOAST?.('Response recorded');
-    renderStats();resetRecorder();
+    session.responses.push(response);
+    session.recordedCurrent=true;
+    const label=OUTCOMES.find(x=>x[0]===response.outcome)?.[1]||response.outcome;
+    if(session.mode!=='diagnostic')markPhaseDone(label);
+    saveSession();
+    if(task.kind==='question'){
+      window.BEYOND100_EVIDENCE?.recordFocusResponse?.({
+        skill:task.skill,prompt:task.prompt,outcome:response.outcome,errorCode:response.errorCode,
+        responseSeconds:response.responseSeconds,phase:response.phase,year:task.year,
+        promptLevel:response.promptLevel,confidence:response.confidence,source:'focus-v9'
+      });
+    }
+    render();
+    expandParent();
+    window.BEYOND100_NOTES_TOAST?.('Response saved');
   }
 
-  function updateWorkspace(){
-    q('#focusTopic').textContent=topicLabel();
-    q('#focusScope').textContent=focusLabel(focusTarget);
-    q('#focusYear').textContent=yearLabel(focusTarget);
+  function resetForTask(){
+    session.currentOutcome='';session.currentError='';session.currentConfidence='';
+    session.promptLevel='independent';session.recordedCurrent=false;
+    timerElapsed=0;timerStart=0;clearInterval(timerTick);timerTick=null;
+  }
+  function nextTask(){
+    if(!session)return;
+    if(session.index<session.tasks.length-1){
+      session.index++;resetForTask();saveSession();render();return;
+    }
+    if(session.mode==='diagnostic'){
+      markPhaseDone(session.responses.length+' responses');
+      session.active=false;saveSession();
+      showDiagnosticFinish();
+      return;
+    }
+    markPhaseDone('Completed');session.active=false;saveSession();renderLauncherAfterFinish();
   }
 
-  function clearScope(){
-    qa('.focus-selected,.focus-context-kept,.focus-scope-muted').forEach(el=>el.classList.remove('focus-selected','focus-context-kept','focus-scope-muted'));
-  }
-  function applyScope(){
-    clearScope();
-    const section=q('.content-section.active');
-    if(!focusTarget){section?.classList.add('focus-context-kept');return}
-    focusTarget.classList.add('focus-selected');
-    section?.classList.add('focus-context-kept');
-    const heading=section?.querySelector('.section-heading');heading?.classList.add('focus-context-kept');
-    const context=q('#placeValueContext');if(context&&section?.id==='progression')context.classList.add('focus-context-kept');
-    [...section?.children||[]].forEach(child=>{
-      if(child===focusTarget||child.contains(focusTarget)||child.classList.contains('section-heading'))return;
-      child.classList.add('focus-scope-muted');
+  function showDiagnosticFinish(){
+    focusOn=true;
+    const child=q('#focusV9Child');
+    const weak=session.responses.find(r=>['hesitant','prompted','noConcept'].includes(r.outcome));
+    child.innerHTML='<div class="focus-v9-finish"><span>✓</span><h1>Diagnostic complete</h1><p>'+session.responses.length+' question-level responses recorded.</p>'+
+      (weak?'<strong>First fragile response: '+esc(weak.skill)+' · '+esc(OUTCOMES.find(x=>x[0]===weak.outcome)?.[1]||weak.outcome)+'</strong>':'<strong>No fragile response in this set.</strong>')+
+      '<div><button id="focusFinishTeach" class="primary">Teach the fragile point</button><button id="focusFinishExit">Exit Focus</button></div></div>';
+    q('#focusFinishTeach')?.addEventListener('click',()=>{
+      const targetSkill=weak?.skill||session.responses[0]?.skill||'Place Value';
+      const task={id:'teach-'+crypto.randomUUID(),kind:'explanation',phase:'teach',
+        prompt:'Talk through '+targetSkill+'. Ask Sai to explain it back in his own words before moving on.',
+        answer:'',skill:targetSkill,year:weak?.year||session.year,type:'explanation',
+        instruction:'Work on one idea only. Change the explanation if it does not land.'};
+      session=freshSession('learning','teach',[task],{year:weak?.year||session.year,scope:targetSkill});
+      saveSession();render();
     });
-    // For grids/lists, mute siblings but retain the chosen block and its container.
-    const parent=focusTarget.parentElement;
-    if(parent&&section?.contains(parent)){
-      parent.classList.remove('focus-scope-muted');parent.classList.add('focus-context-kept');
-      [...parent.children].forEach(sib=>{if(sib!==focusTarget)sib.classList.add('focus-scope-muted')});
+    q('#focusFinishExit')?.addEventListener('click',exitFocus);
+    collapseParent();
+  }
+  function renderLauncherAfterFinish(){
+    session=null;localStorage.removeItem(SESSION_KEY);render();
+  }
+
+  function enterFocus(target){
+    focusTarget=target||null;focusOn=true;
+    document.body.classList.add('focus-mode');
+    const overlay=q('#focusV9');if(overlay)overlay.hidden=false;
+    render();
+    startRemoteBridge();
+  }
+  function exitFocus(){
+    stopTimer();focusOn=false;
+    if(session){session.active=false;saveSession()}
+    document.body.classList.remove('focus-mode');
+    const overlay=q('#focusV9');if(overlay)overlay.hidden=true;
+    publishRemoteState();
+  }
+
+  function overlayMarkup(){
+    return '<div id="focusV9" class="focus-v9" hidden>'+
+      '<header class="focus-v9-top">'+
+        '<button id="focusV9Exit" type="button" aria-label="Exit Focus">×</button>'+
+        '<div class="focus-v9-title"><strong>Focus</strong><span id="focusV9Scope">Place Value</span></div>'+
+        '<div id="focusV9PhaseRail" class="focus-v9-phase-rail"></div>'+
+        '<button id="focusV9Guide" type="button" title="How Focus works">?</button>'+
+      '</header>'+
+      '<main id="focusV9Child" class="focus-v9-child"></main>'+
+      '<aside id="focusV9Dock" class="focus-v9-dock"></aside>'+
+    '</div>';
+  }
+
+  function installOverlay(){
+    if(q('#focusV9'))return;
+    document.body.insertAdjacentHTML('beforeend',overlayMarkup());
+    q('#focusV9Exit').addEventListener('click',exitFocus);
+    q('#focusV9Guide').addEventListener('click',()=>window.BEYOND100_OPEN_GUIDE?.('focus'));
+  }
+
+  async function shareParentController(){
+    const url=new URL('parent.html',location.href).toString();
+    const text='Beyond 100 parent controller';
+    try{
+      if(navigator.share){await navigator.share({title:text,text,url});return}
+      await navigator.clipboard.writeText(url);
+      window.BEYOND100_NOTES_TOAST?.('Parent controller link copied');
+    }catch{
+      window.open(url,'_blank','noopener');
     }
   }
 
-  function setFocus(on,target=null){
-    focusOn=!!on;
-    if(focusOn&&target)focusTarget=target;
-    if(focusOn&&!focusTarget){
-      const active=q('.content-section.active');
-      focusTarget=active?.querySelector('.stage-card.current,.question-card.diagnostic,.learning-cycle,.mastery-card,.misconception')||null;
-    }
-    document.body.classList.toggle('focus-mode',focusOn);
-    const workspace=q('#focusWorkspace'),button=q('#focusModeButton');
-    if(button){button.classList.toggle('active',focusOn);button.setAttribute('aria-pressed',String(focusOn));button.querySelector('span:last-child').textContent=focusOn?'Focused':'Focus'}
-    if(focusOn){
-      if(workspace)workspace.hidden=false;
-      applySidebar(innerWidth>980,true);applyScope();updateWorkspace();renderStats();resetRecorder();
-      setTimeout(()=>focusTarget?.scrollIntoView({behavior:'smooth',block:'center'}),80);
-    }else{
-      if(workspace)workspace.hidden=true;toggleParent(false);clearScope();focusTarget=null;resetRecorder();autoSidebar();
-    }
-    persistFocus();
+  function remoteState(){
+    if(!session)return{active:false,updatedAt:now()};
+    const task=currentTask();
+    return{
+      active:focusOn&&!!session.active,sessionId:session.id,mode:session.mode,phase:session.phase,
+      phaseLog:session.phaseLog,index:session.index,total:session.tasks.length,
+      topicLabel:session.topicLabel,year:session.year,scope:session.scope,
+      task:task?{id:task.id,kind:task.kind,prompt:task.prompt,answer:task.answer,skill:task.skill,year:task.year,instruction:task.instruction}:null,
+      promptLevel:session.promptLevel,currentOutcome:session.currentOutcome,currentError:session.currentError,
+      recordedCurrent:session.recordedCurrent,currentConfidence:session.currentConfidence||null,
+      stats:session.responses,startedAt:session.startedAt,updatedAt:now(),
+      timer:{running:!!timerStart,elapsed:elapsed(),startedAt:timerStart?now():null}
+    };
   }
 
-  function persistFocus(){
-    try{localStorage.setItem(FOCUS_KEY,JSON.stringify({on:focusOn,phase:q('#focusPhase')?.value||'diagnose'}))}catch{}
+  async function remoteSdk(){
+    if(remoteSdkPromise)return remoteSdkPromise;
+    remoteSdkPromise=(async()=>{
+      const[A,Auth,F]=await Promise.all([
+        import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js'),
+        import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js'),
+        import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js')
+      ]);
+      const app=A.getApps()[0]||A.initializeApp(CLOUD.firebase);
+      return{Auth,F,auth:Auth.getAuth(app),db:F.getFirestore(app)};
+    })();
+    return remoteSdkPromise;
+  }
+  function remoteRef(S){return S.F.doc(S.db,...(CLOUD.firestoreBase||CLOUD.legacyFirestoreBase),'beyond100-focus-live')}
+  async function startRemoteBridge(){
+    try{
+      const S=await remoteSdk();await S.auth.authStateReady();
+      if(!S.auth.currentUser||S.auth.currentUser.uid!==CLOUD.ownerUid)return;
+      if(window.BEYOND100_RESOLVE_LEARNER)await window.BEYOND100_RESOLVE_LEARNER().catch(()=>{});
+      unsubscribeRemote?.();
+      unsubscribeRemote=S.F.onSnapshot(remoteRef(S),snap=>{
+        const data=snap.data();const cmd=data?.command;
+        if(!cmd?.id||cmd.id===lastCommandId)return;
+        lastCommandId=cmd.id;applyRemoteCommand(cmd).catch(()=>{});
+      });
+      await publishRemoteState();
+    }catch{}
+  }
+  function scheduleRemoteSync(){
+    clearTimeout(syncTimer);syncTimer=setTimeout(()=>publishRemoteState(),250);
+  }
+  async function publishRemoteState(){
+    try{
+      const S=await remoteSdk();await S.auth.authStateReady();
+      if(!S.auth.currentUser||S.auth.currentUser.uid!==CLOUD.ownerUid)return;
+      await S.F.setDoc(remoteRef(S),{
+        app:'beyond100',kind:'focus-live',updatedAt:now(),state:remoteState(),
+        commandAck:lastCommandId||null
+      },{merge:true});
+    }catch{}
+  }
+  async function applyRemoteCommand(cmd){
+    const action=cmd.action,p=cmd.payload||{};
+    if(action==='set-phase'){selectPhase(p.phase,true);return}
+    if(action==='set-outcome'&&session){session.currentOutcome=p.outcome||'';saveSession();render();return}
+    if(action==='set-error'&&session){session.currentError=p.error||'';saveSession();render();return}
+    if(action==='set-prompt'&&session){session.promptLevel=p.prompt||'independent';saveSession();render();return}
+    if(action==='record'){recordCurrentResponse();return}
+    if(action==='next'){nextTask();return}
+    if(action==='timer'){toggleTimer();return}
+    if(action==='confidence'){
+      const fake=q('[data-confidence="'+CSS.escape(p.value||'')+'"]',q('#focusV9Child'));fake?.click();return
+    }
+    if(action==='parent-note'&&session){session.parentNote=p.text||'';saveSession();return}
   }
 
   function watch(){
-    document.addEventListener('click',e=>{
-      if(e.target.closest('.section-nav [data-section]')&&focusOn)setTimeout(()=>{focusTarget=null;applyScope();updateWorkspace()},80);
-    });
     new MutationObserver(()=>installFocusHereButtons()).observe(q('#main')||document.body,{childList:true,subtree:true});
-    window.addEventListener('beyond100-evidence-updated',renderStats);
+    window.addEventListener('beyond100-learner-resolved',()=>startRemoteBridge());
+    window.addEventListener('beyond100-firebase-auth',e=>{if(e.detail?.signedIn)startRemoteBridge()});
   }
 
   function init(){
-    installSidebarControl();installFocusButton();installWorkspace();installFocusHereButtons();autoSidebar();watch();
-    addEventListener('resize',autoSidebar);
-    try{const p=JSON.parse(localStorage.getItem(FOCUS_KEY)||'{}');if(p.phase)selectPhase(p.phase)}catch{}
+    installSidebarControl();installFocusButton();installOverlay();installFocusHereButtons();watch();
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
