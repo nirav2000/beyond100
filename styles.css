@@ -405,3 +405,33 @@ body.focus-mode .topic-context{margin-top:0}
   .focus-phase-status{grid-column:2/4;grid-row:3}
   .focus-phase-tile{flex:0 0 42px}
 }
+
+
+/* v0.8.3 guided Focus phase navigation */
+.focus-phase-status{
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  column-gap:10px;
+}
+.focus-phase-copy{display:grid;gap:2px;min-width:0}
+.focus-phase-nav{display:flex;align-items:center;gap:6px}
+.focus-phase-nav button{
+  border:1px solid color-mix(in srgb,var(--phase-a) 30%,#dfe5e1);
+  background:#fff;
+  color:var(--phase-a);
+  border-radius:9px;
+  min-height:32px;
+  padding:6px 9px;
+  font-size:9px;
+  font-weight:800;
+  white-space:nowrap;
+}
+.focus-phase-nav button:last-child{
+  background:linear-gradient(135deg,var(--phase-soft),#fff);
+}
+.focus-phase-nav button:disabled{opacity:.38;cursor:default}
+.focus-phase-nav button:not(:disabled):active{transform:scale(.97)}
+@media(max-width:900px){
+  .focus-phase-status{grid-template-columns:1fr}
+  .focus-phase-nav{justify-content:flex-start;flex-wrap:wrap}
+}
