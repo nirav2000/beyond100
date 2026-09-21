@@ -34,7 +34,7 @@
     },
     {
       id:'remote',title:'Use another device for parent controls',
-      html:'<p>Open <strong>Parent controller</strong> on another device, such as an iPhone, and sign in with the same parent Firebase account. The child can keep the iPad screen clean while the parent records responses, prompts, error causes and progression from the phone.</p><p>The live controller is owner-authenticated and uses the same Firebase learner area as the app.</p>'
+      html:'<p>From Focus, choose <strong>Use iPhone</strong>. Beyond 100 shows a QR code plus Share and Copy Link controls. Scan the QR or open the link on the second device; no additional Firebase login is required.</p><p>The controller key is paired to Sai’s Beyond 100 learner profile rather than to one Focus session, so the same QR/link works again in future sessions. It has no automatic expiry. It stops working only when you choose <strong>Disconnect controller</strong> in the app, which revokes the old key and requires a new QR/link.</p><p>Keep the controller link private: anyone who has it can use the parent Focus controls until it is revoked.</p>'
     },
     {
       id:'sections',title:'What the main app sections are for',
