@@ -81,7 +81,7 @@
       topic:TOPIC?.id||'maths-place-value',topicLabel:'Place Value & Number Structure',
       year:meta.year||'Y5',scope:meta.scope||'Place Value',startedAt:now(),updatedAt:now(),
       phaseLog:log,responses:[],confidence:[],promptLevel:'independent',
-      currentOutcome:'',currentError:'',recordedCurrent:false,parentNote:''
+      currentOutcome:'',currentError:'',currentConfidence:'',childDone:false,recordedCurrent:false,parentNote:''
     };
   }
 
@@ -261,7 +261,7 @@
     return '<div class="focus-v9-confidence">'+
       '<div><strong>How did that feel?</strong><span>There is no right choice — tap what feels true.</span></div>'+
       '<div class="focus-v9-confidence-grid">'+CONFIDENCE.map(c=>
-        '<button type="button" data-confidence="'+c[0]+'" class="'+(c[0]==='gotit'?'gotit':'')+'"><span>'+c[1]+'</span><strong>'+esc(c[2])+'</strong></button>'
+        '<button type="button" data-confidence="'+c[0]+'"><span>'+c[1]+'</span><strong>'+esc(c[2])+'</strong></button>'
       ).join('')+'</div>'+
     '</div>';
   }
@@ -270,11 +270,18 @@
     if(!task)return launcherMarkup();
     const number=(session.index||0)+1,total=session.tasks.length;
     const eyebrow=session.mode==='diagnostic'?'DIAGNOSTIC · QUESTION '+number+' OF '+total:currentPhase().label.toUpperCase();
+    const completion=task.kind==='question'
+      ? (session.childDone
+          ? '<span class="focus-v9-done-state">✓ Answer done</span>'
+          : '<button type="button" id="focusCompleteTask" class="focus-v9-done-button">Done</button>')
+      : '';
+    const showConfidence=task.kind==='explanation'||session.childDone||session.recordedCurrent;
     return '<article class="focus-v9-task" data-kind="'+esc(task.kind)+'">'+
       '<div class="focus-v9-task-meta"><span>'+esc(eyebrow)+'</span><span>'+esc(task.year||'')+(task.skill?' · '+esc(task.skill):'')+'</span></div>'+
+      completion+
       '<div class="focus-v9-instruction">'+esc(task.instruction||'')+'</div>'+
       '<div class="focus-v9-prompt">'+esc(task.prompt).replace(/\n/g,'<br>')+'</div>'+
-      (task.kind==='explanation'?confidenceMarkup():(session.recordedCurrent?confidenceMarkup():''))+
+      (showConfidence?confidenceMarkup():'')+
     '</article>';
   }
 
@@ -300,12 +307,15 @@
   }
 
   function parentCompactMarkup(){
-    const task=currentTask();
     const recorded=session?.recordedCurrent;
+    const active=!!timerStart&&!session?.childDone;
+    const status=active
+      ? '<span class="focus-v9-thinking"><i class="focus-v9-spinner" aria-hidden="true"></i><strong>Thinking…</strong></span>'
+      : '<span class="focus-v9-thinking is-done"><i aria-hidden="true">'+(session?.childDone?'✓':'○')+'</i><strong>'+(session?.childDone?'Answer finished':(recorded?'Recorded':'Ready'))+'</strong></span>';
     return '<div class="focus-v9-dock-compact">'+
-      '<button id="focusDockTimer" type="button" title="Start or stop response timer"><span>⏱</span><strong id="focusDockTime">0.0s</strong></button>'+
-      '<span class="focus-v9-dock-state">'+(session?.currentOutcome?esc(OUTCOMES.find(x=>x[0]===session.currentOutcome)?.[1]||session.currentOutcome):(recorded?'Recorded':'Awaiting response'))+'</span>'+
-      '<button id="focusDockExpand" type="button">Parent ▴</button>'+
+      status+
+      '<span class="focus-v9-dock-state">'+(session?.currentOutcome?esc(OUTCOMES.find(x=>x[0]===session.currentOutcome)?.[1]||session.currentOutcome):(recorded?'Response saved':'Parent controls'))+'</span>'+
+      '<button id="focusDockExpand" type="button" aria-label="Open parent controls">Parent ↑</button>'+
     '</div>';
   }
 
@@ -313,7 +323,7 @@
     const promptLevel=session?.promptLevel||'independent';
     return '<div class="focus-v9-parent-expanded">'+
       '<div class="focus-v9-parent-head"><div><p class="eyebrow">PARENT</p><h3>Observe · record · decide</h3></div><button id="focusDockCollapse" type="button" aria-label="Collapse parent controls">×</button></div>'+
-      '<div class="focus-v9-parent-row timer"><button id="focusTimerButton" type="button">'+(timerStart?'Stop timer':'Start timer')+'</button><strong id="focusTimerValue">0.0s</strong><span>Auto-starts for each question</span></div>'+
+      '<div class="focus-v9-parent-row timer"><button id="focusTimerButton" type="button">'+(timerStart?'Stop timer':'Start timer')+'</button><strong id="focusTimerValue">0.0s</strong><span>Exact response time · hidden from child view</span></div>'+
       '<div class="focus-v9-parent-group"><span>Response</span><div class="focus-v9-outcomes">'+OUTCOMES.map(o=>'<button type="button" data-outcome="'+o[0]+'" class="'+(session?.currentOutcome===o[0]?'selected':'')+'">'+esc(o[1])+'</button>').join('')+'</div></div>'+
       '<div class="focus-v9-parent-group"><span>Prompt used</span><div class="focus-v9-prompts">'+PROMPTS.map(p=>'<button type="button" data-prompt="'+p[0]+'" class="'+(promptLevel===p[0]?'selected':'')+'">'+esc(p[1])+'</button>').join('')+'</div></div>'+
       '<div class="focus-v9-parent-group"><span>If it broke down, why?</span><div class="focus-v9-errors">'+ERRORS.map(e=>'<button type="button" data-error="'+e[0]+'" class="'+(session?.currentError===e[0]?'selected':'')+'" title="'+esc(e[1])+'"><b>'+e[0]+'</b><small>'+esc(e[1])+'</small></button>').join('')+'</div></div>'+
@@ -369,6 +379,7 @@
     q('#focusV9Dock').innerHTML=session?.active&&session?.tasks?.length?parentCompactMarkup():'';
 
     bindLauncher();
+    bindChildDone();
     bindChildConfidence();
     bindPhaseRail();
     bindCompactDock();
@@ -409,6 +420,19 @@
     }));
   }
 
+  function bindChildDone(){
+    q('#focusCompleteTask',q('#focusV9Child'))?.addEventListener('click',completeChildTask);
+  }
+  function completeChildTask(){
+    const task=currentTask();if(!task||!session||session.childDone)return;
+    stopTimer();
+    session.childDone=true;
+    saveSession();
+    render();
+    collapseParent();
+    window.BEYOND100_NOTES_TOAST?.('Answer finished · choose how it felt');
+  }
+
   function bindChildConfidence(){
     qa('[data-confidence]',q('#focusV9Child')).forEach(b=>b.addEventListener('click',()=>{
       const value=b.dataset.confidence;
@@ -421,6 +445,9 @@
       });
       window.BEYOND100_NOTES_TOAST?.('Thanks — '+(CONFIDENCE.find(x=>x[0]===value)?.[2]||value));
       publishRemoteState();
+      if(session.recordedCurrent){
+        setTimeout(()=>nextTask(),550);
+      }
     }));
   }
 
@@ -457,19 +484,19 @@
   }
 
   function bindCompactDock(){
-    q('#focusDockTimer')?.addEventListener('click',toggleTimer);
     q('#focusDockExpand')?.addEventListener('click',expandParent);
   }
   function expandParent(){
-    const dock=q('#focusV9Dock');if(!dock)return;
-    dock.classList.add('expanded');
+    const dock=q('#focusV9Dock'),overlay=q('#focusV9');if(!dock)return;
+    dock.classList.add('expanded');overlay?.classList.add('parent-open');
     dock.innerHTML=parentExpandedMarkup();
     bindExpandedParent();
     updateTimerDisplays();
   }
   function collapseParent(){
-    const dock=q('#focusV9Dock');if(!dock)return;
-    dock.classList.remove('expanded');dock.innerHTML=parentCompactMarkup();bindCompactDock();updateTimerDisplays();
+    const dock=q('#focusV9Dock'),overlay=q('#focusV9');if(!dock)return;
+    dock.classList.remove('expanded');overlay?.classList.remove('parent-open');
+    dock.innerHTML=parentCompactMarkup();bindCompactDock();updateTimerDisplays();
   }
   function bindExpandedParent(){
     q('#focusDockCollapse')?.addEventListener('click',collapseParent);
@@ -507,8 +534,8 @@
   }
   function updateTimerDisplays(){
     const value=elapsed().toFixed(1)+'s';
-    const a=q('#focusDockTime'),b=q('#focusTimerValue');
-    if(a)a.textContent=value;if(b)b.textContent=value;
+    const b=q('#focusTimerValue');
+    if(b)b.textContent=value;
     const btn=q('#focusTimerButton');if(btn)btn.textContent=timerStart?'Stop timer':'Start timer';
   }
 
@@ -519,6 +546,7 @@
       return;
     }
     const seconds=stopTimer();
+    if(task.kind==='question')session.childDone=true;
     const response={
       id:crypto.randomUUID(),taskId:task.id,taskIndex:session.index,prompt:task.prompt,skill:task.skill,
       year:task.year,type:task.type,phase:session.phase,outcome:session.currentOutcome||'observed',
@@ -538,13 +566,14 @@
       });
     }
     render();
-    expandParent();
-    window.BEYOND100_NOTES_TOAST?.('Response saved');
+    collapseParent();
+    window.BEYOND100_NOTES_TOAST?.(session.currentConfidence?'Response saved · moving on':'Response saved · ask how it felt');
+    if(session.currentConfidence)setTimeout(()=>nextTask(),550);
   }
 
   function resetForTask(){
     session.currentOutcome='';session.currentError='';session.currentConfidence='';
-    session.promptLevel='independent';session.recordedCurrent=false;
+    session.promptLevel='independent';session.childDone=false;session.recordedCurrent=false;
     timerElapsed=0;timerStart=0;clearInterval(timerTick);timerTick=null;
   }
   function nextTask(){
@@ -744,7 +773,7 @@
       learnerId:CLOUD.learnerId||CLOUD.legacyLearnerId,learnerLabel:CLOUD.learnerLabel||CLOUD.learner?.label||'Sai',
       task:task?{id:task.id,kind:task.kind,prompt:task.prompt,answer:task.answer,skill:task.skill,year:task.year,instruction:task.instruction}:null,
       promptLevel:session.promptLevel,currentOutcome:session.currentOutcome,currentError:session.currentError,
-      recordedCurrent:session.recordedCurrent,currentConfidence:session.currentConfidence||null,
+      childDone:!!session.childDone,recordedCurrent:session.recordedCurrent,currentConfidence:session.currentConfidence||null,
       stats:session.responses,startedAt:session.startedAt,updatedAt:now(),
       timer:{running:!!timerStart,elapsed:elapsed(),startedAt:timerStart?now():null}
     };
@@ -888,6 +917,7 @@
     if(action==='set-outcome'&&session){session.currentOutcome=p.outcome||'';saveSession();render();return}
     if(action==='set-error'&&session){session.currentError=p.error||'';saveSession();render();return}
     if(action==='set-prompt'&&session){session.promptLevel=p.prompt||'independent';saveSession();render();return}
+    if(action==='complete'){completeChildTask();return}
     if(action==='record'){recordCurrentResponse();return}
     if(action==='next'){nextTask();return}
     if(action==='timer'){toggleTimer();return}
