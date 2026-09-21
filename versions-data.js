@@ -1,13 +1,26 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.8.2',
+  currentVersion: '0.8.3',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.8.3',
+      date: '2026-09-21',
+      title: 'Focus Flow & Touch-Safe Notes',
+      ref: 'main',
+      status: 'current',
+      summary: 'Makes Focus phases an explicit guided progression, clarifies the transition into later retrieval, and fixes iPad Notes minimisation by separating drag gestures from header controls.',
+      areas: [
+        { id: 'phase-flow', title: 'Guided phase progression', kind: 'ux', summary: 'Adds previous/next phase controls alongside the coloured phase bank so the learning cycle can be followed deliberately rather than only labelled.' },
+        { id: 'retrieve-later', title: 'Explicit retrieval transition', kind: 'learning', summary: 'After Practise, the next-stage control says Retrieve later and reminds the parent that retrieval should normally happen after a gap and without prompting.' },
+        { id: 'touch-minimise', title: 'Reliable iPad Notes minimise', kind: 'repair', summary: 'Moves drag handling onto the title area only, gives header controls normal touch behaviour, and isolates the minimise button from pointer capture.' }
+      ]
+    },
     {
       version: '0.8.2',
       date: '2026-09-20',
       title: 'Vivid Focus & Notes Defaults',
       ref: 'main',
-      status: 'current',
+      status: 'archive',
       summary: 'Makes Focus phases distinctive and explanatory, hardens Notes minimisation, opens Notes history by default, collapses the technical review feed, and enlarges Notes activity visuals.',
       areas: [
         { id: 'phase-themes', title: 'Memorable phase themes', kind: 'ux', summary: 'Each Focus phase now has its own visual identity with themed colour, gradient/glow, a persistent phase description and immediate selection feedback.' },
