@@ -114,6 +114,11 @@ jobs:
             if (!review.includes(required)) throw new Error(`review.html is not loading ${required}`);
           }
           if (!versionsHtml.includes('versions-v05.js')) throw new Error('Version Lab is not loading versions-v05.js');
+          const parent = fs.readFileSync('parent.html','utf8');
+          for (const required of ['parent.css','parent.js','cloud-config.js']) {
+            if (!parent.includes(required)) throw new Error(`parent.html is not loading ${required}`);
+          }
+          if (!fs.existsSync('vendor/qrcode.min.js')) throw new Error('Missing local QR generator');
           console.log('Release identity:', current);
           NODE
 
