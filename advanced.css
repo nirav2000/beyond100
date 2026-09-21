@@ -155,3 +155,12 @@ body.annotating #notesDialog.is-minimised[data-note-anchor]{outline:3px solid rg
   .notes-stat-tile{grid-template-columns:34px 1fr}
   .notes-stat-icon{width:34px;height:34px}
 }
+
+
+/* v0.8.3 touch-safe Notes minimisation */
+.notes-head{touch-action:auto!important;cursor:default!important}
+.notes-drag-handle{touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
+.notes-dialog.is-dragging .notes-drag-handle{cursor:grabbing}
+.notes-head-actions,.notes-head-actions button{touch-action:manipulation}
+.notes-minimise{width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important}
+.notes-dialog.is-minimised .notes-minimise,.notes-dialog.is-minimised .notes-close{width:38px!important;height:38px!important}
