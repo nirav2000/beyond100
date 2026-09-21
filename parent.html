@@ -17,6 +17,11 @@
       <button id="parentSignOut" type="button" hidden>Sign out</button>
     </header>
 
+    <div id="parentConnection" class="parent-connection" data-state="idle">
+      <i aria-hidden="true"></i>
+      <div><strong id="parentConnectionTitle">Connecting…</strong><span id="parentConnectionDetail">Checking controller access.</span></div>
+    </div>
+
     <section id="parentLogin" class="parent-login">
       <p class="eyebrow">REMOTE PARENT CONTROLS</p>
       <h1>Control Focus from your phone</h1>
@@ -57,11 +62,12 @@
       </article>
 
       <section class="parent-control-card">
-        <div class="parent-timer"><button id="parentTimer" type="button">Start / stop timer</button><strong id="parentTimerValue">0.0s</strong></div>
+        <div class="parent-timer"><button id="parentTimer" type="button">Start / stop timer</button><strong id="parentTimerValue">0.0s</strong><button id="parentDone" type="button" class="parent-done">Answer done</button></div>
 
         <div class="parent-group"><span>Response</span><div id="parentOutcomes" class="parent-outcomes"></div></div>
         <div class="parent-group"><span>Prompt used</span><div id="parentPrompts" class="parent-prompts"></div></div>
         <div class="parent-group"><span>If it broke down, why?</span><div id="parentErrors" class="parent-errors"></div></div>
+        <div class="parent-group"><span>Other observation</span><div id="parentObservations" class="parent-observations"></div></div>
 
         <div class="parent-suggestion"><span>Suggested next step</span><strong id="parentSuggestion"></strong></div>
 
