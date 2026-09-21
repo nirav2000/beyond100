@@ -255,8 +255,9 @@ function recordFocusResponse(detail={}){
     id:crypto.randomUUID(),kind:'focus-response',app:'beyond100',topicId:topicId(),subject:subject(),
     skill,prompt:detail.prompt||'',outcome:detail.outcome||'noConcept',errorCode:detail.errorCode||null,
     responseSeconds:Number.isFinite(detail.responseSeconds)?detail.responseSeconds:null,phase,
+    promptLevel:detail.promptLevel||'independent',confidence:detail.confidence||null,
     anchorId:detail.anchorId||null,anchorLabel:detail.anchorLabel||'',year:detail.year||'',
-    source:'focus-mode',sessionId:sessionId(),createdAt:at,updatedAt:at
+    source:detail.source||'focus-mode',sessionId:sessionId(),createdAt:at,updatedAt:at
   };
   state.events.push(event);
   const c=ensureCycle(skill);
@@ -266,5 +267,17 @@ function recordFocusResponse(detail={}){
   window.dispatchEvent(new CustomEvent('beyond100-evidence-updated',{detail:{event}}));
   return event;
 }
-window.BEYOND100_EVIDENCE={recordFocusResponse,getState:()=>JSON.parse(JSON.stringify(state)),outcomes:OUTCOMES,cycle:CYCLE};
+function recordConfidence(detail={}){
+  const at=now();
+  const event={
+    id:crypto.randomUUID(),kind:'confidence-response',app:'beyond100',topicId:topicId(),subject:subject(),
+    skill:detail.skill||'Focused learning',prompt:detail.prompt||'',confidence:detail.confidence||null,
+    phase:detail.phase||'',taskId:detail.taskId||null,source:'focus-v9',sessionId:sessionId(),
+    createdAt:at,updatedAt:at
+  };
+  state.events.push(event);saveState();
+  window.dispatchEvent(new CustomEvent('beyond100-evidence-updated',{detail:{event}}));
+  return event;
+}
+window.BEYOND100_EVIDENCE={recordFocusResponse,recordConfidence,getState:()=>JSON.parse(JSON.stringify(state)),outcomes:OUTCOMES,cycle:CYCLE};
 window.addEventListener('beyond100-focus-response',e=>recordFocusResponse(e.detail||{}));
