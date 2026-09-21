@@ -699,7 +699,7 @@
     d.innerHTML='<div class="parent-pairing-shell">'+
       '<header><div><p class="eyebrow">PARENT CONTROLLER</p><h2>Open on another device</h2></div><button type="button" id="closeParentPairing" aria-label="Close">×</button></header>'+
       '<div class="parent-pairing-body">'+
-        '<div id="parentPairQr" class="parent-pair-qr" aria-label="QR code for parent controller"></div>'+
+        '<div id="parentPairQr" class="parent-pair-qr" aria-label="QR code for parent controller"><div class="parent-pair-qr-loading"><i></i><span>Preparing QR…</span></div></div>'+
         '<div class="parent-pair-copy">'+
           '<strong>Scan with the iPhone camera</strong>'+
           '<p>This controller belongs to <b id="parentPairLearner">Sai</b> and continues to work across future Focus sessions until you disconnect it.</p>'+
