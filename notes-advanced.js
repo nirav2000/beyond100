@@ -73,8 +73,9 @@ function installPasswordToggle(){
 function restoreNotesWindow(){
   const d=q('#notesDialog');if(!d||!d.classList.contains('is-minimised'))return false;
   if(d.open)d.close();
-  d.classList.remove('is-minimised');
-  d.style.left='';d.style.top='';d.style.margin='';d.style.position='';d.style.width='';d.style.height='';d.style.maxHeight='';
+  d.classList.remove('is-minimised','is-dragging');
+  ['left','top','margin','position','width','height','max-height'].forEach(p=>d.style.removeProperty(p));
+  dragState=null;
   const b=q('#minimiseNotes',d);
   if(b){
     b.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12"/></svg>';
@@ -84,31 +85,42 @@ function restoreNotesWindow(){
 }
 window.BEYOND100_RESTORE_NOTES=restoreNotesWindow;
 
+function minimiseNotesWindow(){
+  const d=q('#notesDialog');if(!d||d.classList.contains('is-minimised'))return false;
+  if(d.open)d.close();
+  d.classList.remove('is-dragging');dragState=null;
+  ['left','top','margin','position','width','height','max-height'].forEach(p=>d.style.removeProperty(p));
+  d.classList.add('is-minimised');
+  const b=q('#minimiseNotes',d);
+  if(b){
+    b.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9h10v10H5z"/><path d="M9 5h10v10"/></svg>';
+    b.setAttribute('aria-label','Restore notes');b.title='Restore notes';
+  }
+  d.show();
+  return true;
+}
+
 function installMinimiseAndDrag(){
   const d=q('#notesDialog'),head=q('.notes-head',d);if(!d||!head)return;
+  const dragHandle=head.querySelector(':scope > div:first-child')||head;
+
   if(!q('#minimiseNotes',d)){
-    const b=document.createElement('button');b.id='minimiseNotes';b.type='button';b.className='notes-minimise';b.setAttribute('aria-label','Minimise notes');b.title='Minimise notes';
-    const draw=on=>{b.innerHTML=on?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9h10v10H5z"/><path d="M9 5h10v10"/></svg>':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12"/></svg>';};
-    draw(false);
+    const b=document.createElement('button');
+    b.id='minimiseNotes';b.type='button';b.className='notes-minimise';
+    b.setAttribute('aria-label','Minimise notes');b.title='Minimise notes';
+    b.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12"/></svg>';
     q('.notes-head-actions',d)?.insertBefore(b,q('#closeNotes',d));
-    b.addEventListener('click',()=>{
-      const on=!d.classList.contains('is-minimised');
-      if(on){
-        // A modal dialog keeps the page inert even when visually tiny. Reopen it non-modally so
-        // the user can inspect and interact with the page while preserving the draft in the DOM.
-        if(d.open)d.close();
-        d.classList.add('is-minimised');draw(true);
-        d.style.left='';d.style.top='';d.style.margin='';
-        d.show();
-        d.style.setProperty('width','min(360px, calc(100vw - 24px))','important');
-        d.style.setProperty('height','58px','important');
-        d.style.setProperty('max-height','58px','important');
-      }else{
-        restoreNotesWindow();
-      }
-      const label=on?'Restore notes':'Minimise notes';b.setAttribute('aria-label',label);b.title=label;
+
+    // Keep header drag gesture handling away from the control itself on iPad/Safari.
+    b.addEventListener('pointerdown',e=>{e.stopPropagation()});
+    b.addEventListener('touchstart',e=>{e.stopPropagation()},{passive:true});
+    b.addEventListener('click',e=>{
+      e.preventDefault();e.stopPropagation();
+      if(d.classList.contains('is-minimised'))restoreNotesWindow();
+      else minimiseNotesWindow();
     });
   }
+
   if(!head.dataset.restoreInstalled){
     head.dataset.restoreInstalled='1';
     head.addEventListener('click',e=>{
@@ -118,21 +130,33 @@ function installMinimiseAndDrag(){
       restoreNotesWindow();
     });
   }
-  if(head.dataset.dragInstalled)return;head.dataset.dragInstalled='1';
-  head.addEventListener('pointerdown',e=>{
-    if(e.target.closest('button,input,a')||d.classList.contains('is-minimised'))return;
-    const rect=d.getBoundingClientRect();dragState={id:e.pointerId,x:e.clientX,y:e.clientY,left:rect.left,top:rect.top};
-    head.setPointerCapture?.(e.pointerId);d.classList.add('is-dragging');
-    d.style.margin='0';d.style.position='fixed';d.style.left=`${rect.left}px`;d.style.top=`${rect.top}px`;
+
+  if(dragHandle.dataset.dragInstalled)return;
+  dragHandle.dataset.dragInstalled='1';
+  dragHandle.classList.add('notes-drag-handle');
+  dragHandle.addEventListener('pointerdown',e=>{
+    if(d.classList.contains('is-minimised'))return;
+    const rect=d.getBoundingClientRect();
+    dragState={id:e.pointerId,x:e.clientX,y:e.clientY,left:rect.left,top:rect.top};
+    dragHandle.setPointerCapture?.(e.pointerId);
+    d.classList.add('is-dragging');
+    d.style.margin='0';d.style.position='fixed';
+    d.style.left=`${rect.left}px`;d.style.top=`${rect.top}px`;
   });
-  head.addEventListener('pointermove',e=>{
+  dragHandle.addEventListener('pointermove',e=>{
     if(!dragState||dragState.id!==e.pointerId)return;
     const maxLeft=Math.max(0,innerWidth-d.offsetWidth),maxTop=Math.max(0,innerHeight-70);
     d.style.left=`${Math.max(0,Math.min(maxLeft,dragState.left+e.clientX-dragState.x))}px`;
     d.style.top=`${Math.max(0,Math.min(maxTop,dragState.top+e.clientY-dragState.y))}px`;
   });
-  const end=e=>{if(dragState&&dragState.id===e.pointerId){dragState=null;d.classList.remove('is-dragging')}};
-  head.addEventListener('pointerup',end);head.addEventListener('pointercancel',end);
+  const end=e=>{
+    if(dragState&&dragState.id===e.pointerId){
+      dragState=null;d.classList.remove('is-dragging');
+      try{dragHandle.releasePointerCapture?.(e.pointerId)}catch{}
+    }
+  };
+  dragHandle.addEventListener('pointerup',end);
+  dragHandle.addEventListener('pointercancel',end);
 }
 
 function category(note){
