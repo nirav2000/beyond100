@@ -1,13 +1,30 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.8.3',
+  currentVersion: '0.9.0',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.9.0',
+      date: '2026-09-21',
+      title: 'One-Task Focus & Remote Parent Control',
+      ref: 'main',
+      status: 'current',
+      summary: 'Reframes Focus around one child-facing task at a time, question-level evidence, compact parent controls, child confidence, phase completion history, in-app documentation, and an authenticated phone-based parent controller.',
+      areas: [
+        { id: 'one-task-focus', title: 'One-task child view', kind: 'feature', summary: 'Focus no longer exposes the full year card or a worksheet of questions; diagnostics and learning tasks are presented one at a time.' },
+        { id: 'question-level-evidence', title: 'Question-by-question recording', kind: 'data', summary: 'Each diagnostic response records timing, response quality, prompt level and likely breakdown cause separately.' },
+        { id: 'prompt-ladder', title: 'Prompt ladder', kind: 'diagnostic', summary: 'Parent controls distinguish independent reading, read-aloud support, wording clarification, hints and explanation.' },
+        { id: 'child-confidence', title: 'Child confidence faces', kind: 'feature', summary: 'Adds Got it, Makes sense, Half sure and Don’t understand as a separate self-report from demonstrated performance.' },
+        { id: 'phase-history', title: 'Phase journey and completion', kind: 'ux', summary: 'Phase tiles show sequence, current state, completed ticks and completion metadata instead of acting only as coloured selectors.' },
+        { id: 'remote-parent', title: 'Remote parent controller', kind: 'feature', summary: 'A parent can keep the iPad child-facing and control response recording from another authenticated device such as an iPhone.' },
+        { id: 'app-guide', title: 'In-app product guide', kind: 'documentation', summary: 'Documents the purpose of Beyond 100, Focus mode, natural Focus workflow, diagnostics, controls, confidence faces, learning phases and app sections.' }
+      ]
+    },
     {
       version: '0.8.3',
       date: '2026-09-21',
       title: 'Focus Flow & Touch-Safe Notes',
       ref: 'main',
-      status: 'current',
+      status: 'archive',
       summary: 'Makes Focus phases an explicit guided progression, clarifies the transition into later retrieval, and fixes iPad Notes minimisation by separating drag gestures from header controls.',
       areas: [
         { id: 'phase-flow', title: 'Guided phase progression', kind: 'ux', summary: 'Adds previous/next phase controls alongside the coloured phase bank so the learning cycle can be followed deliberately rather than only labelled.' },
