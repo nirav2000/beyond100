@@ -137,7 +137,13 @@
           <input type="hidden" id="focusPhase" value="diagnose">
           ${PHASES.map(([id,label])=>`<button type="button" class="focus-phase-tile ${id==='diagnose'?'selected':''}" data-focus-phase="${id}" data-tip="${esc(label)}" title="${esc(label)}" aria-label="${esc(label)}" aria-pressed="${id==='diagnose'?'true':'false'}">${phaseIcon(id)}</button>`).join('')}
         </div>
-        <div class="focus-phase-status" id="focusPhaseStatus" data-phase="diagnose"><strong>Diagnose</strong><span>Find the current edge before teaching.</span></div>
+        <div class="focus-phase-status" id="focusPhaseStatus" data-phase="diagnose">
+          <div class="focus-phase-copy"><strong id="focusPhaseName">Diagnose</strong><span id="focusPhaseHelp">Find the current edge before teaching.</span></div>
+          <div class="focus-phase-nav">
+            <button type="button" id="focusPhasePrev" aria-label="Previous learning phase">←</button>
+            <button type="button" id="focusPhaseNext">Next: Teach →</button>
+          </div>
+        </div>
         <button type="button" id="focusParentToggle" class="focus-parent-toggle" aria-expanded="false">Parent controls</button>
       </div>
       <aside id="focusParentDrawer" class="focus-parent-drawer" hidden>
@@ -164,6 +170,31 @@
     qa('[data-focus-outcome]',el).forEach(b=>b.onclick=()=>selectOutcome(b.dataset.focusOutcome));
     qa('[data-focus-error]',el).forEach(b=>b.onclick=()=>selectError(b.dataset.focusError));
     qa('[data-focus-phase]',el).forEach(b=>b.onclick=()=>selectPhase(b.dataset.focusPhase));
+    q('#focusPhasePrev',el).onclick=()=>movePhase(-1);
+    q('#focusPhaseNext',el).onclick=()=>movePhase(1);
+  }
+
+  function phaseIndex(id){return Math.max(0,PHASES.findIndex(([key])=>key===id))}
+  function updatePhaseNav(id){
+    const i=phaseIndex(id),prev=q('#focusPhasePrev'),next=q('#focusPhaseNext');
+    if(prev){
+      prev.disabled=i===0;
+      prev.textContent=i>0?`← ${PHASES[i-1][1]}`:'←';
+      prev.title=i===0?'Already at the first phase':`Go back to ${PHASES[i-1][1]}`;
+    }
+    if(next){
+      next.disabled=i===PHASES.length-1;
+      if(i===PHASES.length-1)next.textContent='Cycle complete';
+      else if(id==='practise')next.textContent='Retrieve later →';
+      else next.textContent=`Next: ${PHASES[i+1][1]} →`;
+      next.title=id==='practise'
+        ?'Move to retrieval when you return later, ideally after a gap and without a prompt.'
+        :(next.disabled?'This is the last phase':`Move to ${PHASES[i+1][1]}`);
+    }
+  }
+  function movePhase(direction){
+    const current=q('#focusPhase')?.value||'diagnose',i=phaseIndex(current),target=PHASES[i+direction];
+    if(target)selectPhase(target[0]);
   }
 
   function selectPhase(id){
@@ -174,13 +205,15 @@
       b.setAttribute('aria-pressed',String(on));
     });
     const label=PHASES.find(([key])=>key===id)?.[1]||id;
-    const status=q('#focusPhaseStatus');
+    const status=q('#focusPhaseStatus'),name=q('#focusPhaseName'),help=q('#focusPhaseHelp');
+    if(name)name.textContent=label;
+    if(help)help.textContent=PHASE_HELP[id]||'';
     if(status){
-      status.innerHTML=`<strong>${esc(label)}</strong><span>${esc(PHASE_HELP[id]||'')}</span>`;
       status.dataset.phase=id;
       status.classList.remove('phase-pulse');
       requestAnimationFrame(()=>status.classList.add('phase-pulse'));
     }
+    updatePhaseNav(id);
     window.BEYOND100_NOTES_TOAST?.(`Phase: ${label}`);
     persistFocus();updateNextStep();
   }
