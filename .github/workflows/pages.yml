@@ -76,6 +76,9 @@ jobs:
           node --check topic-context.js
           node --check notes-auto-anchors.js
           node --check focus-mode.js
+          node --check guide.js
+          node --check parent.js
+          node --check vendor/qrcode.min.js
           node --check learner-profile.js
           node --check notes.js
           node --check notes-ux.js
@@ -100,10 +103,10 @@ jobs:
           if (!manifest) throw new Error('Could not read currentVersion from versions-data.js');
           const current = manifest[1];
           if (!manifestText.includes(`version: '${current}'`)) throw new Error(`Current version ${current} is missing from release history`);
-          for (const required of ['assessment-data.js','assessment.js','learner-profile.js','learner-context.js','topic-context.js','notes-auto-anchors.js','notes-ux.js','notes-advanced.js','learning-evidence-v07.js','review-feed-publisher.js']) {
+          for (const required of ['assessment-data.js','assessment.js','learner-profile.js','learner-context.js','topic-context.js','notes-auto-anchors.js','guide.js','vendor/qrcode.min.js','focus-mode.js','notes-ux.js','notes-advanced.js','learning-evidence-v07.js','review-feed-publisher.js']) {
             if (!index.includes(required)) throw new Error(`index.html is not loading ${required}`);
           }
-          for (const required of ['learning-evidence.css','learner-context.css']) {
+          for (const required of ['learning-evidence.css','learner-context.css','guide.css','focus-v09.css']) {
             if (!index.includes(required)) throw new Error(`index.html is not loading ${required}`);
             if (!fs.existsSync(required)) throw new Error(`Missing ${required}`);
           }
@@ -120,13 +123,18 @@ jobs:
             test -s "assets/assessments/orley-summer-2026/page-$n.jpg" || { echo "Missing assessment page-$n.jpg"; exit 1; }
           done
 
+      - name: Prepare Pages artifact
+        run: |
+          mkdir -p _site
+          rsync -a             --exclude '.git/'             --exclude '.github/'             --exclude '_site/'             ./ _site/
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
       - name: Upload static site
         uses: actions/upload-pages-artifact@v4
         with:
-          path: "."
+          path: "_site"
 
       - name: Deploy to GitHub Pages
         id: deployment
