@@ -173,13 +173,23 @@
 
   function installFocusButton(){
     const bar=q('.topbar'),nav=q('#openNav');
-    if(!bar||q('#focusModeButton'))return;
-    const b=document.createElement('button');
-    b.id='focusModeButton';b.className='focus-mode-button';b.type='button';
-    b.innerHTML='<span aria-hidden="true">◎</span><span>Focus</span>';
-    b.title='Start a focused learning session';
-    b.addEventListener('click',()=>focusOn?exitFocus():enterFocus(null));
-    bar.insertBefore(b,nav||null);
+    if(!bar)return;
+    if(!q('#focusModeButton')){
+      const b=document.createElement('button');
+      b.id='focusModeButton';b.className='focus-mode-button';b.type='button';
+      b.innerHTML='<span aria-hidden="true">◎</span><span>Focus</span>';
+      b.title='Start a focused learning session';
+      b.addEventListener('click',()=>focusOn?exitFocus():enterFocus(null));
+      bar.insertBefore(b,nav||null);
+    }
+    if(!q('#parentControllerButton')){
+      const b=document.createElement('button');
+      b.id='parentControllerButton';b.className='focus-mode-button parent-controller-top-button';b.type='button';
+      b.innerHTML='<span aria-hidden="true">▣</span><span>Controller</span>';
+      b.title='Pair or disconnect a parent controller';
+      b.addEventListener('click',shareParentController);
+      bar.insertBefore(b,nav||null);
+    }
   }
 
   function focusableBlocks(){
