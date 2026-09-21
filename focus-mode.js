@@ -326,14 +326,14 @@
   function render(){
     const overlay=q('#focusV9');
     if(!overlay)return;
-    const task=currentTask();
+    const task=session?.active?currentTask():null;
     overlay.hidden=!focusOn;
     document.body.classList.toggle('focus-mode',focusOn);
     if(!focusOn)return;
 
-    q('#focusV9PhaseRail').innerHTML=session?.tasks?.length?phaseMarkup():'';
+    q('#focusV9PhaseRail').innerHTML=session?.active&&session?.tasks?.length?phaseMarkup():'';
     q('#focusV9Child').innerHTML=task?taskMarkup(task):launcherMarkup();
-    q('#focusV9Dock').innerHTML=session?.tasks?.length?parentCompactMarkup():'';
+    q('#focusV9Dock').innerHTML=session?.active&&session?.tasks?.length?parentCompactMarkup():'';
 
     bindLauncher();
     bindChildConfidence();
