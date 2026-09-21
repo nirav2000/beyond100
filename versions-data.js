@@ -1,13 +1,28 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.9.0',
+  currentVersion: '0.9.1',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.9.1',
+      date: '2026-09-21',
+      title: 'Persistent QR Parent Controller',
+      ref: 'main',
+      status: 'current',
+      summary: 'Adds a persistent learner-level parent-controller key with locally generated QR pairing, no repeat login on paired devices, manual revocation, connection presence and a GitHub-only security trade-off log.',
+      areas: [
+        { id: 'persistent-controller', title: 'Persistent learner-level controller', kind: 'feature', summary: 'The controller key is linked to Sai’s Beyond 100 profile and remains usable across future Focus sessions until manually disconnected.' },
+        { id: 'qr-pairing', title: 'Local QR pairing', kind: 'feature', summary: 'Shows a locally generated QR code alongside Share, Copy Link and Open controls without sending the bearer link to a third-party QR service.' },
+        { id: 'no-repeat-login', title: 'No repeat login on paired device', kind: 'ux', summary: 'Opening the unique capability link can attach the phone controller without another Firebase sign-in once the capability rules are deployed.' },
+        { id: 'manual-revocation', title: 'Manual controller revocation', kind: 'security', summary: 'Disconnect controller invalidates all copies of the old QR/link; there is deliberately no automatic expiry.' },
+        { id: 'security-log', title: 'GitHub-only security issues log', kind: 'documentation', summary: 'Known bearer-link risks and deferred hardening options are tracked in .github/SECURITY_ISSUES.md and excluded from the published Pages artifact.' }
+      ]
+    },
     {
       version: '0.9.0',
       date: '2026-09-21',
       title: 'One-Task Focus & Remote Parent Control',
       ref: 'main',
-      status: 'current',
+      status: 'archive',
       summary: 'Reframes Focus around one child-facing task at a time, question-level evidence, compact parent controls, child confidence, phase completion history, in-app documentation, and an authenticated phone-based parent controller.',
       areas: [
         { id: 'one-task-focus', title: 'One-task child view', kind: 'feature', summary: 'Focus no longer exposes the full year card or a worksheet of questions; diagnostics and learning tasks are presented one at a time.' },
