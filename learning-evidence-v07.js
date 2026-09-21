@@ -255,7 +255,7 @@ function recordFocusResponse(detail={}){
     id:crypto.randomUUID(),kind:'focus-response',app:'beyond100',topicId:topicId(),subject:subject(),
     skill,prompt:detail.prompt||'',outcome:detail.outcome||'noConcept',errorCode:detail.errorCode||null,
     responseSeconds:Number.isFinite(detail.responseSeconds)?detail.responseSeconds:null,phase,
-    promptLevel:detail.promptLevel||'independent',confidence:detail.confidence||null,
+    promptLevel:detail.promptLevel||'independent',observations:[...(detail.observations||[])],confidence:detail.confidence||null,
     anchorId:detail.anchorId||null,anchorLabel:detail.anchorLabel||'',year:detail.year||'',
     source:detail.source||'focus-mode',sessionId:sessionId(),createdAt:at,updatedAt:at
   };
