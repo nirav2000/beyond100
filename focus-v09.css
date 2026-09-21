@@ -151,3 +151,6 @@ body.sidebar-collapsed .sidebar-head{justify-content:center}
 .parent-pair-status{font-size:11px;line-height:1.35;display:flex;align-items:center;gap:8px;min-height:38px}
 .parent-pair-mini-spinner{width:16px;height:16px;flex:0 0 16px;border:2px solid #cbd7d1;border-top-color:#2d7759;border-radius:50%;animation:focusV9Spin .85s linear infinite}
 .parent-pair-status[data-state="ready"]{background:#eef5ff;color:#365d89}
+
+.parent-pair-qr-loading{display:grid;place-items:center;gap:8px;text-align:center;color:#78847d;font-size:10px}
+.parent-pair-qr-loading i{width:28px;height:28px;border-radius:50%;border:3px solid #d7e0db;border-top-color:#2f8060;animation:focusV9Spin .85s linear infinite}
