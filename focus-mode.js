@@ -194,7 +194,11 @@
   }
   function movePhase(direction){
     const current=q('#focusPhase')?.value||'diagnose',i=phaseIndex(current),target=PHASES[i+direction];
-    if(target)selectPhase(target[0]);
+    if(!target)return;
+    selectPhase(target[0]);
+    if(current==='practise'&&direction>0){
+      window.BEYOND100_NOTES_TOAST?.('Retrieval should normally happen later, without a prompt.');
+    }
   }
 
   function selectPhase(id){
