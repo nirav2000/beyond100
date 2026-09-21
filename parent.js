@@ -1,4 +1,5 @@
 const CLOUD=window.BEYOND100_CLOUD;
+const CONTROLLER_COLLECTION='beyond100_parent_controllers';
 const PHASES=[
   ['diagnose','Diagnose','⌕'],['teach','Teach','▤'],['demonstrate','Demonstrate','▣'],
   ['practise','Practise','✎'],['retrieve1','Retrieve','↶'],['retrieve2','Retrieve again','↺'],['apply','Apply','→']
@@ -9,7 +10,13 @@ const PROMPTS=[['independent','Independent'],['read','Read aloud'],['clarify','C
 const CONFIDENCE={gotit:'😄 Got it',sense:'🙂 Makes sense',half:'🤔 Half sure',lost:'😕 Don’t understand'};
 const q=(s,r=document)=>r.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-let S=null,unsubscribe=null,state=null,timerInterval=null;
+const now=()=>new Date().toISOString();
+let S=null,unsubscribe=null,state=null,timerInterval=null,presenceTimer=null;
+const capabilityToken=(()=>{
+  const m=location.hash.match(/(?:^#|&)control=([A-Za-z0-9_-]{43})(?:&|$)/);
+  return m?.[1]||'';
+})();
+const usingCapability=/^[A-Za-z0-9_-]{43}$/.test(capabilityToken);
 
 async function sdk(){
   if(S)return S;
@@ -20,26 +27,59 @@ async function sdk(){
   ]);
   const app=A.getApps()[0]||A.initializeApp(CLOUD.firebase);
   const auth=Auth.getAuth(app);
-  await Auth.setPersistence(auth,Auth.browserLocalPersistence).catch(()=>{});
+  if(!usingCapability)await Auth.setPersistence(auth,Auth.browserLocalPersistence).catch(()=>{});
   S={A,Auth,F,auth,db:F.getFirestore(app)};
   return S;
 }
 function focusRef(){
+  if(usingCapability)return S.F.doc(S.db,CONTROLLER_COLLECTION,capabilityToken);
   return S.F.doc(S.db,...(CLOUD.firestoreBase||CLOUD.legacyFirestoreBase),'beyond100-focus-live');
 }
 function setLoginStatus(text){const el=q('#parentLoginStatus');if(el)el.textContent=text||''}
 function setView(which){
   q('#parentLogin').hidden=which!=='login';
   q('#parentWaiting').hidden=which!=='waiting';
+  q('#parentRevoked').hidden=which!=='revoked';
   q('#parentController').hidden=which!=='controller';
-  q('#parentSignOut').hidden=which==='login';
+  q('#parentSignOut').hidden=usingCapability||which==='login'||which==='revoked';
 }
 async function resolveLearner(){
   if(window.BEYOND100_RESOLVE_LEARNER){
     try{await window.BEYOND100_RESOLVE_LEARNER(true)}catch{}
   }
 }
-async function subscribe(){
+function deviceLabel(){
+  const ua=navigator.userAgent||'';
+  if(/iPhone/i.test(ua))return'iPhone';
+  if(/iPad/i.test(ua))return'iPad';
+  if(/Android/i.test(ua))return'Android device';
+  if(/Macintosh/i.test(ua))return'Mac';
+  if(/Windows/i.test(ua))return'Windows device';
+  return'Parent device';
+}
+async function sendPresence(){
+  if(!usingCapability||!S)return;
+  try{
+    await S.F.updateDoc(focusRef(),{
+      controllerPresence:{lastSeenAt:now(),device:deviceLabel(),page:'parent-controller'}
+    });
+  }catch{}
+}
+async function subscribeCapability(){
+  const s=await sdk();
+  unsubscribe?.();
+  unsubscribe=s.F.onSnapshot(focusRef(),snap=>{
+    if(!snap.exists()){setView('revoked');return}
+    const doc=snap.data()||{};
+    if(doc.active!==true||doc.app!=='beyond100'){setView('revoked');return}
+    state=doc.state||null;
+    if(!state?.active){setView('waiting');sendPresence();return}
+    setView('controller');render();sendPresence();
+  },()=>setView('revoked'));
+  clearInterval(presenceTimer);presenceTimer=setInterval(sendPresence,30000);
+  sendPresence();
+}
+async function subscribeAuthenticated(){
   const s=await sdk();await s.auth.authStateReady();
   if(!s.auth.currentUser||s.auth.currentUser.uid!==CLOUD.ownerUid){setView('login');return}
   await resolveLearner();
@@ -51,6 +91,10 @@ async function subscribe(){
     setView('controller');render();
   },()=>setView('waiting'));
 }
+async function subscribe(){
+  if(usingCapability)return subscribeCapability();
+  return subscribeAuthenticated();
+}
 async function signIn(){
   const email=q('#parentEmail').value.trim(),password=q('#parentPassword').value;
   if(!email||!password){setLoginStatus('Enter email and password.');return}
@@ -59,22 +103,40 @@ async function signIn(){
     const s=await sdk();
     const cred=await s.Auth.signInWithEmailAndPassword(s.auth,email,password);
     if(cred.user.uid!==CLOUD.ownerUid){await s.Auth.signOut(s.auth);throw new Error('This is not the parent account.')}
-    q('#parentPassword').value='';setLoginStatus('');await subscribe();
+    q('#parentPassword').value='';setLoginStatus('');await subscribeAuthenticated();
   }catch(e){setLoginStatus(e.message||'Could not sign in.')}
 }
-async function signOut(){const s=await sdk();unsubscribe?.();unsubscribe=null;await s.Auth.signOut(s.auth);setView('login')}
+async function signOut(){
+  const s=await sdk();unsubscribe?.();unsubscribe=null;clearInterval(presenceTimer);
+  await s.Auth.signOut(s.auth);setView('login');
+}
 async function command(action,payload={}){
-  if(!S?.auth.currentUser)return;
-  await S.F.setDoc(focusRef(),{
-    command:{id:crypto.randomUUID(),action,payload,at:new Date().toISOString()}
-  },{merge:true});
+  if(!S)return;
+  const row={id:crypto.randomUUID(),action,payload,at:now()};
+  try{
+    if(usingCapability){
+      await S.F.updateDoc(focusRef(),{
+        command:row,
+        controllerPresence:{lastSeenAt:now(),device:deviceLabel(),page:'parent-controller'}
+      });
+    }else{
+      if(!S.auth.currentUser)return;
+      await S.F.setDoc(focusRef(),{command:row},{merge:true});
+    }
+  }catch(e){
+    if(usingCapability)setView('revoked');
+  }
 }
 function phaseRail(){
   if(!state)return'';
   return PHASES.map((p,i)=>{
     const st=state.phaseLog?.[p[0]]?.state||(state.phase===p[0]?'current':'future');
     const arrow=i<PHASES.length-1?'<span class="parent-phase-arrow">›</span>':'';
-    return '<button class="parent-phase-tile" type="button" data-phase="'+p[0]+'" data-state="'+st+'" title="'+esc(p[1])+'">'+p[2]+'</button>'+arrow;
+    const detail=state.phaseLog?.[p[0]];
+    const title=st==='done'&&detail?.completedAt
+      ?p[1]+' — completed '+new Date(detail.completedAt).toLocaleString('en-GB')+(detail.detail?' · '+detail.detail:'')
+      :p[1];
+    return '<button class="parent-phase-tile" type="button" data-phase="'+p[0]+'" data-state="'+st+'" title="'+esc(title)+'">'+p[2]+'</button>'+arrow;
   }).join('');
 }
 function controlButtons(items,attr,current){
@@ -104,6 +166,7 @@ function render(){
   if(!state)return;
   q('#parentScope').textContent=state.scope||state.topicLabel||'Focus session';
   q('#parentTaskMeta').textContent=(state.phase||'')+' · '+((state.index||0)+1)+' of '+(state.total||1);
+  q('#parentPairIdentity').textContent=usingCapability?'Paired to '+(state.learnerLabel||'Sai')+' · persistent controller':'Signed-in parent controller';
   q('#parentPhaseRail').innerHTML=phaseRail();
   q('#parentInstruction').textContent=state.task?.instruction||'';
   q('#parentPrompt').textContent=state.task?.prompt||'';
@@ -130,7 +193,7 @@ function bindDynamic(){
 function updateTimer(){
   clearInterval(timerInterval);
   const el=q('#parentTimerValue');if(!el||!state)return;
-  let base=Number(state.timer?.elapsed||0);
+  const base=Number(state.timer?.elapsed||0);
   const started=Date.now();
   const draw=()=>{
     const value=base+(state.timer?.running?(Date.now()-started)/1000:0);
@@ -139,7 +202,7 @@ function updateTimer(){
   draw();
   if(state.timer?.running)timerInterval=setInterval(draw,100);
 }
-function init(){
+async function init(){
   q('#parentSignIn').onclick=signIn;
   q('#parentSignOut').onclick=signOut;
   q('#parentRefresh').onclick=subscribe;
@@ -147,12 +210,22 @@ function init(){
   q('#parentRecord').onclick=()=>command('record');
   q('#parentNext').onclick=()=>command('next');
   q('#saveParentNote').onclick=()=>command('parent-note',{text:q('#parentNote').value});
-  sdk().then(async s=>{
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)sendPresence()});
+
+  try{
+    const s=await sdk();
+    if(usingCapability){
+      setView('waiting');
+      await subscribeCapability();
+      return;
+    }
     await s.auth.authStateReady();
     s.Auth.onAuthStateChanged(s.auth,user=>{
-      if(user?.uid===CLOUD.ownerUid)subscribe();else setView('login');
+      if(user?.uid===CLOUD.ownerUid)subscribeAuthenticated();else setView('login');
     });
-    if(s.auth.currentUser?.uid===CLOUD.ownerUid)subscribe();else setView('login');
-  }).catch(()=>setView('login'));
+    if(s.auth.currentUser?.uid===CLOUD.ownerUid)subscribeAuthenticated();else setView('login');
+  }catch{
+    setView(usingCapability?'revoked':'login');
+  }
 }
 init();
