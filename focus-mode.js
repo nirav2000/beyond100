@@ -726,6 +726,7 @@
       if(window.BEYOND100_RESOLVE_LEARNER)await window.BEYOND100_RESOLVE_LEARNER().catch(()=>{});
       const token=await ensureControllerCapability(S);
       renderPairing(token);
+      await startRemoteBridge();
     }catch(e){
       // The authenticated controller remains available as a fallback until the
       // capability Firestore rule has been deployed.
@@ -774,24 +775,27 @@
     return S.F.doc(S.db,CONTROLLER_COLLECTION,token);
   }
 
-  async function ensureControllerCapability(S){
+  async function loadExistingControllerCapability(S){
     if(validControllerToken(controllerToken))return controllerToken;
     const local=cachedController();
     const index=await S.F.getDoc(controllerIndexRef(S));
     const data=index.exists()?index.data():null;
     let token=validControllerToken(data?.token)&&data?.active!==false?data.token:'';
     if(!token&&local&&data?.active!==false&&local.learnerId===(CLOUD.learnerId||CLOUD.legacyLearnerId))token=local.token;
+    if(!token)return'';
+    try{
+      const cap=await S.F.getDoc(capabilityRef(S,token));
+      if(cap.exists()&&cap.data()?.active===true){
+        controllerToken=token;cacheController(token,CLOUD.learnerId||CLOUD.legacyLearnerId);return token;
+      }
+    }catch{}
+    return'';
+  }
 
-    if(token){
-      try{
-        const cap=await S.F.getDoc(capabilityRef(S,token));
-        if(cap.exists()&&cap.data()?.active===true){
-          controllerToken=token;cacheController(token,CLOUD.learnerId||CLOUD.legacyLearnerId);return token;
-        }
-      }catch{}
-    }
-
-    token=randomControllerToken();
+  async function ensureControllerCapability(S){
+    const existing=await loadExistingControllerCapability(S);
+    if(existing)return existing;
+    let token=randomControllerToken();
     const learnerId=CLOUD.learnerId||CLOUD.legacyLearnerId;
     const learnerLabel=CLOUD.learnerLabel||CLOUD.learner?.label||'Sai';
     const created=now();
@@ -831,7 +835,8 @@
       unsubscribeRemote?.();
 
       try{
-        const token=await ensureControllerCapability(S);
+        const token=await loadExistingControllerCapability(S);
+        if(!token)throw new Error('No persistent controller has been paired yet.');
         unsubscribeRemote=S.F.onSnapshot(capabilityRef(S,token),snap=>{
           const data=snap.data()||{};
           controllerPresence=data.controllerPresence||null;
