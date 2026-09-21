@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f5f7f3">
+  <title>Beyond 100 · Parent Controller</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="parent.css">
+</head>
+<body>
+  <main class="parent-page">
+    <header class="parent-page-head">
+      <a href="./" class="parent-brand"><span>100<span>+</span></span><div><strong>Beyond 100</strong><small>Parent controller</small></div></a>
+      <button id="parentSignOut" type="button" hidden>Sign out</button>
+    </header>
+
+    <section id="parentLogin" class="parent-login">
+      <p class="eyebrow">REMOTE PARENT CONTROLS</p>
+      <h1>Control Focus from your phone</h1>
+      <p>Keep the iPad clean for the child while you record timing, prompting, response quality and next steps here.</p>
+      <label>Email<input id="parentEmail" type="email" autocomplete="username"></label>
+      <label>Password<input id="parentPassword" type="password" autocomplete="current-password"></label>
+      <button id="parentSignIn" type="button">Sign in</button>
+      <p id="parentLoginStatus" class="status"></p>
+    </section>
+
+    <section id="parentWaiting" class="parent-waiting" hidden>
+      <div class="waiting-icon">◎</div>
+      <h1>Waiting for Focus</h1>
+      <p>Start Focus mode on the iPad. This page will attach automatically to the active session.</p>
+      <button id="parentRefresh" type="button">Check again</button>
+    </section>
+
+    <section id="parentController" class="parent-controller" hidden>
+      <div class="parent-session-head">
+        <div><p class="eyebrow">LIVE FOCUS SESSION</p><h1 id="parentScope">Place Value</h1><span id="parentTaskMeta"></span></div>
+        <span id="parentLiveDot" class="live-dot">LIVE</span>
+      </div>
+
+      <div id="parentPhaseRail" class="parent-phase-rail"></div>
+
+      <article class="parent-task-card">
+        <span id="parentInstruction"></span>
+        <p id="parentPrompt"></p>
+        <details id="parentAnswerWrap"><summary>Reveal answer</summary><div id="parentAnswer"></div></details>
+        <div id="parentConfidenceStatus" class="parent-confidence-status"></div>
+      </article>
+
+      <section class="parent-control-card">
+        <div class="parent-timer"><button id="parentTimer" type="button">Start / stop timer</button><strong id="parentTimerValue">0.0s</strong></div>
+
+        <div class="parent-group"><span>Response</span><div id="parentOutcomes" class="parent-outcomes"></div></div>
+        <div class="parent-group"><span>Prompt used</span><div id="parentPrompts" class="parent-prompts"></div></div>
+        <div class="parent-group"><span>If it broke down, why?</span><div id="parentErrors" class="parent-errors"></div></div>
+
+        <div class="parent-actions">
+          <button id="parentRecord" class="primary" type="button">Save response</button>
+          <button id="parentNext" type="button">Next task →</button>
+        </div>
+
+        <label class="parent-note">Session note<textarea id="parentNote" rows="3" placeholder="Optional observation for this Focus session"></textarea></label>
+        <button id="saveParentNote" class="subtle" type="button">Save session note</button>
+
+        <div id="parentStats" class="parent-stats"></div>
+      </section>
+    </section>
+  </main>
+  <script src="versions-data.js"></script>
+  <script src="cloud-config.js"></script>
+  <script type="module" src="learner-profile.js"></script>
+  <script type="module" src="parent.js"></script>
+</body>
+</html>
