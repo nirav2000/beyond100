@@ -1,13 +1,32 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.9.1',
+  currentVersion: '0.10.0',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.10.0',
+      date: '2026-09-21',
+      title: 'Focus Completion & Learning Dashboard',
+      ref: 'main',
+      status: 'current',
+      summary: 'Makes Focus completion child-first, hides live timing from the child, expands parent observations, improves remote-controller status feedback, adds a visual learning dashboard, opens Notes activity by default and introduces browser UI regression checks.',
+      areas: [
+        { id: 'done-flow', title: 'Done-first diagnostic flow', kind: 'ux', summary: 'Adds a child-facing Done control and matching parent control. Done stops the timer, then reveals child confidence; the next task advances once parent evidence and confidence are both captured.' },
+        { id: 'hidden-timer', title: 'Timer hidden from child', kind: 'ux', summary: 'The compact Focus dock now shows a thinking spinner/status rather than a running seconds counter; exact timing remains in parent controls and evidence.' },
+        { id: 'equal-confidence', title: 'Neutral confidence choices', kind: 'repair', summary: 'Got it, Makes sense, Half sure and Don’t understand now have equal neutral styling until the child makes a selection.' },
+        { id: 'parent-observations', title: 'Additional parent observations', kind: 'data', summary: 'Adds optional self-corrected, guessed, explained clearly, needed re-reading and attention-drift tags to question evidence.' },
+        { id: 'focus-layout', title: 'Readable non-overlapping parent panel', kind: 'repair', summary: 'Larger control text and a responsive split layout keep the expanded parent panel from covering the child task on wide/iPad-sized screens.' },
+        { id: 'controller-state', title: 'Controller connection feedback', kind: 'repair', summary: 'QR pairing and the phone controller now show explicit connecting, signed-in/paired, connected, waiting and error states with Sai identified.' },
+        { id: 'learning-dashboard', title: 'Learning statistics dashboard', kind: 'feature', summary: 'Adds visual KPI cards and charts for response quality, speed, prompting, confidence, breakdown causes, activity, learning-cycle evidence and skill patterns.' },
+        { id: 'notes-summary-open', title: 'Notes activity expanded by default', kind: 'ux', summary: 'Notes activity summary now opens expanded whenever Notes is opened.' },
+        { id: 'ui-regression', title: 'Automated browser UI checks', kind: 'workflow', summary: 'GitHub Pages deployment now runs Playwright smoke tests for Focus completion, confidence defaults, parent-panel overlap, Notes defaults, dashboard availability and non-blank controller pairing states.' }
+      ]
+    },
     {
       version: '0.9.1',
       date: '2026-09-21',
       title: 'Persistent QR Parent Controller',
       ref: 'main',
-      status: 'current',
+      status: 'archive',
       summary: 'Adds a persistent learner-level parent-controller key with locally generated QR pairing, no repeat login on paired devices, manual revocation, connection presence and a GitHub-only security trade-off log.',
       areas: [
         { id: 'persistent-controller', title: 'Persistent learner-level controller', kind: 'feature', summary: 'The controller key is linked to Sai’s Beyond 100 profile and remains usable across future Focus sessions until manually disconnected.' },
