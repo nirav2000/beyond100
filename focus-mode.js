@@ -6,6 +6,8 @@
   const TOPIC=DATA?.detailedTopics?.['Place Value & Number Structure'];
   const SESSION_KEY='beyond100.focus.session.v3';
   const PREF_KEY='beyond100.sidebar.preference.v1';
+  const CONTROLLER_CACHE='beyond100.parent-controller.v1';
+  const CONTROLLER_COLLECTION='beyond100_parent_controllers';
   const PHASES=[
     {id:'diagnose',label:'Diagnose',help:'Find the first fragile layer before teaching.',icon:'⌕'},
     {id:'teach',label:'Teach',help:'Explain or model only what is missing.',icon:'▤'},
@@ -49,6 +51,9 @@
   let unsubscribeRemote=null;
   let lastCommandId='';
   let syncTimer=null;
+  let controllerToken='';
+  let controllerPresence=null;
+  let pairingDialog=null;
 
   const q=(s,r=document)=>r.querySelector(s);
   const qa=(s,r=document)=>Array.from(r.querySelectorAll(s));
@@ -604,25 +609,128 @@
     q('#focusV9Guide').addEventListener('click',()=>window.BEYOND100_OPEN_GUIDE?.('focus'));
   }
 
-  async function shareParentController(){
-    const url=new URL('parent.html',location.href).toString();
-    const text='Beyond 100 parent controller';
+  function validControllerToken(value){
+    return /^[A-Za-z0-9_-]{43}$/.test(String(value||''));
+  }
+  function randomControllerToken(){
+    const bytes=crypto.getRandomValues(new Uint8Array(32));
+    let raw='';bytes.forEach(b=>raw+=String.fromCharCode(b));
+    return btoa(raw).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  }
+  function cachedController(){
     try{
-      if(navigator.share){await navigator.share({title:text,text,url});return}
-      await navigator.clipboard.writeText(url);
-      window.BEYOND100_NOTES_TOAST?.('Parent controller link copied');
-    }catch{
-      window.open(url,'_blank','noopener');
+      const row=JSON.parse(localStorage.getItem(CONTROLLER_CACHE)||'null');
+      return row&&validControllerToken(row.token)?row:null;
+    }catch{return null}
+  }
+  function cacheController(token,learnerId){
+    if(!validControllerToken(token))return;
+    localStorage.setItem(CONTROLLER_CACHE,JSON.stringify({token,learnerId,active:true,updatedAt:now()}));
+  }
+  function clearControllerCache(){
+    localStorage.removeItem(CONTROLLER_CACHE);
+  }
+  function controllerUrl(token){
+    const url=new URL('parent.html',location.href);
+    url.hash='control='+encodeURIComponent(token);
+    return url.toString();
+  }
+
+  function ensurePairingDialog(){
+    if(pairingDialog&&document.contains(pairingDialog))return pairingDialog;
+    const d=document.createElement('dialog');
+    d.id='parentPairingDialog';d.className='parent-pairing-dialog';d.dataset.noteIgnore='true';
+    d.innerHTML='<div class="parent-pairing-shell">'+
+      '<header><div><p class="eyebrow">PARENT CONTROLLER</p><h2>Open on another device</h2></div><button type="button" id="closeParentPairing" aria-label="Close">×</button></header>'+
+      '<div class="parent-pairing-body">'+
+        '<div id="parentPairQr" class="parent-pair-qr" aria-label="QR code for parent controller"></div>'+
+        '<div class="parent-pair-copy">'+
+          '<strong>Scan with the iPhone camera</strong>'+
+          '<p>This controller belongs to <b id="parentPairLearner">Sai</b> and continues to work across future Focus sessions until you disconnect it.</p>'+
+          '<label>Controller link<div><input id="parentPairUrl" readonly><button id="copyParentPair" type="button">Copy</button></div></label>'+
+          '<div class="parent-pair-actions"><button id="shareParentPair" type="button" class="primary">Share link</button><button id="openParentPair" type="button">Open here</button></div>'+
+          '<div id="parentPairStatus" class="parent-pair-status">Preparing controller…</div>'+
+        '</div>'+
+      '</div>'+
+      '<footer><span>Persistent access · no extra login · revoke manually</span><button id="disconnectParentPair" type="button" class="danger">Disconnect controller</button></footer>'+
+    '</div>';
+    document.body.appendChild(d);pairingDialog=d;
+    q('#closeParentPairing',d).onclick=()=>d.close();
+    d.addEventListener('click',e=>{if(e.target===d)d.close()});
+    q('#copyParentPair',d).onclick=async()=>{
+      const url=q('#parentPairUrl',d).value;
+      try{await navigator.clipboard.writeText(url);window.BEYOND100_NOTES_TOAST?.('Parent controller link copied')}
+      catch{}
+    };
+    q('#shareParentPair',d).onclick=async()=>{
+      const url=q('#parentPairUrl',d).value;
+      if(!url)return;
+      try{
+        if(navigator.share)await navigator.share({title:'Beyond 100 parent controller',text:'Open the Beyond 100 parent controller',url});
+        else{await navigator.clipboard.writeText(url);window.BEYOND100_NOTES_TOAST?.('Parent controller link copied')}
+      }catch{}
+    };
+    q('#openParentPair',d).onclick=()=>{
+      const url=q('#parentPairUrl',d).value;if(url)window.open(url,'_blank','noopener');
+    };
+    q('#disconnectParentPair',d).onclick=async()=>{
+      if(!controllerToken)return;
+      if(!confirm('Disconnect this parent-controller key? Devices using the existing QR/link will stop working.'))return;
+      await revokeControllerCapability();
+      d.close();
+      window.BEYOND100_NOTES_TOAST?.('Parent controller disconnected');
+    };
+    return d;
+  }
+
+  function renderPairing(token,error=''){
+    const d=ensurePairingDialog();
+    const learner=CLOUD.learnerLabel||CLOUD.learner?.label||'Sai';
+    q('#parentPairLearner',d).textContent=learner;
+    const url=validControllerToken(token)?controllerUrl(token):new URL('parent.html',location.href).toString();
+    q('#parentPairUrl',d).value=url;
+    const qr=q('#parentPairQr',d);qr.innerHTML='';
+    if(validControllerToken(token)&&window.QRCode){
+      new QRCode(qr,{text:url,width:214,height:214,correctLevel:QRCode.CorrectLevel.M});
+    }else{
+      qr.innerHTML='<div class="parent-pair-qr-fallback">QR unavailable</div>';
+    }
+    const status=q('#parentPairStatus',d);
+    if(error){
+      status.dataset.state='error';status.textContent=error;
+    }else{
+      const seen=controllerPresence?.lastSeenAt?Date.parse(controllerPresence.lastSeenAt):0;
+      const connected=seen&&Date.now()-seen<90000;
+      status.dataset.state=connected?'connected':'ready';
+      status.textContent=connected?'● Parent controller connected':'Ready · this key does not expire automatically';
+    }
+  }
+
+  async function shareParentController(){
+    const d=ensurePairingDialog();
+    if(!d.open)d.showModal();
+    q('#parentPairStatus',d).textContent='Preparing persistent controller…';
+    try{
+      const S=await remoteSdk();await S.auth.authStateReady();
+      if(!S.auth.currentUser||S.auth.currentUser.uid!==CLOUD.ownerUid)throw new Error('Sign in to Firebase on this device first.');
+      if(window.BEYOND100_RESOLVE_LEARNER)await window.BEYOND100_RESOLVE_LEARNER().catch(()=>{});
+      const token=await ensureControllerCapability(S);
+      renderPairing(token);
+    }catch(e){
+      // The authenticated controller remains available as a fallback until the
+      // capability Firestore rule has been deployed.
+      renderPairing('',(e?.message||'Could not create the controller key.')+' You can still open the controller and sign in.');
     }
   }
 
   function remoteState(){
-    if(!session)return{active:false,updatedAt:now()};
+    if(!session)return{active:false,learnerId:CLOUD.learnerId||CLOUD.legacyLearnerId,updatedAt:now()};
     const task=currentTask();
     return{
       active:focusOn&&!!session.active,sessionId:session.id,mode:session.mode,phase:session.phase,
       phaseLog:session.phaseLog,index:session.index,total:session.tasks.length,
       topicLabel:session.topicLabel,year:session.year,scope:session.scope,
+      learnerId:CLOUD.learnerId||CLOUD.legacyLearnerId,learnerLabel:CLOUD.learnerLabel||CLOUD.learner?.label||'Sai',
       task:task?{id:task.id,kind:task.kind,prompt:task.prompt,answer:task.answer,skill:task.skill,year:task.year,instruction:task.instruction}:null,
       promptLevel:session.promptLevel,currentOutcome:session.currentOutcome,currentError:session.currentError,
       recordedCurrent:session.recordedCurrent,currentConfidence:session.currentConfidence||null,
@@ -644,34 +752,101 @@
     })();
     return remoteSdkPromise;
   }
-  function remoteRef(S){return S.F.doc(S.db,...(CLOUD.firestoreBase||CLOUD.legacyFirestoreBase),'beyond100-focus-live')}
+
+  function controllerIndexRef(S){
+    return S.F.doc(S.db,...(CLOUD.firestoreBase||CLOUD.legacyFirestoreBase),'beyond100-parent-controller');
+  }
+  function capabilityRef(S,token=controllerToken){
+    if(!validControllerToken(token))throw new Error('Parent controller key is not available.');
+    return S.F.doc(S.db,CONTROLLER_COLLECTION,token);
+  }
+
+  async function ensureControllerCapability(S){
+    if(validControllerToken(controllerToken))return controllerToken;
+    const local=cachedController();
+    const index=await S.F.getDoc(controllerIndexRef(S));
+    const data=index.exists()?index.data():null;
+    let token=validControllerToken(data?.token)&&data?.active!==false?data.token:'';
+    if(!token&&local&&data?.active!==false&&local.learnerId===(CLOUD.learnerId||CLOUD.legacyLearnerId))token=local.token;
+
+    if(token){
+      try{
+        const cap=await S.F.getDoc(capabilityRef(S,token));
+        if(cap.exists()&&cap.data()?.active===true){
+          controllerToken=token;cacheController(token,CLOUD.learnerId||CLOUD.legacyLearnerId);return token;
+        }
+      }catch{}
+    }
+
+    token=randomControllerToken();
+    const learnerId=CLOUD.learnerId||CLOUD.legacyLearnerId;
+    const learnerLabel=CLOUD.learnerLabel||CLOUD.learner?.label||'Sai';
+    const created=now();
+    await S.F.setDoc(capabilityRef(S,token),{
+      app:'beyond100',kind:'parent-controller-capability',controllerVersion:1,active:true,
+      ownerUid:CLOUD.ownerUid,learnerId,learnerLabel,createdAt:created,updatedAt:created,
+      revokedAt:null,state:remoteState(),command:null,commandAck:null,controllerPresence:null
+    });
+    await S.F.setDoc(controllerIndexRef(S),{
+      app:'beyond100',kind:'parent-controller-index',active:true,token,learnerId,learnerLabel,
+      createdAt:created,updatedAt:created
+    },{merge:true});
+    controllerToken=token;cacheController(token,learnerId);return token;
+  }
+
+  async function revokeControllerCapability(){
+    const S=await remoteSdk();await S.auth.authStateReady();
+    if(!S.auth.currentUser||S.auth.currentUser.uid!==CLOUD.ownerUid)throw new Error('Parent Firebase sign-in required.');
+    if(!validControllerToken(controllerToken)){
+      const index=await S.F.getDoc(controllerIndexRef(S));
+      const token=index.exists()?index.data()?.token:'';
+      if(validControllerToken(token))controllerToken=token;
+    }
+    if(validControllerToken(controllerToken)){
+      await S.F.setDoc(capabilityRef(S),{active:false,revokedAt:now(),updatedAt:now(),state:{active:false,updatedAt:now()}},{merge:true});
+    }
+    await S.F.setDoc(controllerIndexRef(S),{active:false,token:null,updatedAt:now(),revokedAt:now()},{merge:true});
+    controllerToken='';controllerPresence=null;clearControllerCache();
+    unsubscribeRemote?.();unsubscribeRemote=null;
+  }
+
   async function startRemoteBridge(){
     try{
       const S=await remoteSdk();await S.auth.authStateReady();
       if(!S.auth.currentUser||S.auth.currentUser.uid!==CLOUD.ownerUid)return;
       if(window.BEYOND100_RESOLVE_LEARNER)await window.BEYOND100_RESOLVE_LEARNER().catch(()=>{});
+      const token=await ensureControllerCapability(S);
       unsubscribeRemote?.();
-      unsubscribeRemote=S.F.onSnapshot(remoteRef(S),snap=>{
-        const data=snap.data();const cmd=data?.command;
+      unsubscribeRemote=S.F.onSnapshot(capabilityRef(S,token),snap=>{
+        const data=snap.data()||{};
+        controllerPresence=data.controllerPresence||null;
+        if(pairingDialog?.open)renderPairing(token);
+        const cmd=data.command;
         if(!cmd?.id||cmd.id===lastCommandId)return;
         lastCommandId=cmd.id;applyRemoteCommand(cmd).catch(()=>{});
       });
       await publishRemoteState();
     }catch{}
   }
+
   function scheduleRemoteSync(){
     clearTimeout(syncTimer);syncTimer=setTimeout(()=>publishRemoteState(),250);
   }
+
   async function publishRemoteState(){
     try{
       const S=await remoteSdk();await S.auth.authStateReady();
       if(!S.auth.currentUser||S.auth.currentUser.uid!==CLOUD.ownerUid)return;
-      await S.F.setDoc(remoteRef(S),{
-        app:'beyond100',kind:'focus-live',updatedAt:now(),state:remoteState(),
-        commandAck:lastCommandId||null
+      if(!validControllerToken(controllerToken))await ensureControllerCapability(S);
+      await S.F.setDoc(capabilityRef(S),{
+        app:'beyond100',kind:'parent-controller-capability',controllerVersion:1,active:true,
+        ownerUid:CLOUD.ownerUid,learnerId:CLOUD.learnerId||CLOUD.legacyLearnerId,
+        learnerLabel:CLOUD.learnerLabel||CLOUD.learner?.label||'Sai',
+        updatedAt:now(),state:remoteState(),commandAck:lastCommandId||null
       },{merge:true});
     }catch{}
   }
+
   async function applyRemoteCommand(cmd){
     const action=cmd.action,p=cmd.payload||{};
     if(action==='set-phase'){selectPhase(p.phase,true);return}
