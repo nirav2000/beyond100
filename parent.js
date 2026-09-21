@@ -83,6 +83,18 @@ function controlButtons(items,attr,current){
 function errorButtons(){
   return ERRORS.map(x=>'<button type="button" data-error="'+x[0]+'" class="'+(state?.currentError===x[0]?'selected':'')+'"><b>'+x[0]+'</b><small>'+esc(x[1])+'</small></button>').join('');
 }
+function suggestion(){
+  if(!state?.currentOutcome)return state?.task?.kind==='question'
+    ?'Let the child answer before helping. Move through the prompt ladder only if needed.'
+    :'Discuss this one idea, then ask how it felt.';
+  if(state.currentOutcome==='noConcept')return state.currentError==='Q'
+    ?'Read the same wording aloud before explaining the maths.'
+    :'Step back one layer and teach the missing idea.';
+  if(state.currentOutcome==='prompted')return'Retest this later without the prompt; supported success is not yet retrieval.';
+  if(state.currentOutcome==='hesitant')return'Try one varied example, then schedule retrieval rather than over-practising.';
+  if(state.phase==='retrieve1'||state.phase==='retrieve2')return'If this was fluent and independent, preserve the next spaced check.';
+  return'Use a different example or context before moving on.';
+}
 function stats(){
   const rows=state?.stats||[],c={fast:0,hesitant:0,prompted:0,noConcept:0};
   rows.forEach(r=>{if(c[r.outcome]!==undefined)c[r.outcome]++});
@@ -101,6 +113,7 @@ function render(){
   q('#parentPrompts').innerHTML=controlButtons(PROMPTS,'prompt',state.promptLevel||'independent');
   q('#parentErrors').innerHTML=errorButtons();
   q('#parentRecord').textContent=state.recordedCurrent?'Saved ✓':'Save response';
+  q('#parentSuggestion').textContent=suggestion();
   q('#parentNext').disabled=state.task?.kind==='question'&&!state.recordedCurrent;
   q('#parentNext').textContent=(state.index||0)>=(state.total||1)-1?'Finish':'Next task →';
   q('#parentStats').innerHTML=stats();
