@@ -7,6 +7,7 @@ const PHASES=[
 const OUTCOMES=[['fast','Correct + fast'],['hesitant','Correct + hesitant'],['prompted','Incorrect → understands after prompt'],['noConcept','Incorrect / no concept']];
 const ERRORS=[['K','Knowledge'],['C','Concept'],['Q','Question interpretation'],['P','Procedure'],['F','Fluency'],['R','Reasoning'],['A','Attention']];
 const PROMPTS=[['independent','Independent'],['read','Read aloud'],['clarify','Clarified wording'],['hint','Hint'],['explained','Explained']];
+const OBSERVATIONS=[['selfCorrected','Self-corrected'],['guessed','Guessed'],['clearExplain','Explained clearly'],['repeatRead','Needed re-reading'],['offTask','Attention drift']];
 const CONFIDENCE={gotit:'😄 Got it',sense:'🙂 Makes sense',half:'🤔 Half sure',lost:'😕 Don’t understand'};
 const q=(s,r=document)=>r.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -36,6 +37,12 @@ function focusRef(){
   return S.F.doc(S.db,...(CLOUD.firestoreBase||CLOUD.legacyFirestoreBase),'beyond100-focus-live');
 }
 function setLoginStatus(text){const el=q('#parentLoginStatus');if(el)el.textContent=text||''}
+function setConnection(title,detail='',stateName='loading'){
+  const root=q('#parentConnection');if(!root)return;
+  root.dataset.state=stateName;
+  q('#parentConnectionTitle').textContent=title;
+  q('#parentConnectionDetail').textContent=detail;
+}
 function setView(which){
   q('#parentLogin').hidden=which!=='login';
   q('#parentWaiting').hidden=which!=='waiting';
@@ -67,27 +74,32 @@ async function sendPresence(){
 }
 async function subscribeCapability(){
   const s=await sdk();
+  setConnection('Connecting to Sai…','Persistent controller key recognised.','loading');
   unsubscribe?.();
   unsubscribe=s.F.onSnapshot(focusRef(),snap=>{
-    if(!snap.exists()){setView('revoked');return}
+    if(!snap.exists()){setConnection('Controller unavailable','This QR/link does not point to an active controller.','error');setView('revoked');return}
     const doc=snap.data()||{};
-    if(doc.active!==true||doc.app!=='beyond100'){setView('revoked');return}
+    if(doc.active!==true||doc.app!=='beyond100'){setConnection('Controller disconnected','Create a new QR/link from Beyond 100.','error');setView('revoked');return}
     state=doc.state||null;
+    const learner=state?.learnerLabel||doc.learnerLabel||'Sai';
+    setConnection('Connected to '+learner,'Persistent QR controller · no Firebase login needed.','connected');
     if(!state?.active){setView('waiting');sendPresence();return}
     setView('controller');render();sendPresence();
-  },()=>setView('revoked'));
+  },()=>{setConnection('Connection failed','Check the network and try again.','error');setView('revoked')});
   clearInterval(presenceTimer);presenceTimer=setInterval(sendPresence,30000);
   sendPresence();
 }
 async function subscribeAuthenticated(){
   const s=await sdk();await s.auth.authStateReady();
-  if(!s.auth.currentUser||s.auth.currentUser.uid!==CLOUD.ownerUid){setView('login');return}
+  if(!s.auth.currentUser||s.auth.currentUser.uid!==CLOUD.ownerUid){setConnection('Not signed in','Sign in with the parent Firebase account.','idle');setView('login');return}
+  setConnection('Firebase signed in','Finding Sai’s learner profile…','loading');
   await resolveLearner();
   unsubscribe?.();
   unsubscribe=s.F.onSnapshot(focusRef(),snap=>{
     const data=snap.data(),next=data?.state||null;
     state=next;
-    if(!next?.active){setView('waiting');return}
+    if(!next?.active){setConnection('Signed in to Sai','Waiting for a Focus session on the child device.','connected');setView('waiting');return}
+    setConnection('Signed in to Sai','Live Focus controller connected.','connected');
     setView('controller');render();
   },()=>setView('waiting'));
 }
@@ -142,6 +154,10 @@ function phaseRail(){
 function controlButtons(items,attr,current){
   return items.map(x=>'<button type="button" data-'+attr+'="'+x[0]+'" class="'+(current===x[0]?'selected':'')+'">'+esc(x[1])+'</button>').join('');
 }
+function observationButtons(){
+  const selected=new Set(state?.currentObservations||[]);
+  return OBSERVATIONS.map(x=>'<button type="button" data-observation="'+x[0]+'" class="'+(selected.has(x[0])?'selected':'')+'">'+esc(x[1])+'</button>').join('');
+}
 function errorButtons(){
   return ERRORS.map(x=>'<button type="button" data-error="'+x[0]+'" class="'+(state?.currentError===x[0]?'selected':'')+'"><b>'+x[0]+'</b><small>'+esc(x[1])+'</small></button>').join('');
 }
@@ -175,6 +191,9 @@ function render(){
   q('#parentOutcomes').innerHTML=controlButtons(OUTCOMES,'outcome',state.currentOutcome);
   q('#parentPrompts').innerHTML=controlButtons(PROMPTS,'prompt',state.promptLevel||'independent');
   q('#parentErrors').innerHTML=errorButtons();
+  q('#parentObservations').innerHTML=observationButtons();
+  q('#parentDone').hidden=!!state.childDone||state.task?.kind!=='question';
+  q('#parentDone').textContent=state.childDone?'Answer done ✓':'Answer done';
   q('#parentRecord').textContent=state.recordedCurrent?'Saved ✓':(state.task?.kind==='explanation'?'Mark phase complete':'Save response');
   q('#parentSuggestion').textContent=suggestion();
   q('#parentNext').disabled=state.task?.kind==='question'&&!state.recordedCurrent;
@@ -189,6 +208,7 @@ function bindDynamic(){
   q('#parentOutcomes').querySelectorAll('[data-outcome]').forEach(b=>b.onclick=()=>command('set-outcome',{outcome:b.dataset.outcome}));
   q('#parentPrompts').querySelectorAll('[data-prompt]').forEach(b=>b.onclick=()=>command('set-prompt',{prompt:b.dataset.prompt}));
   q('#parentErrors').querySelectorAll('[data-error]').forEach(b=>b.onclick=()=>command('set-error',{error:state.currentError===b.dataset.error?'':b.dataset.error}));
+  q('#parentObservations').querySelectorAll('[data-observation]').forEach(b=>b.onclick=()=>command('set-observation',{observation:b.dataset.observation,enabled:!b.classList.contains('selected')}));
 }
 function updateTimer(){
   clearInterval(timerInterval);
@@ -207,6 +227,7 @@ async function init(){
   q('#parentSignOut').onclick=signOut;
   q('#parentRefresh').onclick=subscribe;
   q('#parentTimer').onclick=()=>command('timer');
+  q('#parentDone').onclick=()=>command('complete');
   q('#parentRecord').onclick=()=>command('record');
   q('#parentNext').onclick=()=>command('next');
   q('#saveParentNote').onclick=()=>command('parent-note',{text:q('#parentNote').value});
@@ -215,6 +236,7 @@ async function init(){
   try{
     const s=await sdk();
     if(usingCapability){
+      setConnection('QR key recognised','Connecting to Sai’s controller…','loading');
       setView('waiting');
       await subscribeCapability();
       return;
@@ -223,8 +245,9 @@ async function init(){
     s.Auth.onAuthStateChanged(s.auth,user=>{
       if(user?.uid===CLOUD.ownerUid)subscribeAuthenticated();else setView('login');
     });
-    if(s.auth.currentUser?.uid===CLOUD.ownerUid)subscribeAuthenticated();else setView('login');
+    if(s.auth.currentUser?.uid===CLOUD.ownerUid)subscribeAuthenticated();else{setConnection('Not signed in','Sign in with the parent Firebase account.','idle');setView('login')}
   }catch{
+    setConnection('Connection problem','Reload or check the network.','error');
     setView(usingCapability?'revoked':'login');
   }
 }
