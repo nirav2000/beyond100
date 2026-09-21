@@ -48,7 +48,7 @@ button,input,textarea{font:inherit}
 .parent-outcomes button,.parent-prompts button{font-size:12px;line-height:1.3;padding:10px}
 .parent-errors button{min-height:62px}.parent-errors b{font-size:15px}.parent-errors small{font-size:9px;line-height:1.15}
 .parent-observations{display:flex;flex-wrap:wrap;gap:6px}.parent-observations button{border:1px solid var(--line);background:#fafbf9;border-radius:999px;padding:8px 10px;font-size:10px;font-weight:700;color:#495851}.parent-observations button.selected{background:#edf3ff;border-color:#9db4d8;color:#385a8a}
-.parent-timer{grid-template-columns:1fr auto auto}.parent-timer button,.parent-done{font-size:11px}.parent-done{border-color:#b9d6c5!important;background:#eef8f2!important;color:#1f654d!important}
+.parent-timer{grid-template-columns:1fr auto}.parent-timer button,.parent-done{font-size:11px}.parent-done{border-color:#b9d6c5!important;background:#eef8f2!important;color:#1f654d!important}
 .parent-suggestion span{font-size:9px}.parent-suggestion strong{font-size:12px;line-height:1.45}
 .parent-actions button{font-size:12px;padding:11px}.parent-note{font-size:10px}.parent-stats span{font-size:9px;padding:6px 8px}
 #parentPairIdentity{font-size:9px}
