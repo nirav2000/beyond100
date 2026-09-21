@@ -112,7 +112,7 @@ function render(){
   q('#parentOutcomes').innerHTML=controlButtons(OUTCOMES,'outcome',state.currentOutcome);
   q('#parentPrompts').innerHTML=controlButtons(PROMPTS,'prompt',state.promptLevel||'independent');
   q('#parentErrors').innerHTML=errorButtons();
-  q('#parentRecord').textContent=state.recordedCurrent?'Saved ✓':'Save response';
+  q('#parentRecord').textContent=state.recordedCurrent?'Saved ✓':(state.task?.kind==='explanation'?'Mark phase complete':'Save response');
   q('#parentSuggestion').textContent=suggestion();
   q('#parentNext').disabled=state.task?.kind==='question'&&!state.recordedCurrent;
   q('#parentNext').textContent=(state.index||0)>=(state.total||1)-1?'Finish':'Next task →';
