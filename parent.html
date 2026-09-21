@@ -29,14 +29,21 @@
 
     <section id="parentWaiting" class="parent-waiting" hidden>
       <div class="waiting-icon">◎</div>
-      <h1>Waiting for Focus</h1>
-      <p>Start Focus mode on the iPad. This page will attach automatically to the active session.</p>
+      <h1>Ready for Sai</h1>
+      <p>This controller is paired to Sai’s Beyond 100 profile. Start Focus on the iPad and this page will attach automatically — no new QR or sign-in is needed.</p>
       <button id="parentRefresh" type="button">Check again</button>
+    </section>
+
+    <section id="parentRevoked" class="parent-waiting" hidden>
+      <div class="waiting-icon">×</div>
+      <h1>Controller disconnected</h1>
+      <p>This QR/link has been revoked. Create a new parent-controller QR from Beyond 100 on the iPad.</p>
+      <a href="./" class="parent-return-link">Open Beyond 100</a>
     </section>
 
     <section id="parentController" class="parent-controller" hidden>
       <div class="parent-session-head">
-        <div><p class="eyebrow">LIVE FOCUS SESSION</p><h1 id="parentScope">Place Value</h1><span id="parentTaskMeta"></span></div>
+        <div><p class="eyebrow">LIVE FOCUS SESSION</p><h1 id="parentScope">Place Value</h1><span id="parentTaskMeta"></span><small id="parentPairIdentity"></small></div>
         <span id="parentLiveDot" class="live-dot">LIVE</span>
       </div>
 
