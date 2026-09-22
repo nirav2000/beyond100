@@ -52,3 +52,6 @@ button,input,textarea{font:inherit}
 .parent-suggestion span{font-size:9px}.parent-suggestion strong{font-size:12px;line-height:1.45}
 .parent-actions button{font-size:12px;padding:11px}.parent-note{font-size:10px}.parent-stats span{font-size:9px;padding:6px 8px}
 #parentPairIdentity{font-size:9px}
+
+/* Keep mutually exclusive controller states genuinely hidden. */
+[hidden]{display:none!important}
