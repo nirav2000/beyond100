@@ -402,7 +402,7 @@ async function upsertCloud(note){
     if(!state.auth.currentUser||state.auth.currentUser.uid!==CONFIG.ownerUid){setCloudStatus('local','Saved locally · sign in to sync');return}
     setCloudStatus('syncing','Syncing…');
     const ref=F.doc(state.db,...cloudBase(),`beyond100-note-${note.id}`);
-    await F.setDoc(ref,{app:CONFIG.appId||'beyond100',kind:'note',noteId:note.id,updatedAt:note.updatedAt,value:note},{merge:true});
+    window.FirebaseUsageMonitor?.write(1,'note-save','beyond100');await F.setDoc(ref,{app:CONFIG.appId||'beyond100',kind:'note',noteId:note.id,updatedAt:note.updatedAt,value:note},{merge:true});
     setCloudStatus('synced','✓ Firebase synced');
   }catch(e){setCloudStatus('error',friendlyFirebaseError(e));throw e}
 }
@@ -412,13 +412,13 @@ async function syncCloud(force=false){
     if(!state.auth.currentUser||state.auth.currentUser.uid!==CONFIG.ownerUid){setCloudStatus('local','Saved locally · sign in to sync');if(force)throw Error('Sign in first.');return}
     if(!navigator.onLine){setCloudStatus('local','Offline · local notes safe');if(force)throw Error('Offline');return}
     setCloudStatus('syncing','Syncing…');
-    const snap=await F.getDocs(F.query(F.collection(state.db,...cloudBase()),F.where('app','==',CONFIG.appId||'beyond100')));
+    window.FirebaseUsageMonitor?.read(1,'notes-query','beyond100');const snap=await F.getDocs(F.query(F.collection(state.db,...cloudBase()),F.where('app','==',CONFIG.appId||'beyond100')));
     const remoteRows=snap.docs.map(d=>d.data()).filter(x=>x.kind==='note'&&x.value),remote=remoteRows.map(x=>x.value),remoteById=new Map(remoteRows.map(x=>[x.noteId||x.value?.id,x]));
     const merged=new Map();
     [...remote,...state.notes].forEach(n=>{const prior=merged.get(n.id);if(!prior||Date.parse(n.updatedAt||n.createdAt||0)>=Date.parse(prior.updatedAt||prior.createdAt||0))merged.set(n.id,n)});
     state.notes=[...merged.values()];saveLocal();
     const pending=state.notes.filter(n=>{const r=remoteById.get(n.id);return !r||Date.parse(n.updatedAt||n.createdAt||0)>Date.parse(r.updatedAt||r.value?.updatedAt||r.value?.createdAt||0)});
-    if(pending.length)await Promise.all(pending.map(n=>F.setDoc(F.doc(state.db,...cloudBase(),`beyond100-note-${n.id}`),{app:CONFIG.appId||'beyond100',kind:'note',noteId:n.id,updatedAt:n.updatedAt,value:n},{merge:true})));
+    if(pending.length){window.FirebaseUsageMonitor?.write(pending.length,'notes-sync-changed','beyond100');await Promise.all(pending.map(n=>F.setDoc(F.doc(state.db,...cloudBase(),`beyond100-note-${n.id}`),{app:CONFIG.appId||'beyond100',kind:'note',noteId:n.id,updatedAt:n.updatedAt,value:n},{merge:true})));}
     setCloudStatus('synced',pending.length?`✓ Firebase synced · ${pending.length} changed note${pending.length===1?'':'s'}`:'✓ Firebase already up to date');renderNotesList();
   }catch(e){setCloudStatus('error',friendlyFirebaseError(e));if(force)throw e}
 }
