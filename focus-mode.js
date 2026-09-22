@@ -858,13 +858,13 @@
   async function loadExistingControllerCapability(S){
     if(validControllerToken(controllerToken))return controllerToken;
     const local=cachedController();
-    const index=await S.F.getDoc(controllerIndexRef(S));
+    window.FirebaseUsageMonitor?.read(1,'focus-controller-index','beyond100');const index=await S.F.getDoc(controllerIndexRef(S));
     const data=index.exists()?index.data():null;
     let token=validControllerToken(data?.token)&&data?.active!==false?data.token:'';
     if(!token&&local&&data?.active!==false&&local.learnerId===(CLOUD.learnerId||CLOUD.legacyLearnerId))token=local.token;
     if(!token)return'';
     try{
-      const cap=await S.F.getDoc(capabilityRef(S,token));
+      window.FirebaseUsageMonitor?.read(1,'focus-capability-read','beyond100');const cap=await S.F.getDoc(capabilityRef(S,token));
       if(cap.exists()&&cap.data()?.active===true){
         controllerToken=token;cacheController(token,CLOUD.learnerId||CLOUD.legacyLearnerId);return token;
       }
@@ -879,12 +879,12 @@
     const learnerId=CLOUD.learnerId||CLOUD.legacyLearnerId;
     const learnerLabel=CLOUD.learnerLabel||CLOUD.learner?.label||'Sai';
     const created=now();
-    await S.F.setDoc(capabilityRef(S,token),{
+    window.FirebaseUsageMonitor?.write(1,'focus-capability-write','beyond100');await S.F.setDoc(capabilityRef(S,token),{
       app:'beyond100',kind:'parent-controller-capability',controllerVersion:1,active:true,
       ownerUid:CLOUD.ownerUid,learnerId,learnerLabel,createdAt:created,updatedAt:created,
       revokedAt:null,state:remoteState(),command:null,commandAck:null,controllerPresence:null
     });
-    await S.F.setDoc(controllerIndexRef(S),{
+    window.FirebaseUsageMonitor?.write(1,'focus-controller-index-write','beyond100');await S.F.setDoc(controllerIndexRef(S),{
       app:'beyond100',kind:'parent-controller-index',active:true,token,learnerId,learnerLabel,
       createdAt:created,updatedAt:created
     },{merge:true});
@@ -895,14 +895,14 @@
     const S=await remoteSdk();await S.auth.authStateReady();
     if(!S.auth.currentUser||S.auth.currentUser.uid!==CLOUD.ownerUid)throw new Error('Parent Firebase sign-in required.');
     if(!validControllerToken(controllerToken)){
-      const index=await S.F.getDoc(controllerIndexRef(S));
+      window.FirebaseUsageMonitor?.read(1,'focus-controller-index','beyond100');const index=await S.F.getDoc(controllerIndexRef(S));
       const token=index.exists()?index.data()?.token:'';
       if(validControllerToken(token))controllerToken=token;
     }
     if(validControllerToken(controllerToken)){
-      await S.F.setDoc(capabilityRef(S),{active:false,revokedAt:now(),updatedAt:now(),state:{active:false,updatedAt:now()}},{merge:true});
+      window.FirebaseUsageMonitor?.write(1,'focus-state-write','beyond100');await S.F.setDoc(capabilityRef(S),{active:false,revokedAt:now(),updatedAt:now(),state:{active:false,updatedAt:now()}},{merge:true});
     }
-    await S.F.setDoc(controllerIndexRef(S),{active:false,token:null,updatedAt:now(),revokedAt:now()},{merge:true});
+    window.FirebaseUsageMonitor?.write(1,'focus-controller-index-write','beyond100');await S.F.setDoc(controllerIndexRef(S),{active:false,token:null,updatedAt:now(),revokedAt:now()},{merge:true});
     controllerToken='';controllerPresence=null;clearControllerCache();
     unsubscribeRemote?.();unsubscribeRemote=null;remoteBridgeKind='';
   }
@@ -918,7 +918,7 @@
         const token=await loadExistingControllerCapability(S);
         if(!token)throw new Error('No persistent controller has been paired yet.');
         remoteBridgeKind='capability';
-        unsubscribeRemote=S.F.onSnapshot(capabilityRef(S,token),snap=>{
+        window.FirebaseUsageMonitor?.listener(1,'focus-capability-listener','beyond100');unsubscribeRemote=S.F.onSnapshot(capabilityRef(S,token),snap=>{
           const data=snap.data()||{};
           controllerPresence=data.controllerPresence||null;
           if(pairingDialog?.open)renderPairing(token);
@@ -931,7 +931,7 @@
         // security rule has been deployed.
         controllerToken='';
         remoteBridgeKind='legacy';
-        unsubscribeRemote=S.F.onSnapshot(legacyRemoteRef(S),snap=>{
+        window.FirebaseUsageMonitor?.listener(1,'focus-legacy-listener','beyond100');unsubscribeRemote=S.F.onSnapshot(legacyRemoteRef(S),snap=>{
           const data=snap.data()||{},cmd=data.command;
           if(!cmd?.id||cmd.id===lastCommandId)return;
           lastCommandId=cmd.id;applyRemoteCommand(cmd).catch(()=>{});
@@ -954,7 +954,7 @@
       if(!force&&signature===lastRemoteSignature)return;
       const publishedAt=now();
       if(validControllerToken(controllerToken)){
-        await S.F.setDoc(capabilityRef(S),{
+        window.FirebaseUsageMonitor?.write(1,'focus-state-write','beyond100');await S.F.setDoc(capabilityRef(S),{
           app:'beyond100',kind:'parent-controller-capability',controllerVersion:1,active:true,
           ownerUid:CLOUD.ownerUid,learnerId:CLOUD.learnerId||CLOUD.legacyLearnerId,
           learnerLabel:CLOUD.learnerLabel||CLOUD.learner?.label||'Sai',
@@ -962,7 +962,7 @@
         },{merge:true});
         remoteBridgeKind='capability';
       }else{
-        await S.F.setDoc(legacyRemoteRef(S),{app:'beyond100',kind:'focus-live',updatedAt:publishedAt,state:stateNow,commandAck:lastCommandId||null},{merge:true});
+        window.FirebaseUsageMonitor?.write(1,'focus-legacy-write','beyond100');await S.F.setDoc(legacyRemoteRef(S),{app:'beyond100',kind:'focus-live',updatedAt:publishedAt,state:stateNow,commandAck:lastCommandId||null},{merge:true});
         remoteBridgeKind='legacy';
       }
       lastRemoteSignature=signature;
