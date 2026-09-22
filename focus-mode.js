@@ -58,6 +58,7 @@
   let unsubscribeRemote=null;
   let lastCommandId='';
   let syncTimer=null;
+  let remoteHeartbeat=null;
   let controllerToken='';
   let controllerPresence=null;
   let pairingDialog=null;
@@ -317,7 +318,7 @@
     const recorded=session?.recordedCurrent;
     const active=!!timerStart&&!session?.childDone;
     const status=active
-      ? '<span class="focus-v9-thinking"><i class="focus-v9-spinner" aria-hidden="true"></i><strong>Thinking…</strong></span>'
+      ? '<span class="focus-v9-thinking"><i class="focus-v9-spinner" aria-hidden="true"></i><strong>Question in progress</strong></span>'
       : '<span class="focus-v9-thinking is-done"><i aria-hidden="true">'+(session?.childDone?'✓':'○')+'</i><strong>'+(session?.childDone?'Answer finished':(recorded?'Recorded':'Ready'))+'</strong></span>';
     return '<div class="focus-v9-dock-compact">'+
       status+
@@ -630,15 +631,25 @@
     session=null;localStorage.removeItem(SESSION_KEY);render();
   }
 
+  function startRemoteHeartbeat(){
+    clearInterval(remoteHeartbeat);
+    remoteHeartbeat=setInterval(()=>{
+      if(focusOn&&session?.active)publishRemoteState();
+    },5000);
+  }
+  function stopRemoteHeartbeat(){
+    clearInterval(remoteHeartbeat);remoteHeartbeat=null;
+  }
   function enterFocus(target){
     focusTarget=target||null;focusOn=true;
     document.body.classList.add('focus-mode');
     const overlay=q('#focusV9');if(overlay)overlay.hidden=false;
     render();
     startRemoteBridge();
+    startRemoteHeartbeat();
   }
   function exitFocus(){
-    stopTimer();focusOn=false;
+    stopTimer();stopRemoteHeartbeat();focusOn=false;
     if(session){session.active=false;saveSession()}
     document.body.classList.remove('focus-mode');
     const overlay=q('#focusV9');if(overlay)overlay.hidden=true;
@@ -935,18 +946,32 @@
     try{
       const S=await remoteSdk();await S.auth.authStateReady();
       if(!S.auth.currentUser||S.auth.currentUser.uid!==CLOUD.ownerUid)return;
+
+      // Recover the persistent controller from the local/index record on every
+      // publish path. Previously a transient bridge-start failure could leave
+      // controllerToken blank and all later Focus state went only to the legacy
+      // signed-in document while the QR phone watched the capability document.
+      if(!validControllerToken(controllerToken)){
+        await loadExistingControllerCapability(S).catch(()=>{});
+      }
+
+      const stateNow=remoteState();
+      const publishedAt=now();
+
       if(validControllerToken(controllerToken)){
         await S.F.setDoc(capabilityRef(S),{
           app:'beyond100',kind:'parent-controller-capability',controllerVersion:1,active:true,
           ownerUid:CLOUD.ownerUid,learnerId:CLOUD.learnerId||CLOUD.legacyLearnerId,
           learnerLabel:CLOUD.learnerLabel||CLOUD.learner?.label||'Sai',
-          updatedAt:now(),state:remoteState(),commandAck:lastCommandId||null
-        },{merge:true});
-      }else{
-        await S.F.setDoc(legacyRemoteRef(S),{
-          app:'beyond100',kind:'focus-live',updatedAt:now(),state:remoteState(),commandAck:lastCommandId||null
+          updatedAt:publishedAt,state:stateNow,commandAck:lastCommandId||null
         },{merge:true});
       }
+
+      // Keep the authenticated fallback current as well. This gives us a
+      // second recovery path and avoids two controller documents drifting.
+      await S.F.setDoc(legacyRemoteRef(S),{
+        app:'beyond100',kind:'focus-live',updatedAt:publishedAt,state:stateNow,commandAck:lastCommandId||null
+      },{merge:true}).catch(()=>{});
     }catch{}
   }
 
