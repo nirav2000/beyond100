@@ -32,7 +32,7 @@ async function accountFeedMeta(f,{create=false}={}){
   if(accountFeedLinked&&local?.id)return local;
   if(local?.id&&Date.now()-lastMetaCheck<REVIEW_CYCLE_MS)return local;
   try{
-    const snap=await f.F.getDoc(configRef(f));lastMetaCheck=Date.now();
+    window.FirebaseUsageMonitor?.read(1,'review-config-read','beyond100');const snap=await f.F.getDoc(configRef(f));lastMetaCheck=Date.now();
     if(snap.exists()&&parseFeedId(snap.data()?.feedId)){
       const id=parseFeedId(snap.data().feedId),meta={...local,id,createdAt:local?.createdAt||snap.data().createdAt||new Date().toISOString()};
       saveFeedMeta(meta);accountFeedLinked=true;return meta;
@@ -44,7 +44,7 @@ async function accountFeedMeta(f,{create=false}={}){
   }
   if(local?.id){
     if(create){
-      await f.F.setDoc(configRef(f),{app:'beyond100',kind:'review-config',feedId:local.id,createdAt:local.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()},{merge:true});
+      window.FirebaseUsageMonitor?.write(1,'review-feed','beyond100');await f.F.setDoc(configRef(f),{app:'beyond100',kind:'review-config',feedId:local.id,createdAt:local.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()},{merge:true});
       accountFeedLinked=true;
     }
     return local;
@@ -82,7 +82,7 @@ async function publish(force=false){
   const f=await firebase();if(!f.auth.currentUser||f.auth.currentUser.uid!==CLOUD.ownerUid)return false;
   let meta=await accountFeedMeta(f,{create:true});if(!meta?.createdAt){meta={...meta,createdAt:new Date().toISOString()};saveFeedMeta(meta)}
   const payload={app:'beyond100',schema:'beyond100-static-review-v1',repository:'nirav2000/beyond100',version:appVersion(),updatedAt:new Date().toISOString(),createdAt:meta.createdAt||new Date().toISOString(),pendingCount:notes.length,notes};
-  await f.F.setDoc(f.F.doc(f.db,COLLECTION,meta.id),payload,{merge:false});
+  window.FirebaseUsageMonitor?.write(1,'review-feed','beyond100');await f.F.setDoc(f.F.doc(f.db,COLLECTION,meta.id),payload,{merge:false});
   lastPublished=signature;saveFeedMeta({...meta,lastSignature:signature,lastPublishedAt:payload.updatedAt,url:pageUrl(meta.id),rawUrl:rawUrl(meta.id)});renderPanel();return true;
 }
 async function applyStatusLedger(){
@@ -99,7 +99,7 @@ async function applyStatusLedger(){
       note.status=implemented?'archived':decision.status;note.reviewStatusUpdatedAt=decision.updatedAt;note.reviewStatusUpdatedVia='github-review-status';note.updatedAt=decision.updatedAt;
       if(implemented){note.reviewRequired=false;note.implementationStatus='implemented';note.implementedAt=decision.updatedAt;note.actionedAt=decision.updatedAt}else{note.reviewRequired=true;delete note.actionedAt}
       if(decision.message)note.reviewStatusMessage=decision.message;if(decision.commit)note.reviewStatusCommit=decision.commit;changed=true;
-      writes.push(f.F.setDoc(f.F.doc(f.db,...cloudBase(),`beyond100-note-${note.id}`),{app:CLOUD.appId||'beyond100',kind:'note',noteId:note.id,updatedAt:note.updatedAt,value:note},{merge:true}));
+      window.FirebaseUsageMonitor?.write(1,'review-note-status','beyond100');writes.push(f.F.setDoc(f.F.doc(f.db,...cloudBase(),`beyond100-note-${note.id}`),{app:CLOUD.appId||'beyond100',kind:'note',noteId:note.id,updatedAt:note.updatedAt,value:note},{merge:true}));
     }
     if(changed){localStorage.setItem(NOTES_STORAGE,JSON.stringify(notes));await Promise.all(writes);window.dispatchEvent(new CustomEvent('beyond100-review-status-applied'));lastPublished='';await publish(true);setStatus('Review statuses synced from GitHub.');}
     return changed;
