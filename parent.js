@@ -75,7 +75,7 @@ function deviceLabel(){
 async function sendPresence(){
   if(!usingCapability||!S)return;
   try{
-    await S.F.updateDoc(focusRef(),{
+    window.FirebaseUsageMonitor?.write(1,'parent-command','beyond100-parent');await S.F.updateDoc(focusRef(),{
       controllerPresence:{lastSeenAt:now(),device:deviceLabel(),page:'parent-controller'}
     });
   }catch{}
@@ -84,7 +84,7 @@ async function subscribeCapability(){
   const s=await sdk();
   setConnection('Connecting to Sai…','Persistent controller key recognised.','loading');
   unsubscribe?.();
-  unsubscribe=s.F.onSnapshot(focusRef(),snap=>{
+  window.FirebaseUsageMonitor?.listener(1,'parent-focus-listener','beyond100-parent');unsubscribe=s.F.onSnapshot(focusRef(),snap=>{
     if(!snap.exists()){setConnection('Controller unavailable','This QR/link does not point to an active controller.','error');setView('revoked');return}
     const doc=snap.data()||{};
     if(doc.active!==true||doc.app!=='beyond100'){setConnection('Controller disconnected','Create a new QR/link from Beyond 100.','error');setView('revoked');return}
@@ -103,7 +103,7 @@ async function subscribeAuthenticated(){
   setConnection('Firebase signed in','Finding Sai’s learner profile…','loading');
   await resolveLearner();
   unsubscribe?.();
-  unsubscribe=s.F.onSnapshot(focusRef(),snap=>{
+  window.FirebaseUsageMonitor?.listener(1,'parent-focus-listener','beyond100-parent');unsubscribe=s.F.onSnapshot(focusRef(),snap=>{
     const data=snap.data(),next=data?.state||null;
     state=next;
     if(!next?.active){setConnection('Signed in to Sai','Waiting for a Focus session on the child device.','connected');setView('waiting');return}
@@ -135,13 +135,13 @@ async function command(action,payload={}){
   const row={id:crypto.randomUUID(),action,payload,at:now()};
   try{
     if(usingCapability){
-      await S.F.updateDoc(focusRef(),{
+      window.FirebaseUsageMonitor?.write(1,'parent-command','beyond100-parent');await S.F.updateDoc(focusRef(),{
         command:row,
         controllerPresence:{lastSeenAt:now(),device:deviceLabel(),page:'parent-controller'}
       });
     }else{
       if(!S.auth.currentUser)return;
-      await S.F.setDoc(focusRef(),{command:row},{merge:true});
+      window.FirebaseUsageMonitor?.write(1,'parent-command','beyond100-parent');await S.F.setDoc(focusRef(),{command:row},{merge:true});
     }
   }catch(e){
     if(usingCapability)setView('revoked');
