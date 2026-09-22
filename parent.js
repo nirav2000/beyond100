@@ -43,10 +43,19 @@ function setConnection(title,detail='',stateName='loading'){
   q('#parentConnectionDetail').textContent=detail;
 }
 function setView(which){
-  q('#parentLogin').hidden=which!=='login';
-  q('#parentWaiting').hidden=which!=='waiting';
-  q('#parentRevoked').hidden=which!=='revoked';
-  q('#parentController').hidden=which!=='controller';
+  const map={
+    login:q('#parentLogin'),
+    waiting:q('#parentWaiting'),
+    revoked:q('#parentRevoked'),
+    controller:q('#parentController')
+  };
+  Object.entries(map).forEach(([name,el])=>{
+    if(!el)return;
+    const show=name===which;
+    el.hidden=!show;
+    el.setAttribute('aria-hidden',String(!show));
+    el.classList.toggle('is-visible',show);
+  });
   q('#parentSignOut').hidden=usingCapability||which==='login'||which==='revoked';
 }
 async function resolveLearner(){
@@ -213,10 +222,21 @@ function updateTimer(){
   draw();
   if(state.timer?.running)timerInterval=setInterval(draw,100);
 }
+async function refreshLiveState(){
+  setConnection('Checking Sai’s Focus session…','Requesting the latest state from the child device.','loading');
+  if(usingCapability){
+    await command('request-state').catch(()=>{});
+    await sendPresence();
+  }
+  // Reattach the listener too, so an iOS suspended listener cannot leave the
+  // page visually stale.
+  await subscribe().catch(()=>{});
+}
+
 async function init(){
   q('#parentSignIn').onclick=signIn;
   q('#parentSignOut').onclick=signOut;
-  q('#parentRefresh').onclick=subscribe;
+  q('#parentRefresh').onclick=refreshLiveState;
   q('#parentTimer').onclick=()=>command('timer');
   q('#parentRecord').onclick=()=>command('record');
   q('#parentNext').onclick=()=>command('next');
