@@ -4,7 +4,8 @@ const COLLECTION='beyond100_review_feeds';
 const STATUS_FILE='review-status.json';
 const CLOUD=window.BEYOND100_CLOUD;
 const ACCOUNT_CONFIG_DOC='beyond100-review-config';
-let sdkPromise=null,lastPublished='',statusSyncing=false,accountFeedLinked=false,reviewSignedIn=false;
+let sdkPromise=null,lastPublished='',statusSyncing=false,accountFeedLinked=false,reviewSignedIn=false,lastMetaCheck=0;
+const REVIEW_CYCLE_MS=5*60*1000;
 
 function loadJson(key,fallback){try{return JSON.parse(localStorage.getItem(key)||JSON.stringify(fallback))}catch{return fallback}}
 function saveFeedMeta(value){localStorage.setItem(REVIEW_FEED_STORAGE,JSON.stringify(value))}
@@ -26,27 +27,33 @@ function parseFeedId(value=''){
   const path=text.match(/beyond100_review_feeds\/([A-Za-z0-9_-]{40,120})/)?.[1];if(path)return path;
   return /^[A-Za-z0-9_-]{40,120}$/.test(text)?text:null;
 }
-async function accountFeedMeta(f){
+async function accountFeedMeta(f,{create=false}={}){
   const local=feedMeta();
+  if(accountFeedLinked&&local?.id)return local;
+  if(local?.id&&Date.now()-lastMetaCheck<REVIEW_CYCLE_MS)return local;
   try{
-    const snap=await f.F.getDoc(configRef(f));
+    const snap=await f.F.getDoc(configRef(f));lastMetaCheck=Date.now();
     if(snap.exists()&&parseFeedId(snap.data()?.feedId)){
-      const id=parseFeedId(snap.data().feedId);
-      if(local?.id!==id)saveFeedMeta({...local,id});
-      accountFeedLinked=true;
-      return {...local,id,createdAt:local?.createdAt||snap.data().createdAt||new Date().toISOString()};
+      const id=parseFeedId(snap.data().feedId),meta={...local,id,createdAt:local?.createdAt||snap.data().createdAt||new Date().toISOString()};
+      saveFeedMeta(meta);accountFeedLinked=true;return meta;
     }
-  }catch{}
+  }catch(e){
+    // A failed read must never be converted into a write retry loop.
+    if(local?.id)return local;
+    throw e;
+  }
   if(local?.id){
-    await f.F.setDoc(configRef(f),{app:'beyond100',kind:'review-config',feedId:local.id,createdAt:local.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()},{merge:true});
-    accountFeedLinked=true;
+    if(create){
+      await f.F.setDoc(configRef(f),{app:'beyond100',kind:'review-config',feedId:local.id,createdAt:local.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()},{merge:true});
+      accountFeedLinked=true;
+    }
     return local;
   }
+  if(!create)return null;
   const meta={id:randomId(),createdAt:new Date().toISOString()};
   saveFeedMeta(meta);
   await f.F.setDoc(configRef(f),{app:'beyond100',kind:'review-config',feedId:meta.id,createdAt:meta.createdAt,updatedAt:new Date().toISOString()},{merge:true});
-  accountFeedLinked=true;
-  return meta;
+  accountFeedLinked=true;return meta;
 }
 async function setAccountFeed(value){
   const f=await firebase();if(!f.auth.currentUser||f.auth.currentUser.uid!==CLOUD.ownerUid)throw new Error('Sign in under Firebase sync first.');
@@ -70,11 +77,13 @@ function ledgerDecision(ledger,note){
   })||null;
 }
 async function publish(force=false){
+  const notes=pendingNotes(),signature=hashFeed(notes),cached=feedMeta();
+  if(!force&&(signature===lastPublished||signature===cached?.lastSignature))return true;
   const f=await firebase();if(!f.auth.currentUser||f.auth.currentUser.uid!==CLOUD.ownerUid)return false;
-  let meta=await accountFeedMeta(f);if(!meta?.createdAt){meta={...meta,createdAt:new Date().toISOString()};saveFeedMeta(meta)}
-  const notes=pendingNotes(),signature=hashFeed(notes);if(!force&&signature===lastPublished)return true;
+  let meta=await accountFeedMeta(f,{create:true});if(!meta?.createdAt){meta={...meta,createdAt:new Date().toISOString()};saveFeedMeta(meta)}
   const payload={app:'beyond100',schema:'beyond100-static-review-v1',repository:'nirav2000/beyond100',version:appVersion(),updatedAt:new Date().toISOString(),createdAt:meta.createdAt||new Date().toISOString(),pendingCount:notes.length,notes};
-  await f.F.setDoc(f.F.doc(f.db,COLLECTION,meta.id),payload,{merge:false});lastPublished=signature;saveFeedMeta({...meta,lastPublishedAt:payload.updatedAt,url:pageUrl(meta.id),rawUrl:rawUrl(meta.id)});renderPanel();return true;
+  await f.F.setDoc(f.F.doc(f.db,COLLECTION,meta.id),payload,{merge:false});
+  lastPublished=signature;saveFeedMeta({...meta,lastSignature:signature,lastPublishedAt:payload.updatedAt,url:pageUrl(meta.id),rawUrl:rawUrl(meta.id)});renderPanel();return true;
 }
 async function applyStatusLedger(){
   if(statusSyncing)return;statusSyncing=true;
@@ -153,4 +162,4 @@ function renderPanel(){
 if(!mount()){const mo=new MutationObserver(()=>{if(mount())mo.disconnect()});mo.observe(document.documentElement,{subtree:true,childList:true})}
 window.addEventListener('beyond100-firebase-auth',e=>setReviewControlsEnabled(!!e.detail?.signedIn));
 async function cycle(){await applyStatusLedger();await publish(false)}
-setInterval(()=>cycle().catch(()=>{}),5000);window.addEventListener('focus',()=>cycle().catch(()=>{}));window.addEventListener('online',()=>cycle().catch(()=>{}));cycle().catch(()=>{});
+let cycleTimer=setInterval(()=>{if(document.visibilityState==='visible')cycle().catch(()=>{})},REVIEW_CYCLE_MS);window.addEventListener('focus',()=>cycle().catch(()=>{}));window.addEventListener('online',()=>cycle().catch(()=>{}));cycle().catch(()=>{});
