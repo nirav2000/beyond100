@@ -18,6 +18,8 @@ test('Focus child view stays narrow and parent controls do not obscure it', asyn
 
   const compactText=await page.locator('.focus-v9-dock-compact').innerText();
   expect(compactText).not.toMatch(/\d+\.\d+s/);
+  expect(compactText).toContain('Question in progress');
+  expect(compactText).not.toContain('Thinking');
 
   await page.locator('#focusCompleteTask').click();
   await expect(page.locator('.focus-v9-confidence')).toBeVisible();
@@ -64,4 +66,10 @@ test('Controller pairing never presents a visually blank state', async ({ page }
   await expect(page.locator('#parentPairingDialog')).toHaveJSProperty('open', true);
   await expect(page.locator('#parentPairStatus')).not.toHaveText('');
   await expect(page.locator('#parentPairQr')).not.toBeEmpty();
+});
+
+test('Parent controller hidden states do not leak into each other', async ({ page }) => {
+  await page.goto('http://127.0.0.1:4173/parent.html', { waitUntil: 'domcontentloaded' });
+  const hiddenDisplays=await page.locator('[hidden]').evaluateAll(els => els.map(el => getComputedStyle(el).display));
+  expect(hiddenDisplays.every(v=>v==='none')).toBeTruthy();
 });
