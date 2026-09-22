@@ -1,13 +1,25 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.10.1',
+  currentVersion: '0.10.2',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.10.2',
+      date: '2026-09-22',
+      title: 'Controller Sync Hotfix',
+      ref: 'main',
+      status: 'current',
+      summary: 'Completes the persistent parent-controller sync repair and makes the child compact status derive from the active question state rather than timer-render timing.',
+      areas: [
+        { id: 'question-progress-state', title: 'Reliable question progress status', kind: 'repair', summary: 'Question in progress is now driven by the current task state, avoiding a first-paint Ready state before the automatic timer starts.' },
+        { id: 'controller-sync-recovery', title: 'Persistent controller recovery', kind: 'repair', summary: 'Keeps live state and command listeners attached to the persistent QR controller after transient fallback.' }
+      ]
+    },
     {
       version: '0.10.1',
       date: '2026-09-22',
       title: 'Reliable Parent Controller Sync',
       ref: 'main',
-      status: 'current',
+      status: 'archive',
       summary: 'Fixes stale persistent-controller state and mixed waiting/live panels, makes Check again actively request fresh state, keeps the iPad publishing to the persistent QR controller, and renames the child status from Thinking to Question in progress.',
       areas: [
         { id: 'controller-state-sync', title: 'Persistent controller state recovery', kind: 'repair', summary: 'Every Focus publish re-discovers the persistent capability if needed and writes the current state to it instead of silently drifting to the legacy controller document.' },
