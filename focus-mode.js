@@ -994,6 +994,7 @@
       const fake=q('[data-confidence="'+CSS.escape(p.value||'')+'"]',q('#focusV9Child'));fake?.click();return
     }
     if(action==='parent-note'&&session){session.parentNote=p.text||'';saveSession();return}
+    if(action==='request-state'){publishRemoteState();return}
   }
 
   function watch(){
