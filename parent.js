@@ -94,7 +94,7 @@ async function subscribeCapability(){
     if(!state?.active){setView('waiting');sendPresence();return}
     setView('controller');render();sendPresence();
   },()=>{setConnection('Connection failed','Check the network and try again.','error');setView('revoked')});
-  clearInterval(presenceTimer);presenceTimer=setInterval(sendPresence,30000);
+  clearInterval(presenceTimer);presenceTimer=setInterval(()=>{if(document.visibilityState==='visible')sendPresence()},300000);
   sendPresence();
 }
 async function subscribeAuthenticated(){
