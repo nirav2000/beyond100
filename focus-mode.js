@@ -56,6 +56,7 @@
   let timerTick=null;
   let remoteSdkPromise=null;
   let unsubscribeRemote=null;
+  let remoteBridgeKind='';
   let lastCommandId='';
   let syncTimer=null;
   let remoteHeartbeat=null;
@@ -903,7 +904,7 @@
     }
     await S.F.setDoc(controllerIndexRef(S),{active:false,token:null,updatedAt:now(),revokedAt:now()},{merge:true});
     controllerToken='';controllerPresence=null;clearControllerCache();
-    unsubscribeRemote?.();unsubscribeRemote=null;
+    unsubscribeRemote?.();unsubscribeRemote=null;remoteBridgeKind='';
   }
 
   async function startRemoteBridge(){
@@ -916,6 +917,7 @@
       try{
         const token=await loadExistingControllerCapability(S);
         if(!token)throw new Error('No persistent controller has been paired yet.');
+        remoteBridgeKind='capability';
         unsubscribeRemote=S.F.onSnapshot(capabilityRef(S,token),snap=>{
           const data=snap.data()||{};
           controllerPresence=data.controllerPresence||null;
@@ -928,6 +930,7 @@
         // Keep the previous signed-in controller working until the capability
         // security rule has been deployed.
         controllerToken='';
+        remoteBridgeKind='legacy';
         unsubscribeRemote=S.F.onSnapshot(legacyRemoteRef(S),snap=>{
           const data=snap.data()||{},cmd=data.command;
           if(!cmd?.id||cmd.id===lastCommandId)return;
@@ -972,6 +975,12 @@
       await S.F.setDoc(legacyRemoteRef(S),{
         app:'beyond100',kind:'focus-live',updatedAt:publishedAt,state:stateNow,commandAck:lastCommandId||null
       },{merge:true}).catch(()=>{});
+
+      // If a previous transient error put the child onto the legacy listener,
+      // switch it back to the persistent capability so phone commands work too.
+      if(validControllerToken(controllerToken)&&remoteBridgeKind!=='capability'){
+        setTimeout(()=>startRemoteBridge(),0);
+      }
     }catch{}
   }
 
