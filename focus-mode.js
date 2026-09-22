@@ -59,7 +59,7 @@
   let remoteBridgeKind='';
   let lastCommandId='';
   let syncTimer=null;
-  let remoteHeartbeat=null;
+  let remoteHeartbeat=null,lastRemoteSignature='';
   let controllerToken='';
   let controllerPresence=null;
   let pairingDialog=null;
@@ -635,8 +635,8 @@
   function startRemoteHeartbeat(){
     clearInterval(remoteHeartbeat);
     remoteHeartbeat=setInterval(()=>{
-      if(focusOn&&session?.active)publishRemoteState();
-    },5000);
+      if(focusOn&&session?.active&&document.visibilityState==='visible')publishRemoteState(true);
+    },300000);
   }
   function stopRemoteHeartbeat(){
     clearInterval(remoteHeartbeat);remoteHeartbeat=null;
@@ -945,22 +945,14 @@
     clearTimeout(syncTimer);syncTimer=setTimeout(()=>publishRemoteState(),250);
   }
 
-  async function publishRemoteState(){
+  async function publishRemoteState(force=false){
     try{
       const S=await remoteSdk();await S.auth.authStateReady();
       if(!S.auth.currentUser||S.auth.currentUser.uid!==CLOUD.ownerUid)return;
-
-      // Recover the persistent controller from the local/index record on every
-      // publish path. Previously a transient bridge-start failure could leave
-      // controllerToken blank and all later Focus state went only to the legacy
-      // signed-in document while the QR phone watched the capability document.
-      if(!validControllerToken(controllerToken)){
-        await loadExistingControllerCapability(S).catch(()=>{});
-      }
-
-      const stateNow=remoteState();
+      if(!validControllerToken(controllerToken))await loadExistingControllerCapability(S).catch(()=>{});
+      const stateNow=remoteState(),signature=JSON.stringify([stateNow,lastCommandId||null]);
+      if(!force&&signature===lastRemoteSignature)return;
       const publishedAt=now();
-
       if(validControllerToken(controllerToken)){
         await S.F.setDoc(capabilityRef(S),{
           app:'beyond100',kind:'parent-controller-capability',controllerVersion:1,active:true,
@@ -968,22 +960,14 @@
           learnerLabel:CLOUD.learnerLabel||CLOUD.learner?.label||'Sai',
           updatedAt:publishedAt,state:stateNow,commandAck:lastCommandId||null
         },{merge:true});
+        remoteBridgeKind='capability';
+      }else{
+        await S.F.setDoc(legacyRemoteRef(S),{app:'beyond100',kind:'focus-live',updatedAt:publishedAt,state:stateNow,commandAck:lastCommandId||null},{merge:true});
+        remoteBridgeKind='legacy';
       }
-
-      // Keep the authenticated fallback current as well. This gives us a
-      // second recovery path and avoids two controller documents drifting.
-      await S.F.setDoc(legacyRemoteRef(S),{
-        app:'beyond100',kind:'focus-live',updatedAt:publishedAt,state:stateNow,commandAck:lastCommandId||null
-      },{merge:true}).catch(()=>{});
-
-      // If a previous transient error put the child onto the legacy listener,
-      // switch it back to the persistent capability so phone commands work too.
-      if(validControllerToken(controllerToken)&&remoteBridgeKind!=='capability'){
-        setTimeout(()=>startRemoteBridge(),0);
-      }
+      lastRemoteSignature=signature;
     }catch{}
   }
-
   async function applyRemoteCommand(cmd){
     const action=cmd.action,p=cmd.payload||{};
     if(action==='set-phase'){selectPhase(p.phase,true);return}
