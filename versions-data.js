@@ -1,13 +1,29 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.10.0',
+  currentVersion: '0.10.1',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.10.1',
+      date: '2026-09-22',
+      title: 'Reliable Parent Controller Sync',
+      ref: 'main',
+      status: 'current',
+      summary: 'Fixes stale persistent-controller state and mixed waiting/live panels, makes Check again actively request fresh state, keeps the iPad publishing to the persistent QR controller, and renames the child status from Thinking to Question in progress.',
+      areas: [
+        { id: 'controller-state-sync', title: 'Persistent controller state recovery', kind: 'repair', summary: 'Every Focus publish re-discovers the persistent capability if needed and writes the current state to it instead of silently drifting to the legacy controller document.' },
+        { id: 'controller-heartbeat', title: 'Live Focus heartbeat', kind: 'repair', summary: 'Active Focus sessions republish their state every five seconds so a suspended or late-opening phone catches up automatically.' },
+        { id: 'command-listener-recovery', title: 'Command listener recovery', kind: 'repair', summary: 'If the child temporarily fell back to the legacy listener, it switches back to the persistent capability listener so phone commands work again.' },
+        { id: 'refresh-state', title: 'Check again requests state', kind: 'ux', summary: 'The phone Check again action now requests a fresh snapshot from the iPad instead of only resubscribing to stale state.' },
+        { id: 'exclusive-parent-views', title: 'Exclusive parent controller views', kind: 'repair', summary: 'Waiting, revoked, login and live-controller panels are now guaranteed to remain mutually exclusive.' },
+        { id: 'status-wording', title: 'Question in progress wording', kind: 'ux', summary: 'The child-facing compact dock now says Question in progress rather than implying that the app knows the child is thinking.' }
+      ]
+    },
     {
       version: '0.10.0',
       date: '2026-09-21',
       title: 'Focus Completion & Learning Dashboard',
       ref: 'main',
-      status: 'current',
+      status: 'archive',
       summary: 'Makes Focus completion child-first, hides live timing from the child, expands parent observations, improves remote-controller status feedback, adds a visual learning dashboard, opens Notes activity by default and introduces browser UI regression checks.',
       areas: [
         { id: 'done-flow', title: 'Done-first diagnostic flow', kind: 'ux', summary: 'Adds a child-facing Done control and matching parent control. Done stops the timer, then reveals child confidence; the next task advances once parent evidence and confidence are both captured.' },
