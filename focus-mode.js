@@ -317,7 +317,7 @@
 
   function parentCompactMarkup(){
     const recorded=session?.recordedCurrent;
-    const active=!!timerStart&&!session?.childDone;
+    const active=currentTask()?.kind==='question'&&!session?.childDone&&!recorded;
     const status=active
       ? '<span class="focus-v9-thinking"><i class="focus-v9-spinner" aria-hidden="true"></i><strong>Question in progress</strong></span>'
       : '<span class="focus-v9-thinking is-done"><i aria-hidden="true">'+(session?.childDone?'✓':'○')+'</i><strong>'+(session?.childDone?'Answer finished':(recorded?'Recorded':'Ready'))+'</strong></span>';
