@@ -54,13 +54,13 @@ async function migrateLegacyProgress(S,profile){
 
   const legacy=S.F.collection(S.db,'families',PROFILE_CLOUD.ownerUid,'learners',legacyId,'progress');
   const target=S.F.collection(S.db,'families',PROFILE_CLOUD.ownerUid,'learners',profile.id,'progress');
-  const snap=await S.F.getDocsFromServer(legacy);
+  const snap=await S.F.getDocsFromServer(legacy);window.FirebaseUsageMonitor?.read(Math.max(1,snap.size||0),'learner-profile-legacy-query','beyond100','kk-syllabus','(default)');
   const rows=snap.docs.filter(d=>sourceIsBeyond100(d.data()));
   if(rows.length){
     for(let i=0;i<rows.length;i+=400){
       const batch=S.F.writeBatch(S.db);
-      rows.slice(i,i+400).forEach(d=>batch.set(S.F.doc(target,d.id),d.data(),{merge:true}));
-      await batch.commit();
+      const chunk=rows.slice(i,i+400);chunk.forEach(d=>batch.set(S.F.doc(target,d.id),d.data(),{merge:true}));
+      await batch.commit();window.FirebaseUsageMonitor?.write(chunk.length,'learner-profile-migration','beyond100','kk-syllabus','(default)');
     }
   }
   status[migrationId]={at:new Date().toISOString(),documents:rows.length};
@@ -74,7 +74,7 @@ async function resolveSaiProfile(force=false){
     await S.auth.authStateReady();
     const user=S.auth.currentUser;
     if(!user||user.uid!==PROFILE_CLOUD.ownerUid)throw new Error('Parent Firebase sign-in required');
-    const snap=await S.F.getDocsFromServer(S.F.collection(S.db,'families',PROFILE_CLOUD.ownerUid,'learners'));
+    const snap=await S.F.getDocsFromServer(S.F.collection(S.db,'families',PROFILE_CLOUD.ownerUid,'learners'));window.FirebaseUsageMonitor?.read(Math.max(1,snap.size||0),'learner-catalog-query','beyond100','kk-syllabus','(default)');
     const rows=snap.docs.map(d=>({id:d.id,...d.data()}));
     const chosen=chooseProfile(rows);
     if(!chosen)throw new Error('Sai learner profile could not be identified unambiguously');
