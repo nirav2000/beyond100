@@ -413,7 +413,7 @@ async function syncCloud(force=false){
     if(!state.auth.currentUser||state.auth.currentUser.uid!==CONFIG.ownerUid){setCloudStatus('local','Saved locally · sign in to sync');if(force)throw Error('Sign in first.');return}
     if(!navigator.onLine){setCloudStatus('local','Offline · local notes safe');if(force)throw Error('Offline');return}
     setCloudStatus('syncing','Syncing…');
-    window.FirebaseUsageMonitor?.read(1,'notes-query','beyond100');const snap=await F.getDocs(F.query(F.collection(state.db,...cloudBase()),F.where('app','==',CONFIG.appId||'beyond100')));
+    const snap=await F.getDocs(F.query(F.collection(state.db,...cloudBase()),F.where('app','==',CONFIG.appId||'beyond100')));window.FirebaseUsageMonitor?.read(Math.max(1,snap.size||0),'notes-query','beyond100','kk-syllabus','(default)');
     const remoteRows=snap.docs.map(d=>d.data()).filter(x=>x.kind==='note'&&x.value),remote=remoteRows.map(x=>x.value),remoteById=new Map(remoteRows.map(x=>[x.noteId||x.value?.id,x]));
     const merged=new Map();
     [...remote,...state.notes].forEach(n=>{const prior=merged.get(n.id);if(!prior||Date.parse(n.updatedAt||n.createdAt||0)>=Date.parse(prior.updatedAt||prior.createdAt||0))merged.set(n.id,n)});
