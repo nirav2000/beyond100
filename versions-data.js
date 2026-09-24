@@ -1,13 +1,24 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.10.3',
+  currentVersion: '0.10.4',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.10.4',
+      date: '2026-09-24',
+      title: 'Firebase Usage Count Accuracy',
+      ref: 'main',
+      status: 'current',
+      summary: 'Counts Beyond 100 note-query document reads by the number of documents returned rather than treating each collection query as a single read.',
+      areas: [
+        { id: 'notes-query-counts', title: 'Accurate note-query read counts', kind: 'data', summary: 'Firebase usage attribution now records the logical document-read count for note queries, including the minimum read for an empty query.' }
+      ]
+    },
     {
       version: '0.10.3',
       date: '2026-09-24',
       title: 'Monitoring & Identity Integration',
       ref: 'main',
-      status: 'current',
+      status: 'archive',
       summary: 'Adds the shared Apps identity bridge and completes browser-side Firebase usage attribution for learner profiles, migrations, private learner context and review configuration.',
       areas: [
         { id: 'shared-identity', title: 'Shared Apps identity bridge', kind: 'platform', summary: 'Publishes the active Firebase identity to the independent Apps identity layer while keeping Beyond 100 authorization in its existing Firebase project.' },
