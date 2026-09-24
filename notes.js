@@ -378,6 +378,7 @@ async function firebaseReady(){
   state.auth=Auth.getAuth(app);state.db=F.getFirestore(app);state.firebase={...Auth,...F};
   await state.firebase.setPersistence(state.auth,state.firebase.browserLocalPersistence);
   await state.auth.authStateReady();
+  Auth.onAuthStateChanged(state.auth,user=>window.AppsAuth?.setAppIdentity(user,{app:'beyond100'}));
   return state.firebase;
 }
 function cloudBase(){return CONFIG.firestoreBase||['families',CONFIG.ownerUid,'learners',CONFIG.learnerId,'progress']}
