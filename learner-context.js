@@ -96,7 +96,7 @@ async function loadContext(showFeedback=true){
   try{
     setStatus('Loading private context…','syncing');setEnabled(false);
     const{S,profile,ref}=await contextRef();
-    const snap=await S.F.getDoc(ref);
+    const snap=await S.F.getDoc(ref);window.FirebaseUsageMonitor?.read(1,'learner-context-read','beyond100','kk-syllabus','(default)');
     fill(snap.exists()?snap.data()?.value||{}:{});
     setEnabled(true);
     setStatus(`${profile.label||'Sai'} · Firebase private`, 'connected');
@@ -112,7 +112,7 @@ async function saveContext(){
   try{
     if(button)button.disabled=true;setStatus('Saving private context…','syncing');
     const{S,profile,ref}=await contextRef();
-    await S.F.setDoc(ref,{
+    window.FirebaseUsageMonitor?.write(1,'learner-context-write','beyond100','kk-syllabus','(default)');await S.F.setDoc(ref,{
       app:'beyond100',
       kind:'private-learner-context',
       schema:'beyond100-private-context-v1',
