@@ -1,13 +1,25 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.10.2',
+  currentVersion: '0.10.3',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.10.3',
+      date: '2026-09-24',
+      title: 'Monitoring & Identity Integration',
+      ref: 'main',
+      status: 'current',
+      summary: 'Adds the shared Apps identity bridge and completes browser-side Firebase usage attribution for learner profiles, migrations, private learner context and review configuration.',
+      areas: [
+        { id: 'shared-identity', title: 'Shared Apps identity bridge', kind: 'platform', summary: 'Publishes the active Firebase identity to the independent Apps identity layer while keeping Beyond 100 authorization in its existing Firebase project.' },
+        { id: 'usage-coverage', title: 'Complete reviewed Firebase usage coverage', kind: 'data', summary: 'Adds usage attribution for learner-catalogue reads, legacy migration reads/writes, private learner-context reads/writes and review-config writes.' }
+      ]
+    },
     {
       version: '0.10.2',
       date: '2026-09-22',
       title: 'Controller Sync Hotfix',
       ref: 'main',
-      status: 'current',
+      status: 'archive',
       summary: 'Completes the persistent parent-controller sync repair and makes the child compact status derive from the active question state rather than timer-render timing.',
       areas: [
         { id: 'question-progress-state', title: 'Reliable question progress status', kind: 'repair', summary: 'Question in progress is now driven by the current task state, avoiding a first-paint Ready state before the automatic timer starts.' },
