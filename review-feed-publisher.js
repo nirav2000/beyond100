@@ -52,7 +52,7 @@ async function accountFeedMeta(f,{create=false}={}){
   if(!create)return null;
   const meta={id:randomId(),createdAt:new Date().toISOString()};
   saveFeedMeta(meta);
-  await f.F.setDoc(configRef(f),{app:'beyond100',kind:'review-config',feedId:meta.id,createdAt:meta.createdAt,updatedAt:new Date().toISOString()},{merge:true});
+  window.FirebaseUsageMonitor?.write(1,'review-config-write','beyond100','kk-syllabus','(default)');await f.F.setDoc(configRef(f),{app:'beyond100',kind:'review-config',feedId:meta.id,createdAt:meta.createdAt,updatedAt:new Date().toISOString()},{merge:true});
   accountFeedLinked=true;return meta;
 }
 async function setAccountFeed(value){
@@ -60,7 +60,7 @@ async function setAccountFeed(value){
   const id=parseFeedId(value);if(!id)throw new Error('Paste a valid Beyond 100 review JSON link or feed ID.');
   const meta={...(feedMeta()||{}),id,createdAt:feedMeta()?.createdAt||new Date().toISOString()};
   saveFeedMeta(meta);
-  await f.F.setDoc(configRef(f),{app:'beyond100',kind:'review-config',feedId:id,createdAt:meta.createdAt,updatedAt:new Date().toISOString()},{merge:true});
+  window.FirebaseUsageMonitor?.write(1,'review-config-write','beyond100','kk-syllabus','(default)');await f.F.setDoc(configRef(f),{app:'beyond100',kind:'review-config',feedId:id,createdAt:meta.createdAt,updatedAt:new Date().toISOString()},{merge:true});
   accountFeedLinked=true;
   lastPublished='';await publish(true);renderPanel();
 }
