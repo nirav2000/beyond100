@@ -1,13 +1,27 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.11.1',
+  currentVersion: '0.11.2',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.11.2',
+      date: '2026-10-02',
+      title: 'Roman Numerals Mental Model',
+      ref: 'main',
+      status: 'current',
+      summary: 'Strengthens Roman-numeral teaching around the key misconception that Roman notation is a conventional writing system, not a free-form arithmetic expression.',
+      areas: [
+        { id: 'roman-writing-system', title: 'Writing-system mental model', kind: 'curriculum', summary: 'Teaches number/numeral/digit and the idea of a different conventional notation before detailed Roman construction rules.' },
+        { id: 'roman-place-table', title: 'Place-value construction bridge', kind: 'learning', summary: 'Adds a visible thousands/hundreds/tens/ones table to construct standard Roman chunks while explicitly noting that Roman notation itself is not positional.' },
+        { id: 'roman-ixx-rescue', title: 'IXX misconception rescue', kind: 'diagnostic', summary: 'If a learner defends IXX=19 arithmetically, teaching returns to the writing-system model and place table, then retests with 49 and 99.' },
+        { id: 'roman-regression', title: 'Roman teaching safeguards', kind: 'platform', summary: 'CI now protects the writing-system sequence, place-table model and XIX example alongside existing Place Value regression checks.' }
+      ]
+    },
     {
       version: '0.11.1',
       date: '2026-10-02',
       title: 'Multi-topic Engine + Roman Numerals',
       ref: 'main',
-      status: 'current',
+      status: 'archive',
       summary: 'Preserves Place Value as the reference implementation while making the learning engine topic-aware and adding Roman Numerals as the first full second topic.',
       areas: [
         { id: 'topic-state', title: 'Reusable active-topic engine', kind: 'platform', summary: 'Main UI, Focus Mode and learning evidence resolve the selected detailed topic instead of assuming Place Value.' },
