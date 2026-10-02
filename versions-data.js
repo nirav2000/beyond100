@@ -1,13 +1,27 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.10.4',
+  currentVersion: '0.11.0',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.11.0',
+      date: '2026-10-02',
+      title: 'Maths Catalogue Foundation',
+      ref: 'main',
+      status: 'current',
+      summary: 'Introduces the audited machine-readable Maths curriculum model with stable skill IDs, statutory and selective-school layers, six attainment bands, and 1729-inspired mathematical-thinking evidence.',
+      areas: [
+        { id: 'canonical-maths-catalogue', title: 'Canonical Maths catalogue', kind: 'curriculum', summary: 'Adds domain/topic/subtopic/atomic-skill hierarchy with stable IDs while preserving the existing flat catalogue for compatibility.' },
+        { id: 'mastery-bands', title: 'Six attainment bands', kind: 'learning', summary: 'Defines Not assessed, Emerging, Developing, Secure, Mastered and Mathematician · 1729, with thinking kept available throughout learning rather than gated until mastery.' },
+        { id: 'coverage-audits', title: 'Statutory and selective audits', kind: 'curriculum', summary: 'Maps Y1-Y6 and KS3 statutory requirements and separately records 11+/12+ selective-school transfer skills and catalogue gaps.' },
+        { id: 'catalogue-validation', title: 'Catalogue CI validation', kind: 'platform', summary: 'Validates stable IDs, hierarchy, layers, thinking tags, Roman-numeral coverage and audited gap skills before Pages deployment.' }
+      ]
+    },
     {
       version: '0.10.4',
       date: '2026-09-24',
       title: 'Firebase Usage Count Accuracy',
       ref: 'main',
-      status: 'current',
+      status: 'archive',
       summary: 'Counts Beyond 100 note-query document reads by the number of documents returned rather than treating each collection query as a single read.',
       areas: [
         { id: 'notes-query-counts', title: 'Accurate note-query read counts', kind: 'data', summary: 'Firebase usage attribution now records the logical document-read count for note queries, including the minimum read for an empty query.' }
