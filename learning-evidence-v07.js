@@ -1,7 +1,9 @@
 const EVIDENCE_KEY='beyond100.learning-evidence.v1';
 const APP_SESSION_KEY='beyond100.session.current.v1';
 const CLOUD=window.BEYOND100_CLOUD;
-const topicState=window.BEYOND100_TOPIC_STATE;\nconst currentTopic=()=>topicState?.getTopic?.()||window.BEYOND100_DATA?.detailedTopics?.['Place Value & Number Structure'];\nconst currentTopicName=()=>topicState?.getName?.()||'Place Value & Number Structure';
+const topicState=window.BEYOND100_TOPIC_STATE;
+const currentTopic=()=>topicState?.getTopic?.()||window.BEYOND100_DATA?.detailedTopics?.['Place Value & Number Structure'];
+const currentTopicName=()=>topicState?.getName?.()||'Place Value & Number Structure';
 
 const OUTCOMES={
   fast:{label:'Correct + fast',short:'Fast',tone:'secure'},
