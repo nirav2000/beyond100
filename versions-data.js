@@ -1,13 +1,27 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.11.0',
+  currentVersion: '0.11.1',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.11.1',
+      date: '2026-10-02',
+      title: 'Multi-topic Engine + Roman Numerals',
+      ref: 'main',
+      status: 'current',
+      summary: 'Preserves Place Value as the reference implementation while making the learning engine topic-aware and adding Roman Numerals as the first full second topic.',
+      areas: [
+        { id: 'topic-state', title: 'Reusable active-topic engine', kind: 'platform', summary: 'Main UI, Focus Mode and learning evidence resolve the selected detailed topic instead of assuming Place Value.' },
+        { id: 'place-value-protection', title: 'Place Value regression protection', kind: 'learning', summary: 'CI explicitly protects the seven-stage progression, 20-question bank, mastery depth and key conceptual diagnostics.' },
+        { id: 'roman-numerals', title: 'Roman Numerals', kind: 'curriculum', summary: 'Adds staged teaching, fixed construction rules, place-by-place conversion, invalid-form traps, XIX/IXX misconception diagnosis, history, edge cases and 1729-style exploration.' },
+        { id: 'roman-evidence', title: 'Roman diagnostic evidence', kind: 'learning', summary: 'Adds a Roman-specific diagnostic ladder and language probes while retaining the existing Place Value evidence ladder.' }
+      ]
+    },
     {
       version: '0.11.0',
       date: '2026-10-02',
       title: 'Maths Catalogue Foundation',
       ref: 'main',
-      status: 'current',
+      status: 'archive',
       summary: 'Introduces the audited machine-readable Maths curriculum model with stable skill IDs, statutory and selective-school layers, six attainment bands, and 1729-inspired mathematical-thinking evidence.',
       areas: [
         { id: 'canonical-maths-catalogue', title: 'Canonical Maths catalogue', kind: 'curriculum', summary: 'Adds domain/topic/subtopic/atomic-skill hierarchy with stable IDs while preserving the existing flat catalogue for compatibility.' },
