@@ -309,3 +309,5 @@ function recordConfidence(detail={}){
 }
 window.BEYOND100_EVIDENCE={recordFocusResponse,recordConfidence,getState:()=>JSON.parse(JSON.stringify(state)),outcomes:OUTCOMES,cycle:CYCLE};
 window.addEventListener('beyond100-focus-response',e=>recordFocusResponse(e.detail||{}));
+window.addEventListener('beyond100-topic-rendered',()=>{populateSkills();renderAll()});
+
