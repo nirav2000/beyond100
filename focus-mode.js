@@ -3,7 +3,9 @@
 
   const CLOUD=window.BEYOND100_CLOUD;
   const DATA=window.BEYOND100_DATA;
-  const topicState=window.BEYOND100_TOPIC_STATE;\n  const currentTopic=()=>topicState?.getTopic?.()||DATA?.detailedTopics?.['Place Value & Number Structure'];\n  const currentTopicName=()=>topicState?.getName?.()||'Place Value & Number Structure';
+  const topicState=window.BEYOND100_TOPIC_STATE;
+  const currentTopic=()=>topicState?.getTopic?.()||DATA?.detailedTopics?.['Place Value & Number Structure'];
+  const currentTopicName=()=>topicState?.getName?.()||'Place Value & Number Structure';
   const SESSION_KEY='beyond100.focus.session.v3';
   const PREF_KEY='beyond100.sidebar.preference.v1';
   const CONTROLLER_CACHE='beyond100.parent-controller.v1';
