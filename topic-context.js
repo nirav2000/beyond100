@@ -32,3 +32,11 @@ function mount(){
 }
 
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
+
+function syncTopicContextVisibility(){
+  const el=document.getElementById(ROOT_ID);
+  if(el) el.hidden=(window.BEYOND100_TOPIC_STATE?.getName?.()||'Place Value & Number Structure')!=='Place Value & Number Structure';
+}
+window.addEventListener('beyond100-topic-rendered',syncTopicContextVisibility);
+window.addEventListener('beyond100-topic-changed',syncTopicContextVisibility);
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',syncTopicContextVisibility);else syncTopicContextVisibility();
