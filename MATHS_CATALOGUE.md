@@ -767,6 +767,90 @@ This is an extension layer, not a separate substitute curriculum.
 - recognising traps and checking answer options
 
 
+
+## Attainment and mastery bands
+
+Beyond100 should not reduce learning to a percentage. The following bands describe the learner's relationship with an atomic skill.
+
+### 0. Not yet assessed
+There is not enough evidence to make a judgement.
+
+### 1. Emerging
+The learner has encountered the idea but cannot yet use it reliably without substantial support. Core knowledge or concept may be absent.
+
+Typical evidence:
+- frequent errors on direct questions;
+- needs modelling or step-by-step prompts;
+- cannot yet explain the central idea;
+- misconceptions dominate performance.
+
+### 2. Developing
+The learner can succeed on familiar/direct versions but understanding or fluency is fragile.
+
+Typical evidence:
+- some independent correct work;
+- hesitation or inefficient methods;
+- prompts sometimes needed;
+- errors when wording/representation changes;
+- explanation incomplete.
+
+### 3. Secure
+The learner independently handles the expected curriculum form of the skill accurately and can give a sound basic explanation.
+
+Typical evidence:
+- reliable unfamiliar-but-standard questions;
+- appropriate method selection;
+- acceptable fluency;
+- little/no prompting;
+- core misconceptions absent.
+
+### 4. Mastered
+Secure knowledge has become flexible, transferable and retained.
+
+Requires evidence across:
+- accuracy;
+- conceptual explanation;
+- more than one representation where appropriate;
+- application to unfamiliar problems;
+- reasoning rather than procedure alone;
+- suitable fluency;
+- checking/error detection;
+- delayed retrieval.
+
+A high immediate worksheet score alone cannot produce Mastered.
+
+### 5. Mathematician / 1729
+Working name: **Mathematician**. The UI may show a small "1729" marker to explain the inspiration rather than making a particular school's name the generic attainment label.
+
+This is Mastered **plus evidence of richer mathematical behaviour** on the skill:
+- sees/exploits underlying structure;
+- asks productive "what if?" or "why?" questions;
+- persists with non-routine uncertainty;
+- finds or evaluates alternative approaches;
+- conjectures and tests;
+- generalises;
+- justifies/proves at an age-appropriate level;
+- makes connections to other mathematics;
+- communicates a mathematical argument clearly;
+- may create examples, counterexamples, variants or new problems.
+
+This band is not awarded for learning older syllabus content early.
+
+### Status modifiers
+
+Keep useful information orthogonal to the main band:
+- **Fluent** - speed/automaticity appropriate;
+- **Hesitant** - correct but slow/uncertain;
+- **Prompted** - required support;
+- **Retrieval due** - retention needs rechecking;
+- **Fragile retention** - previously secure but delayed evidence weakened;
+- **NRT** - non-routine transfer demonstrated;
+- **SEL** - selective-school application demonstrated.
+
+### Advancement rule
+
+A learner does not need to become "Mathematician/1729" on every atomic skill before moving on. Some skills are tools whose primary goal is secure fluent use. Rich 1729-style evidence should be sampled across connected skills and domains, with more opportunities where the mathematics supports exploration.
+
 ## 1729 mathematical-thinking layer
 
 Beyond100 should explicitly cultivate the habits sought and taught by 1729 Maths School. These are not additional content chapters; they are cross-cutting mathematical behaviours that should be tagged and developed throughout the catalogue.
