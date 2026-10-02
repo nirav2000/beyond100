@@ -105,7 +105,7 @@
     if(!el)return currentTopicName();
     return el.dataset.noteLabel||
       el.querySelector?.('h1,h2,h3,h4,strong,.question-prompt')?.textContent?.trim()||
-      'Place Value';
+      currentTopicName();
   }
   function targetText(el){
     if(!el)return '';
@@ -244,7 +244,7 @@
     const stage=stageFromYear(year);
     const retrievals=retrievalCandidates();
     const continueButton=session?.tasks?.length
-      ? '<button class="focus-v9-launch-card continue" data-launch="continue"><span>↺</span><strong>Continue last session</strong><small>'+esc(session.scope||'Place Value')+'</small></button>'
+      ? '<button class="focus-v9-launch-card continue" data-launch="continue"><span>↺</span><strong>Continue last session</strong><small>'+esc(session.scope||currentTopicName())+'</small></button>'
       : '';
     const quick=focusTarget?.matches?.('.stage-card')
       ? '<button class="focus-v9-launch-card" data-launch="quick"><span>⚡</span><strong>Quick check this stage</strong><small>One question at a time</small></button>'
@@ -311,7 +311,7 @@
   function replaceTaskForPhase(id){
     if(!session)return;
     const current=currentTask();
-    const skill=current?.skill||session.scope||'Place Value';
+    const skill=current?.skill||session.scope||currentTopicName();
     const year=current?.year||session.year||'Y5';
     session.tasks=[taskForPhase(id,skill,year)];
     session.index=0;resetForTask();
@@ -619,7 +619,7 @@
       (weak?'<strong>First fragile response: '+esc(weak.skill)+' · '+esc(OUTCOMES.find(x=>x[0]===weak.outcome)?.[1]||weak.outcome)+'</strong>':'<strong>No fragile response in this set.</strong>')+
       '<div><button id="focusFinishTeach" class="primary">Teach the fragile point</button><button id="focusFinishExit">Exit Focus</button></div></div>';
     q('#focusFinishTeach')?.addEventListener('click',()=>{
-      const targetSkill=weak?.skill||session.responses[0]?.skill||'Place Value';
+      const targetSkill=weak?.skill||session.responses[0]?.skill||currentTopicName();
       const task={id:'teach-'+crypto.randomUUID(),kind:'explanation',phase:'teach',
         prompt:'Talk through '+targetSkill+'. Ask Sai to explain it back in his own words before moving on.',
         answer:'',skill:targetSkill,year:weak?.year||session.year,type:'explanation',
@@ -663,7 +663,7 @@
     return '<div id="focusV9" class="focus-v9" hidden>'+
       '<header class="focus-v9-top">'+
         '<button id="focusV9Exit" type="button" aria-label="Exit Focus">×</button>'+
-        '<div class="focus-v9-title"><strong>Focus</strong><span id="focusV9Scope">Place Value</span></div>'+
+        '<div class="focus-v9-title"><strong>Focus</strong><span id="focusV9Scope">'+esc(currentTopicName())+'</span></div>'+
         '<div id="focusV9PhaseRail" class="focus-v9-phase-rail"></div>'+
         '<button id="focusV9Guide" type="button" title="How Focus works">?</button>'+
       '</header>'+
