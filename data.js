@@ -396,6 +396,146 @@ window.BEYOND100_DATA = {
         "England National Curriculum mathematics programmes of study for Key Stages 1 and 2.",
         "Key Stage 3 content is statutory across Years 7–9, so the Y7 row is a practical early-KS3 progression rather than an official year-specific prescription."
       ]
+    },
+    "Roman Numerals": {
+      id: "maths-roman-numerals",
+      subject: "Maths",
+      summary: "Roman numerals are a fixed number-writing system built from seven symbols and a small set of construction rules. Learn to read and write them by building each place-value part correctly, rather than treating the letters as a free-form arithmetic expression.",
+      whyItMatters: "Roman numerals still appear on clocks, dates, monarchs, book chapters and monuments. More importantly, they are a compact way to practise precise rule-following, number decomposition, pattern recognition, validity checking and explaining why a representation is or is not allowed.",
+      stages: [
+        { year:"Y3", age:"7–8", label:"Clocks and the core symbols", skills:[
+          "Understand that a number is a value, a numeral is a written representation, and Roman numerals are one numeral system.",
+          "Know I=1, V=5 and X=10 and read Roman numerals I–XII on clocks.",
+          "Build simple additive forms in descending order.",
+          "Recognise IV and IX as special standard forms for 4 and 9."
+        ], quickChecks:[
+          "What values do I, V and X represent?",
+          "Read VIII.",
+          "What Roman numeral is 12?",
+          "A clock shows IX. What number is that?",
+          "Is IXX a correct way to write 19? Do not calculate it yet—say whether the writing is valid."
+        ]},
+        { year:"Y4", age:"8–9", label:"The complete rules to 100", skills:[
+          "Know I, V, X, L and C.",
+          "Use I, X and C at most three times in succession; V, L and D are never repeated.",
+          "Use only the standard subtractive pairs IV, IX, XL, XC, CD and CM.",
+          "Otherwise write symbols from larger to smaller.",
+          "Construct tens and ones separately, then join them.",
+          "Read and write Roman numerals to 100 and explain why invalid forms break a construction rule."
+        ], quickChecks:[
+          "Write 19 in Roman numerals and explain why IXX is invalid.",
+          "Which is valid: XL or XXXX? What is the standard form?",
+          "Is XXL valid for 30? Explain.",
+          "Write 49 by constructing 40 and 9 separately.",
+          "Which rule does IIV break?"
+        ]},
+        { year:"Y5", age:"9–10", label:"Hundreds, thousands and years", skills:[
+          "Know all seven symbols: I, V, X, L, C, D and M.",
+          "Use the same place-by-place construction pattern for hundreds, tens and ones.",
+          "Use CD for 400 and CM for 900.",
+          "Read and write Roman numerals to 1,000 and recognise Roman-numeral years.",
+          "Convert both directions and diagnose invalid forms.",
+          "Explain how Roman notation differs from Hindu–Arabic place-value notation and why zero is not needed as a placeholder in the same way."
+        ], quickChecks:[
+          "Write 94 in Roman numerals.",
+          "Write 400 and 900.",
+          "Convert MCMXCIV.",
+          "Write 1,994 in Roman numerals.",
+          "Why is there no Roman-numeral zero placeholder in 1,004?"
+        ]},
+        { year:"Y6", age:"10–11", label:"Validity, structure and proof", skills:[
+          "Apply the construction rules fluently to unfamiliar values.",
+          "Prove that a proposed form is invalid by naming the exact broken rule.",
+          "Compare Roman and place-value representations structurally.",
+          "Create valid and invalid examples that isolate one rule at a time.",
+          "Use counterexamples to reject plausible but false Roman-numeral shortcuts."
+        ], quickChecks:[
+          "A pupil says IXX=19 because XX−I=19. Diagnose the exact misconception.",
+          "Create an invalid numeral that breaks only the repetition rule.",
+          "Explain why 99 is XCIX rather than IC.",
+          "Which standard Roman numeral is 944?",
+          "Give a counterexample to the rule 'put any smaller symbol before a larger one to subtract it'."
+        ]},
+        { year:"Y7", age:"11–12", label:"Number systems and mathematical structure", note:"Extension/context rather than a separate KS3 Roman-numeral entitlement.", skills:[
+          "Analyse Roman numerals as a non-place-value representation system.",
+          "Compare efficiency of Roman and Hindu–Arabic notation for calculation.",
+          "Explain the role of zero and positional notation in modern arithmetic.",
+          "Investigate historical/extended conventions while distinguishing them from the standard school convention.",
+          "Generalise the place-pattern behind 4/9, 40/90 and 400/900."
+        ], quickChecks:[
+          "What structural relationship links IV, XL and CD?",
+          "Why is long multiplication awkward in Roman notation?",
+          "What is the largest number normally written using the standard school symbols/rules without extended notation?",
+          "Why should an overline convention be labelled as an extension rather than silently mixed into the core rules?",
+          "Design a concise algorithm for converting a number below 4,000 into standard Roman numerals."
+        ]}
+      ],
+      mastery: {
+        rule:"Mastery means more than remembering symbol values: construct standard forms reliably, reject invalid forms by rule, convert both ways, explain the system, retain it after delay and transfer the rules to unfamiliar examples.",
+        dimensions:[
+          {name:"Symbols",examples:["Recall I, V, X, L, C, D, M without prompting.","Distinguish symbol value from the value of a whole numeral."]},
+          {name:"Construct by place",examples:["Split 1,994 into 1000 | 900 | 90 | 4, then build M | CM | XC | IV.","Treat an empty place as contributing no Roman symbols rather than inventing a zero symbol."]},
+          {name:"Rules",examples:["Only IV, IX, XL, XC, CD, CM are standard subtractive pairs.","I/X/C/M may repeat up to three times; V/L/D do not repeat."]},
+          {name:"Validity",examples:["Reject IXX for 19 even though an arithmetic reading can be made to equal 19.","Explain the precise rule broken by IIV, IIX, XXL or IL."]},
+          {name:"Convert",examples:["Roman → Hindu–Arabic accurately.","Hindu–Arabic → standard Roman form accurately."]},
+          {name:"Explain",examples:["Explain why XIX is 10 + 9, with IX functioning as the standard ones-place form.","Explain why Roman numerals are a writing system, not a free-form subtraction puzzle."]},
+          {name:"Compare systems",examples:["Contrast Roman construction with decimal place value and zero.","Explain why Hindu–Arabic notation is more convenient for calculation."]},
+          {name:"Retain & transfer",examples:["Still apply the rules on a fresh mixed set after delay.","Handle unfamiliar years, clock faces and trap forms without reverting to arithmetic-expression thinking."]},
+          {name:"Mathematician · 1729",examples:["Generalise the 4/9 pattern across ones, tens and hundreds.","Create a convincing false rule, then destroy it with a counterexample."]}
+        ],
+        thresholds:[
+          {status:"Emerging",rule:"Recognises some symbols/forms but needs substantial support or applies rules inconsistently."},
+          {status:"Developing",rule:"Converts familiar forms but is vulnerable to invalid forms, subtractive-pair traps or arithmetic-expression thinking."},
+          {status:"Secure",rule:"Independently reads/writes the expected range, applies standard construction rules and explains common invalid forms."},
+          {status:"Mastered",rule:"Secure plus flexible conversion, exact rule explanations, unfamiliar validity tests, transfer and delayed retention."},
+          {status:"Mathematician · 1729",rule:"Mastered plus structural generalisation, counterexample/proof, creation of diagnostic examples and insightful comparison of number systems."}
+        ]
+      },
+      misconceptions:[
+        "Treating Roman numerals as a free-form arithmetic expression: for example arguing that IXX is valid for 19 because 20 − 1 = 19.",
+        "Thinking any smaller symbol may be placed before any larger one to subtract.",
+        "Using non-standard subtractive forms such as IL for 49 or IC for 99.",
+        "Writing IIV or IIX by trying to subtract several repeated smaller symbols.",
+        "Repeating I, X, C or M more than three times instead of using the standard form.",
+        "Repeating V, L or D.",
+        "Ignoring descending order outside the six standard subtractive pairs.",
+        "Trying to construct the whole number in one arithmetic sweep instead of building thousands, hundreds, tens and ones.",
+        "Thinking the word numeral means Roman numeral rather than any written representation of a number.",
+        "Expecting Roman numerals to use zero as a placeholder in the same way as Hindu–Arabic place-value notation.",
+        "Memorising examples such as XIX without understanding the reusable construction rules.",
+        "Assuming historical/extended conventions such as overlines are part of the basic school system."
+      ],
+      questions:[
+        {id:"rn1",year:"Y3",prompt:"What value does X represent?",answer:"10",type:"short",skill:"symbol values"},
+        {id:"rn2",year:"Y3",prompt:"Read VIII.",answer:"8",type:"short",skill:"additive construction"},
+        {id:"rn3",year:"Y3",prompt:"Write 12 in Roman numerals.",answer:"XII",type:"short",skill:"conversion"},
+        {id:"rn4",year:"Y3",prompt:"A clock shows IX. What number is it?",answer:"9",type:"short",skill:"clock"},
+        {id:"rn5",year:"Y4",prompt:"Write 19 in standard Roman numerals.",answer:"XIX",type:"short",skill:"place construction"},
+        {id:"rn6",year:"Y4",prompt:"Sai says IXX should mean 19 because XX is 20 and I before it means subtract 1. Explain the error.",answer:"Roman numerals are constructed using fixed standard forms, not arbitrary arithmetic. 19 is 10 + 9, so X + IX = XIX. IXX is not a permitted standard construction.",type:"explain",skill:"arithmetic-expression misconception"},
+        {id:"rn7",year:"Y4",prompt:"Which of these is valid: IIV, IV, IIII? Explain.",answer:"IV is the standard form for 4. IIV uses an invalid subtractive construction; IIII repeats I four times rather than using IV.",type:"reasoning",skill:"validity"},
+        {id:"rn8",year:"Y4",prompt:"Is XXL a valid standard Roman numeral? Explain.",answer:"No. 30 is XXX. L is 50 and X is not used twice before L as a subtractive construction.",type:"explain",skill:"validity"},
+        {id:"rn9",year:"Y4",prompt:"Write 49 by splitting it into tens and ones first.",answer:"40 + 9 = XL + IX = XLIX",type:"explain",skill:"place construction"},
+        {id:"rn10",year:"Y4",prompt:"Write 94 in Roman numerals.",answer:"XCIV",type:"short",skill:"conversion"},
+        {id:"rn11",year:"Y5",prompt:"What are the six standard subtractive pairs?",answer:"IV, IX, XL, XC, CD, CM",type:"short",skill:"subtractive pairs"},
+        {id:"rn12",year:"Y5",prompt:"Write 400 and 900 in Roman numerals.",answer:"CD and CM",type:"short",skill:"subtractive pairs"},
+        {id:"rn13",year:"Y5",prompt:"Convert MCMXCIV.",answer:"1,994",type:"reasoning",skill:"conversion"},
+        {id:"rn14",year:"Y5",prompt:"Write 1,994 in Roman numerals by splitting it into place-value parts.",answer:"1,000 + 900 + 90 + 4 = M + CM + XC + IV = MCMXCIV",type:"reasoning",skill:"place construction"},
+        {id:"rn15",year:"Y5",prompt:"Which symbols may repeat up to three times, and which should not be repeated?",answer:"I, X, C and M may repeat up to three times; V, L and D are not repeated.",type:"short",skill:"repetition"},
+        {id:"rn16",year:"Y5",prompt:"Why is IC not the standard way to write 99?",answer:"I may subtract only from V or X. Build by place: 90 is XC and 9 is IX, giving XCIX.",type:"explain",skill:"subtractive rules"},
+        {id:"rn17",year:"Y5",prompt:"What is the difference between a number, a numeral and a digit?",answer:"A number is the value; a numeral is a written representation of a number; a digit is a symbol used in a numeral. Roman symbols are another numeral system.",type:"explain",skill:"numeral language"},
+        {id:"rn18",year:"Y6",prompt:"A pupil writes 99 as IC. Name the broken rule and give the standard construction.",answer:"I can subtract only from V or X, not C. Construct 90 + 9 = XC + IX = XCIX.",type:"reasoning",skill:"validity proof"},
+        {id:"rn19",year:"Y6",prompt:"Create one invalid Roman numeral that breaks only the repetition rule, then correct it.",answer:"For example IIII breaks the maximum-three-I repetition rule; the standard form is IV.",type:"reasoning",skill:"create counterexample"},
+        {id:"rn20",year:"Y6",prompt:"Why does 1,004 not need a Roman zero placeholder?",answer:"Roman numerals are not positional decimal notation. 1,004 is written MIV; the absent hundreds and tens do not require placeholder symbols.",type:"explain",skill:"compare number systems"},
+        {id:"rn21",year:"Y7",prompt:"What pattern connects IV, XL and CD?",answer:"Each is the 4-pattern at a different scale: 1 before 5, 10 before 50, 100 before 500.",type:"reasoning",skill:"generalisation"},
+        {id:"rn22",year:"Y7",prompt:"What pattern connects IX, XC and CM?",answer:"Each is the 9-pattern at a different scale: 1 before 10, 10 before 100, 100 before 1,000.",type:"reasoning",skill:"generalisation"},
+        {id:"rn23",year:"Y7",prompt:"What is the largest number normally written with the standard school symbols/rules without extended notation?",answer:"3,999 = MMMCMXCIX. Larger values require additional or extended conventions, which are not part of the basic school system.",type:"explain",skill:"edge case"},
+        {id:"rn24",year:"Y7",prompt:"Why is Hindu–Arabic notation generally better for written calculation than Roman numerals?",answer:"Its positional place-value structure and zero make algorithms, regrouping and representing large/small values much more systematic.",type:"explain",skill:"history and systems"}
+      ],
+      sourceNotes:[
+        "England National Curriculum: Roman numerals I–XII on clocks in Y3, I–C in Y4, and to 1,000 (M) plus years in Y5.",
+        "Core teaching convention uses the standard subtractive pairs IV, IX, XL, XC, CD and CM.",
+        "Historical Roman usage was not perfectly uniform; Beyond100 teaches the standard modern school convention and labels extended/historical variants separately."
+      ]
     }
   }
 };
