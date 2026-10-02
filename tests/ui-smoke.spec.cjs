@@ -73,3 +73,26 @@ test('Parent controller hidden states do not leak into each other', async ({ pag
   const hiddenDisplays=await page.locator('[hidden]').evaluateAll(els => els.map(el => getComputedStyle(el).display));
   expect(hiddenDisplays.every(v=>v==='none')).toBeTruthy();
 });
+
+
+test('Place Value remains intact and Roman Numerals switches the reusable topic engine', async ({ page }) => {
+  await page.goto('http://127.0.0.1:4173/', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#topicTitle')).toHaveText('Place Value & Number Structure');
+  await expect(page.locator('#progressionGrid .stage-card')).toHaveCount(7);
+  await expect(page.locator('#questionBank .question-card')).toHaveCount(20);
+  await expect(page.locator('#placeValueContext')).toBeVisible();
+
+  await page.locator('#openNav').click();
+  await page.locator('[data-topic="Roman Numerals"]').click();
+  await expect(page.locator('#topicTitle')).toHaveText('Roman Numerals');
+  await expect(page.locator('#romanNumeralContext')).toBeVisible();
+  await expect(page.locator('#placeValueContext')).toBeHidden();
+  await expect(page.locator('#questionBank .question-card')).toHaveCount(24);
+  await expect(page.locator('#questionBank')).toContainText('IXX');
+
+  await page.locator('#openNav').click();
+  await page.locator('[data-topic="Place Value & Number Structure"]').click();
+  await expect(page.locator('#topicTitle')).toHaveText('Place Value & Number Structure');
+  await expect(page.locator('#placeValueContext')).toBeVisible();
+  await expect(page.locator('#questionBank .question-card')).toHaveCount(20);
+});
