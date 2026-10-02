@@ -1,13 +1,24 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.11.3',
+  currentVersion: '0.11.4',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.11.4',
+      date: '2026-10-02',
+      title: 'Runtime Repair Complete',
+      ref: 'main',
+      status: 'current',
+      summary: 'Completes the runtime repair by removing the remaining malformed literal newline in the Maths topic list.',
+      areas: [
+        { id: 'data-parse-repair', title: 'Maths data parse repair', kind: 'platform', summary: 'Removes the remaining malformed literal newline from data.js so the dynamic app can initialise.' }
+      ]
+    },
     {
       version: '0.11.3',
       date: '2026-10-02',
       title: 'Multi-topic Runtime Repair',
       ref: 'main',
-      status: 'current',
+      status: 'archive',
       summary: 'Repairs the app.js parse failure introduced during the multi-topic migration so dynamic navigation, topic content and progression render again.',
       areas: [
         { id: 'runtime-repair', title: 'Runtime parse repair', kind: 'platform', summary: 'Removes accidental literal newline escape text from executable app.js declarations.' },
