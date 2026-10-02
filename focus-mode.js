@@ -3,7 +3,7 @@
 
   const CLOUD=window.BEYOND100_CLOUD;
   const DATA=window.BEYOND100_DATA;
-  const TOPIC=DATA?.detailedTopics?.['Place Value & Number Structure'];
+  const topicState=window.BEYOND100_TOPIC_STATE;\n  const currentTopic=()=>topicState?.getTopic?.()||DATA?.detailedTopics?.['Place Value & Number Structure'];\n  const currentTopicName=()=>topicState?.getName?.()||'Place Value & Number Structure';
   const SESSION_KEY='beyond100.focus.session.v3';
   const PREF_KEY='beyond100.sidebar.preference.v1';
   const CONTROLLER_CACHE='beyond100.parent-controller.v1';
@@ -87,8 +87,8 @@
     log[phase]={state:'current',completedAt:null,detail:''};
     return{
       id:crypto.randomUUID(),active:true,mode,phase,tasks,index:0,
-      topic:TOPIC?.id||'maths-place-value',topicLabel:'Place Value & Number Structure',
-      year:meta.year||'Y5',scope:meta.scope||'Place Value',startedAt:now(),updatedAt:now(),
+      topic:currentTopic()?.id||'maths-place-value',topicLabel:currentTopicName(),
+      year:meta.year||'Y5',scope:meta.scope||currentTopicName(),startedAt:now(),updatedAt:now(),
       phaseLog:log,responses:[],confidence:[],promptLevel:'independent',
       currentOutcome:'',currentError:'',currentConfidence:'',currentObservations:[],childDone:false,recordedCurrent:false,parentNote:''
     };
@@ -98,9 +98,9 @@
     return el?.querySelector?.('.year-pill strong,.badge')?.textContent?.trim()||
       q('.hero-card strong')?.textContent?.trim()||'Y5';
   }
-  function stageFromYear(year){return TOPIC?.stages?.find(s=>s.year===year)||TOPIC?.stages?.find(s=>s.year==='Y5')||TOPIC?.stages?.[0]}
+  function stageFromYear(year){return currentTopic()?.stages?.find(s=>s.year===year)||currentTopic()?.stages?.find(s=>s.year==='Y5')||currentTopic()?.stages?.[0]}
   function targetLabel(el){
-    if(!el)return 'Place Value';
+    if(!el)return currentTopicName();
     return el.dataset.noteLabel||
       el.querySelector?.('h1,h2,h3,h4,strong,.question-prompt')?.textContent?.trim()||
       'Place Value';
@@ -114,7 +114,7 @@
 
   function chooseDiagnosticQuestions(year,count=6){
     const yearNum=Number(String(year).replace(/\D/g,''))||5;
-    const qs=[...(TOPIC?.questions||[])].sort((a,b)=>{
+    const qs=[...(currentTopic()?.questions||[])].sort((a,b)=>{
       const ad=Math.abs((Number(String(a.year).replace(/\D/g,''))||99)-yearNum);
       const bd=Math.abs((Number(String(b.year).replace(/\D/g,''))||99)-yearNum);
       return ad-bd;
@@ -156,7 +156,7 @@
     return rows.sort((a,b)=>a.due-b.due);
   }
   function retrievalTask(row){
-    const match=(TOPIC?.questions||[]).find(x=>x.skill===row.skill)||null;
+    const match=(currentTopic()?.questions||[]).find(x=>x.skill===row.skill)||null;
     return{
       id:'retrieve-'+crypto.randomUUID(),kind:'question',phase:row.phase,
       prompt:match?.prompt||('Without looking back, show me what you remember about '+row.skill+'. Explain your thinking.'),
@@ -295,9 +295,9 @@
   }
 
   function taskForPhase(id,skill,year){
-    const matching=(TOPIC?.questions||[]).filter(x=>!skill||x.skill===skill);
-    const nearest=matching[0]||(TOPIC?.questions||[]).find(x=>x.year===year)||(TOPIC?.questions||[])[0];
-    const reasoning=matching.find(x=>x.type==='reasoning')||(TOPIC?.questions||[]).find(x=>x.type==='reasoning')||nearest;
+    const matching=(currentTopic()?.questions||[]).filter(x=>!skill||x.skill===skill);
+    const nearest=matching[0]||(currentTopic()?.questions||[]).find(x=>x.year===year)||(currentTopic()?.questions||[])[0];
+    const reasoning=matching.find(x=>x.type==='reasoning')||(currentTopic()?.questions||[]).find(x=>x.type==='reasoning')||nearest;
     if(id==='teach')return{id:'teach-'+crypto.randomUUID(),kind:'explanation',phase:id,prompt:'Work on one idea only: '+skill+'. Explain it in a different way or with a concrete example, then ask Sai to tell you what the idea means.',answer:'',skill,year,type:'explanation',instruction:'Parent explains; Sai only needs to focus on this one idea.'};
     if(id==='demonstrate')return{id:'demonstrate-'+crypto.randomUUID(),kind:'question',phase:id,prompt:'Explain '+skill+' in your own words and show one example that proves you understand it.',answer:'A clear explanation plus a valid example.',skill,year,type:'explain',instruction:'This is not memory of the parent’s words — explain it your own way.'};
     if(id==='practise')return{id:'practise-'+crypto.randomUUID(),kind:'question',phase:id,prompt:nearest?.prompt||('Try a new example using '+skill+'.'),answer:nearest?.answer||'',skill,year:nearest?.year||year,type:nearest?.type||'short',instruction:'Try this while the learning is still fresh.'};
