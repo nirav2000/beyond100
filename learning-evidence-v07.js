@@ -1,7 +1,7 @@
 const EVIDENCE_KEY='beyond100.learning-evidence.v1';
 const APP_SESSION_KEY='beyond100.session.current.v1';
 const CLOUD=window.BEYOND100_CLOUD;
-const TOPIC=window.BEYOND100_DATA?.detailedTopics?.['Place Value & Number Structure'];
+const topicState=window.BEYOND100_TOPIC_STATE;\nconst currentTopic=()=>topicState?.getTopic?.()||window.BEYOND100_DATA?.detailedTopics?.['Place Value & Number Structure'];\nconst currentTopicName=()=>topicState?.getName?.()||'Place Value & Number Structure';
 
 const OUTCOMES={
   fast:{label:'Correct + fast',short:'Fast',tone:'secure'},
@@ -66,8 +66,8 @@ function dayDiff(a,b){return a&&b?Math.abs(Date.parse(b)-Date.parse(a))/86400000
 function yearNo(y=''){const m=String(y).match(/\d+/);return m?Number(m[0]):99}
 function fmt(value){if(!value)return'—';try{return new Intl.DateTimeFormat('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}).format(new Date(value))}catch{return'—'}}
 function fmtDay(value){if(!value)return'—';try{return new Intl.DateTimeFormat('en-GB',{weekday:'short',day:'numeric',month:'short'}).format(new Date(value))}catch{return'—'}}
-function topicId(){return TOPIC?.id||'maths-place-value'}
-function subject(){return TOPIC?.subject||'Maths'}
+function topicId(){return currentTopic()?.id||'maths-place-value'}
+function subject(){return currentTopic()?.subject||'Maths'}
 function outcomeLabel(o){return OUTCOMES[o]?.label||o||'Not recorded'}
 
 function mount(){
@@ -148,7 +148,7 @@ function mountSection(){
 function activate(id){$$('.content-section').forEach(s=>s.classList.toggle('active',s.id===id));$$('.section-nav button').forEach(b=>b.classList.toggle('active',b.dataset.section===id));$('#'+id)?.scrollIntoView({behavior:'smooth',block:'start'})}
 function changeDiagnosticCopy(){const p=$('#diagnose .section-heading>p');if(p)p.textContent='Start below the expected level and move upward. Find the first layer at which confidence, fluency or explanation breaks down, then classify whether the issue is knowledge, concept, question interpretation, procedure, fluency, reasoning or attention.'}
 
-function populateSkills(){const el=$('#cycleSkill');if(!el)return;const skills=[...new Set([...(TOPIC?.questions||[]).map(q=>q.skill),...LADDER.map(x=>x.skill)].filter(Boolean))].sort();el.innerHTML=skills.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('')}
+function populateSkills(){const el=$('#cycleSkill');if(!el)return;const skills=[...new Set([...(currentTopic()?.questions||[]).map(q=>q.skill),...LADDER.map(x=>x.skill)].filter(Boolean))].sort();el.innerHTML=skills.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('')}
 function ensureCycle(skill){if(!state.cycles[skill])state.cycles[skill]={skill,steps:{},retentionDue:{},retentionChecks:{},updatedAt:null};state.cycles[skill].retentionChecks ||= {};return state.cycles[skill]}
 function selectedSkill(){return $('#cycleSkill')?.value||''}
 
@@ -164,7 +164,7 @@ function enhanceDiagnosticCards(){
     score.addEventListener('click',e=>{const b=e.target.closest('.score-btn');if(b)recordError(card,b.textContent.trim())});
   });
 }
-function questionMeta(card){const qid=card.dataset.qid||crypto.randomUUID(),q=(TOPIC?.questions||[]).find(x=>x.id===qid)||{};return{questionId:qid,year:q.year||card.querySelector('.badge')?.textContent?.trim()||'',skill:q.skill||'Unclassified',prompt:q.prompt||card.querySelector('.question-prompt')?.textContent?.trim()||'',questionType:q.type||''}}
+function questionMeta(card){const qid=card.dataset.qid||crypto.randomUUID(),q=(currentTopic()?.questions||[]).find(x=>x.id===qid)||{};return{questionId:qid,year:q.year||card.querySelector('.badge')?.textContent?.trim()||'',skill:q.skill||'Unclassified',prompt:q.prompt||card.querySelector('.question-prompt')?.textContent?.trim()||'',questionType:q.type||''}}
 function recordDiagnostic(card,outcome){
   const m=questionMeta(card),started=Number(card.dataset.responseStarted||0),seconds=started?Math.max(.1,(Date.now()-started)/1000):null,at=now();let ev=card.dataset.evidenceEventId?state.events.find(x=>x.id===card.dataset.evidenceEventId):null;
   if(!ev){ev={id:crypto.randomUUID(),kind:'diagnostic-response',app:'beyond100',topicId:topicId(),subject:subject(),diagnosticSession:$('#diagnosticSet')?.dataset.evidenceSession||null,sessionId:sessionId(),createdAt:at};state.events.push(ev);card.dataset.evidenceEventId=ev.id}
