@@ -1,6 +1,6 @@
 (() => {
   const data = window.BEYOND100_DATA;
-  const topic = data.detailedTopics["Place Value & Number Structure"];
+  const topicState = window.BEYOND100_TOPIC_STATE;\n  let topic = topicState?.getTopic?.() || data.detailedTopics["Place Value & Number Structure"];
   let activeSubject = "maths";
 
   const $ = (id) => document.getElementById(id);
@@ -13,7 +13,7 @@
 
   function renderHero() {
     $("topicSubject").textContent = `${topic.subject.toUpperCase()} · TOPIC-FIRST PROGRESSION`;
-    $("topicTitle").textContent = "Place Value & Number Structure";
+    $("topicTitle").textContent = topicState?.getName?.() || Object.keys(data.detailedTopics).find(name => data.detailedTopics[name] === topic) || "Place Value & Number Structure";
     $("topicSummary").textContent = topic.summary;
     $("whyText").textContent = topic.whyItMatters;
     $("masteryRule").textContent = topic.mastery.rule;
@@ -36,17 +36,34 @@
       .filter(t => t.toLowerCase().includes(query));
     $("topicList").innerHTML = items.map(name => {
       const detailed = Boolean(data.detailedTopics[name]);
-      return `<button class="topic-item ${detailed ? "active" : "placeholder"}" data-topic="${escapeHtml(name)}">${escapeHtml(name)}</button>`;
+      const selected = detailed && (topicState?.getName?.() === name);\n      return `<button class="topic-item ${detailed ? "active" : "placeholder"} ${selected ? "selected" : ""}" data-topic="${escapeHtml(name)}">${escapeHtml(name)}</button>`;
     }).join("") || `<div class="empty-state">No matching topics.</div>`;
 
     qsa("[data-topic]").forEach(btn => btn.addEventListener("click", () => {
       if (data.detailedTopics[btn.dataset.topic]) {
+        selectTopic(btn.dataset.topic);
         closeSidebar();
         window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
         openFactory(btn.dataset.topic, activeSubject);
       }
     }));
+  }
+
+
+  function selectTopic(name) {
+    if (!data.detailedTopics[name]) return false;
+    topicState?.setTopic?.(name, { silent: true });
+    topic = data.detailedTopics[name];
+    renderHero();
+    renderTopicList();
+    renderProgression();
+    renderMastery();
+    renderMisconceptions();
+    populateYearSelects();
+    renderQuestionBank();
+    window.dispatchEvent(new CustomEvent("beyond100-topic-rendered", { detail: { name, topic } }));
+    return true;
   }
 
   function renderProgression() {
