@@ -766,6 +766,110 @@ This is an extension layer, not a separate substitute curriculum.
 - speed under time pressure without sacrificing interpretation
 - recognising traps and checking answer options
 
+
+## 1729 mathematical-thinking layer
+
+Beyond100 should explicitly cultivate the habits sought and taught by 1729 Maths School. These are not additional content chapters; they are cross-cutting mathematical behaviours that should be tagged and developed throughout the catalogue.
+
+### Curiosity and question generation
+- ask "why?" rather than stopping at a correct answer;
+- ask what changes if a condition is altered;
+- generate related questions after solving a problem;
+- notice surprising features, coincidences and edge cases;
+- pursue a pattern beyond the minimum required.
+
+### Structural thinking
+- look beneath a procedure for the mathematical structure that makes it work;
+- identify invariants, symmetry, parity, divisibility, equivalence and other hidden structure;
+- recognise when two apparently different problems share the same underlying idea;
+- prefer a method that reveals structure when it is more informative than a memorised algorithm.
+
+### Multiple methods and elegance
+- solve a problem in more than one way where worthwhile;
+- compare methods for generality, clarity, efficiency and insight;
+- distinguish "works" from "explains why";
+- search for simpler or more revealing arguments.
+
+### Productive struggle and uncertainty
+- remain with a hard problem without expecting an immediate route;
+- test small cases rather than guess;
+- record partial progress;
+- change representation or strategy when stuck;
+- tolerate not knowing the answer while continuing to reason;
+- treat an incomplete but well-reasoned attempt as useful evidence.
+
+### Conjecture, generalisation and proof
+- form conjectures from examples;
+- actively search for counterexamples;
+- state conditions under which a claim is true;
+- move from pattern spotting to justification;
+- distinguish inductive evidence from proof;
+- construct age-appropriate chains of deductive reasoning.
+
+### Abstraction
+- move from numerical examples to general statements;
+- use symbols to express relationships;
+- ignore irrelevant surface features;
+- identify the same structure across number, geometry, algebra and combinatorics.
+
+### Mathematical communication
+- explain reasoning clearly in words, diagrams and notation;
+- define terms precisely;
+- justify each important step;
+- respond to another person's argument;
+- ask clarifying mathematical questions;
+- communicate an incomplete solution honestly and usefully.
+
+### Independence and collaboration
+- begin an unfamiliar problem independently;
+- choose tools/representations without being told;
+- know when to seek a hint rather than a full explanation;
+- build on another learner's idea;
+- critique reasoning respectfully;
+- revise a solution after discussion.
+
+### Exploration and creation
+- create examples and non-examples;
+- invent variants of solved problems;
+- design a harder/easier version;
+- construct a problem with a specified answer or property;
+- investigate an open-ended mathematical question.
+
+### 1729-style evidence tags
+
+Each rich problem can record one or more of:
+
+- `CUR` curiosity/question generation
+- `STR` structural insight
+- `ALT` alternative methods
+- `PST` persistence/productive struggle
+- `CON` conjecture
+- `GEN` generalisation
+- `PRF` proof/justification
+- `ABS` abstraction
+- `COM` mathematical communication
+- `IND` independence
+- `COL` collaboration
+- `CRT` critique/evaluation
+- `CRE` mathematical creation
+
+These should sit alongside, not replace, the existing K/C/Q/P/F/R/A diagnostic error model.
+
+### Design rule for advanced potential
+
+Do not interpret "advanced" primarily as teaching older content earlier.
+
+When core knowledge is secure, prefer:
+1. a richer representation;
+2. a less routine problem;
+3. a request to explain or prove;
+4. a change of conditions;
+5. a search for another method;
+6. a generalisation;
+7. an open-ended exploration;
+
+before simply accelerating to the next year's syllabus.
+
 ## Roman numerals: canonical placement
 
 Roman numerals now have the canonical path:
