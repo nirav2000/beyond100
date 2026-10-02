@@ -1,13 +1,25 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.11.2',
+  currentVersion: '0.11.3',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.11.3',
+      date: '2026-10-02',
+      title: 'Multi-topic Runtime Repair',
+      ref: 'main',
+      status: 'current',
+      summary: 'Repairs the app.js parse failure introduced during the multi-topic migration so dynamic navigation, topic content and progression render again.',
+      areas: [
+        { id: 'runtime-repair', title: 'Runtime parse repair', kind: 'platform', summary: 'Removes accidental literal newline escape text from executable app.js declarations.' },
+        { id: 'topic-ui-restored', title: 'Dynamic topic UI restored', kind: 'platform', summary: 'Restores subject tabs, topic list, Why this matters content, progression cards and topic switching.' }
+      ]
+    },
     {
       version: '0.11.2',
       date: '2026-10-02',
       title: 'Roman Numerals Mental Model',
       ref: 'main',
-      status: 'current',
+      status: 'archive',
       summary: 'Strengthens Roman-numeral teaching around the key misconception that Roman notation is a conventional writing system, not a free-form arithmetic expression.',
       areas: [
         { id: 'roman-writing-system', title: 'Writing-system mental model', kind: 'curriculum', summary: 'Teaches number/numeral/digit and the idea of a different conventional notation before detailed Roman construction rules.' },
