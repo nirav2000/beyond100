@@ -68,6 +68,8 @@ jobs:
         run: |
           node --check app.js
           node --check data.js
+          node --check maths-catalogue-data.js
+          node --check catalogue-validator.js
           node --check assessment-data.js
           node --check assessment.js
           node --check cloud-config.js
@@ -91,6 +93,9 @@ jobs:
           node --check versions-v05.js
           node --check version-current.js
           node --check preview-bridge.js
+
+      - name: Validate canonical Maths catalogue
+        run: node tests/catalogue.spec.cjs
 
       - name: Validate release identity and current wiring
         run: |
