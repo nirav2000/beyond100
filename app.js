@@ -1,6 +1,7 @@
 (() => {
   const data = window.BEYOND100_DATA;
-  const topicState = window.BEYOND100_TOPIC_STATE;\n  let topic = topicState?.getTopic?.() || data.detailedTopics["Place Value & Number Structure"];
+  const topicState = window.BEYOND100_TOPIC_STATE;
+  let topic = topicState?.getTopic?.() || data.detailedTopics["Place Value & Number Structure"];
   let activeSubject = "maths";
 
   const $ = (id) => document.getElementById(id);
@@ -36,7 +37,8 @@
       .filter(t => t.toLowerCase().includes(query));
     $("topicList").innerHTML = items.map(name => {
       const detailed = Boolean(data.detailedTopics[name]);
-      const selected = detailed && (topicState?.getName?.() === name);\n      return `<button class="topic-item ${detailed ? "active" : "placeholder"} ${selected ? "selected" : ""}" data-topic="${escapeHtml(name)}">${escapeHtml(name)}</button>`;
+      const selected = detailed && (topicState?.getName?.() === name);
+      return `<button class="topic-item ${detailed ? "active" : "placeholder"} ${selected ? "selected" : ""}" data-topic="${escapeHtml(name)}">${escapeHtml(name)}</button>`;
     }).join("") || `<div class="empty-state">No matching topics.</div>`;
 
     qsa("[data-topic]").forEach(btn => btn.addEventListener("click", () => {
