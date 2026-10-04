@@ -1,13 +1,25 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.11.4',
+  currentVersion: '0.11.5',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.11.5',
+      date: '2026-10-04',
+      title: 'Shared PWA Platform Adoption',
+      ref: 'main',
+      status: 'current',
+      summary: 'Adopts the shared Apps PWA capability with a manifest, install icon, shared service-worker wrapper and release-gate protection.',
+      areas: [
+        { id: 'shared-pwa', title: 'Shared PWA capability', kind: 'platform', summary: 'Adds installable standalone app support through the central Apps PWA module while keeping Beyond 100 app logic separate.' },
+        { id: 'pwa-release-gate', title: 'PWA release protection', kind: 'workflow', summary: 'Validates the manifest, icon, local worker wrapper and shared PWA bootstrap on every relevant push.' }
+      ]
+    },
     {
       version: '0.11.4',
       date: '2026-10-02',
       title: 'Runtime Repair Complete',
       ref: 'main',
-      status: 'current',
+      status: 'archive',
       summary: 'Completes the runtime repair by removing the remaining malformed literal newline in the Maths topic list.',
       areas: [
         { id: 'data-parse-repair', title: 'Maths data parse repair', kind: 'platform', summary: 'Removes the remaining malformed literal newline from data.js so the dynamic app can initialise.' }
