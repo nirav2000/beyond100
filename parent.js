@@ -84,7 +84,9 @@ async function subscribeCapability(){
   const s=await sdk();
   setConnection('Connecting to Sai…','Persistent controller key recognised.','loading');
   unsubscribe?.();
-  window.FirebaseUsageMonitor?.listener(1,'parent-focus-listener','beyond100-parent');unsubscribe=s.F.onSnapshot(focusRef(),snap=>{
+  const tracker=window.FirebaseUsageMonitor?.trackListener?.({name:'parent-focus-listener',app:'beyond100-parent',project:CLOUD?.firebase?.projectId||'kk-syllabus',database:'(default)',source:'beyond100/parent.js',purpose:'Synchronise Focus session and remote parent controller',trigger:'Focus document changes'});
+  if(!tracker)window.FirebaseUsageMonitor?.listener(1,'parent-focus-listener','beyond100-parent');const stop=s.F.onSnapshot(focusRef(),snap=>{
+    tracker?.snapshot(snap);
     if(!snap.exists()){setConnection('Controller unavailable','This QR/link does not point to an active controller.','error');setView('revoked');return}
     const doc=snap.data()||{};
     if(doc.active!==true||doc.app!=='beyond100'){setConnection('Controller disconnected','Create a new QR/link from Beyond 100.','error');setView('revoked');return}
@@ -93,7 +95,8 @@ async function subscribeCapability(){
     setConnection('Connected to '+learner,'Persistent QR controller · no Firebase login needed.','connected');
     if(!state?.active){setView('waiting');return}
     setView('controller');render();
-  },()=>{setConnection('Connection failed','Check the network and try again.','error');setView('revoked')});
+  },error=>{tracker?.error(error);setConnection('Connection failed','Check the network and try again.','error');setView('revoked')});
+  unsubscribe=()=>{tracker?.stop();stop()};
   clearInterval(presenceTimer);presenceTimer=setInterval(()=>{if(document.visibilityState==='visible')sendPresence()},300000);
   sendPresence();
 }
@@ -103,13 +106,16 @@ async function subscribeAuthenticated(){
   setConnection('Firebase signed in','Finding Sai’s learner profile…','loading');
   await resolveLearner();
   unsubscribe?.();
-  window.FirebaseUsageMonitor?.listener(1,'parent-focus-listener','beyond100-parent');unsubscribe=s.F.onSnapshot(focusRef(),snap=>{
+  const tracker=window.FirebaseUsageMonitor?.trackListener?.({name:'parent-focus-listener',app:'beyond100-parent',project:CLOUD?.firebase?.projectId||'kk-syllabus',database:'(default)',source:'beyond100/parent.js',purpose:'Synchronise Focus session and remote parent controller',trigger:'Focus document changes'});
+  if(!tracker)window.FirebaseUsageMonitor?.listener(1,'parent-focus-listener','beyond100-parent');const stop=s.F.onSnapshot(focusRef(),snap=>{
+    tracker?.snapshot(snap);
     const data=snap.data(),next=data?.state||null;
     state=next;
     if(!next?.active){setConnection('Signed in to Sai','Waiting for a Focus session on the child device.','connected');setView('waiting');return}
     setConnection('Signed in to Sai','Live Focus controller connected.','connected');
     setView('controller');render();
-  },()=>setView('waiting'));
+  },error=>{tracker?.error(error);setView('waiting')});
+  unsubscribe=()=>{tracker?.stop();stop()};
 }
 async function subscribe(){
   if(usingCapability)return subscribeCapability();
