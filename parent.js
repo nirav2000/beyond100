@@ -91,8 +91,8 @@ async function subscribeCapability(){
     state=doc.state||null;
     const learner=state?.learnerLabel||doc.learnerLabel||'Sai';
     setConnection('Connected to '+learner,'Persistent QR controller · no Firebase login needed.','connected');
-    if(!state?.active){setView('waiting');sendPresence();return}
-    setView('controller');render();sendPresence();
+    if(!state?.active){setView('waiting');return}
+    setView('controller');render();
   },()=>{setConnection('Connection failed','Check the network and try again.','error');setView('revoked')});
   clearInterval(presenceTimer);presenceTimer=setInterval(()=>{if(document.visibilityState==='visible')sendPresence()},300000);
   sendPresence();
