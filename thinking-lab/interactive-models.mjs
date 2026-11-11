@@ -5,7 +5,7 @@ const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
 const label=(x,y,s,size=17,fill='#edf7f4',anchor='middle')=>'<text x="'+x+'" y="'+y+'" font-size="'+size+'" fill="'+fill+'" text-anchor="'+anchor+'" font-family="system-ui,Arial,sans-serif">'+String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))+'</text>';
 const shape=(x,y,w,h,fill='#2a8f84',extra='')=>'<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+fill+'" rx="3" stroke="#b9e2d9" stroke-width="1.2" '+extra+'/>';
 const line=(x1,y1,x2,y2,color='#abcfc8',width=2,extra='')=>'<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+color+'" stroke-width="'+width+'" '+extra+'/>';
-const handle=(x,y,action,title)=>'<circle cx="'+x+'" cy="'+y+'" r="16" fill="#ffcb73" stroke="#fff2d8" stroke-width="2" data-drag="'+action+'" tabindex="0" role="slider" aria-label="'+title+'" style="cursor:grab;touch-action:none"/>'+label(x,y+5,'↔',15,'#19383c');
+const handle=(x,y,action,title)=>'<circle cx="'+x+'" cy="'+y+'" r="16" fill="#ffcb73" stroke="#fff2d8" stroke-width="2" data-drag="'+action+'" tabindex="0" role="slider" aria-label="'+title+'" style="cursor:grab;touch-action:none"/>'+label(x,y+5,'↔',15,'#19383c').replace('<text ','<text pointer-events="none" ');
 export function recommendedModel(question){
  const id=question?.id||'',kind=question?.diagram?.kind||'';
  if(['balance-add','friendly-ten'].includes(id))return 'transfer';
@@ -52,7 +52,7 @@ export function createInteractiveModels({onInteraction=()=>{}}={}){
  if(header?.classList.contains('tl-subhead'))header.before(host);else anchor.before(host);
  const el=id=>host.querySelector('#'+id);
  const svg=el('tlManipSvg'),layer=el('tlManipLayer');
- let currentQuestion=null,model='transfer',state={},opened=false,changed=false,interactionCount=0,drag=null,draggedTile=null;
+ let currentQuestion=null,model='transfer',state={},opened=false,changed=false,interactionCount=0,drag=null;
  const status=message=>{el('tlManipStatus').textContent=message;};
  const interaction=type=>{
   interactionCount++;
@@ -66,7 +66,7 @@ export function createInteractiveModels({onInteraction=()=>{}}={}){
    state={a,b,delta:0,reveal:false};
   }else if(model==='rectangle'){
    const pair=d.pairs?.[0]||[4,7];
-   state={width:clamp(Math.round(pair[0]),2,22),height:clamp(Math.round(pair[1]),2,18),
+   state={width:clamp(Math.round(pair[0]),2,22),height:clamp(Math.round(pair[1]),2,18),moveX:0,moveY:0,
      baseW:clamp(Math.round(pair[0]),2,22),baseH:clamp(Math.round(pair[1]),2,18),reveal:false};
   }else if(model==='tiles'){
    const info=suggestedCounters(q),n=info.count;
@@ -81,7 +81,7 @@ export function createInteractiveModels({onInteraction=()=>{}}={}){
    const lo=d.lo??0,hi=d.hi??100,at=d.at??37;
    state={lo,hi,at,reveal:false};
   }
-  drag=null;draggedTile=null;
+  drag=null;
   render();
  };
  const titleForModel=m=>({
@@ -95,6 +95,7 @@ export function createInteractiveModels({onInteraction=()=>{}}={}){
  };
  const load=question=>{
   currentQuestion=question;model=recommendedModel(question);
+  interactionCount=0;changed=false;
   opened=false;el('tlManipBody').hidden=true;
   el('tlManipToggle').setAttribute('aria-expanded','false');
   el('tlManipToggle').textContent='Open interactive model';
@@ -104,41 +105,51 @@ export function createInteractiveModels({onInteraction=()=>{}}={}){
  const R=(s)=>Math.round(s*100)/100;
  const drawTransfer=()=>{
   const {a,b,delta}=state,{after:[c,d]}=transferState(a,b,delta),total=a+b;
-  const x=100,w=480,y1=48,y2=167,one=w/total,split1=x+a*one,split2=x+c*one;
-  let o=label(30,87,'Before',15,'#b4d9d1','start')+label(30,204,'After',15,'#b4d9d1','start');
-  o+=shape(x,y1,a*one,65,'#27887e')+shape(split1,y1,b*one,65,'#b38752')+
-     shape(x,y2,c*one,65,'#27887e')+shape(split2,y2,d*one,65,'#b38752');
-  o+=label(x+a*one/2,y1+39,a)+label(split1+b*one/2,y1+39,b)+
-     label(x+c*one/2,y2+39,c)+label(split2+d*one/2,y2+39,d);
-  // The precise unit being transferred is at the boundary between the two parts.
-  o+=shape(split1,y1,one,65,'#ffcd7c','stroke="#244645" stroke-width="2"')+
-    label(split1+one/2,y1+29,'1',Math.max(12,Math.min(18,one*2)),'#15373c');
-  o+=line(split1,126,split1,161,'#f1c579',2,'stroke-dasharray="4 4"');
-  o+=line(split2,126,split2,161,'#f1c579',2,'stroke-dasharray="4 4"');
-  if(delta>0)o+=label((split1+split2)/2,152,'+'+delta+' ← from right',12,'#f9ca78');
-  else if(delta<0)o+=label((split1+split2)/2,152,'move '+Math.abs(delta)+' right →',12,'#f9ca78');
-  o+=handle(split2,y2+34,'transfer','Move units between the two parts');
-  o+=label(340,272,'Drag the dividing line. Watch both parts change by equal amounts.',14,'#c6e9e0');
-  if(state.reveal)o+=label(340,292,'Same total = '+total+' (nothing added or removed)',13,'#f7c27c');
-  status('Before: '+a+' + '+b+'. After: '+c+' + '+d+'. '+(delta===0?'Try transferring exactly 1 unit.':'Moved '+Math.abs(delta)+' unit'+(Math.abs(delta)===1?'':'s')+'. The whole is unchanged.'));
+  const x=100,w=480,y1=45,y2=165,unit=w/total,split1=x+a*unit,split2=x+c*unit;
+  let o=label(30,86,'Before',15,'#b4d9d1','start');
+  o+=shape(x,y1,a*unit,67,'#27887e')+shape(split1,y1,b*unit,67,'#b38752');
+  o+=label(x+a*unit/2,y1+40,a)+label(split1+b*unit/2,y1+40,b);
+  // A single, exactly one-unit-sized transferable slice is identified at the boundary.
+  o+=shape(split1,y1,unit,67,'#ffcc78','stroke="#fef6de" stroke-width="2"');
+  o+=line(split1,y1-7,split1,y1+74,'#f4ca88',2,'stroke-dasharray="5 4"');
+  o+=label(Math.min(580,Math.max(100,split1+unit/2)),29,'1 unit',14,'#ffcc78');
+  if(delta!==0){
+    o+=label(30,207,'After',15,'#b4d9d1','start');
+    o+=shape(x,y2,c*unit,67,'#27887e')+shape(split2,y2,d*unit,67,'#b38752');
+    o+=label(x+c*unit/2,y2+39,c)+label(split2+d*unit/2,y2+39,d);
+    const sx=Math.min(split1,split2),sw=Math.max(unit,Math.abs(delta)*unit);
+    o+=shape(sx,y2,sw,67,'#ffcc78','stroke="#fef6de" stroke-width="2"');
+    o+=label(340,151,(delta>0?'→ transfer '+delta+' from right to left':'transfer '+Math.abs(delta)+' from left to right ←'),14,'#ffcc78');
+    o+=line(split1,y1+68,split2,y2-3,'#ffcc78',3);
+  }else{
+    o+=rectOutline(x,y2,w,67,'#73918f');
+    o+=label(340,y2+41,'Move 1, then reveal the changed parts',16,'#aecdc8');
+  }
+  o+=handle(delta===0?split1:split2,y2+34,'transfer','Drag the divider to move an exact number of units');
+  if(state.reveal)o+=label(340,282,'Total before = '+total+'   |   Total after = '+total,16,'#f7c27c');
+  else o+=label(340,282,'Drag the gold handle or press +1 to transfer one unit.',14,'#c6e9e0');
+  status('Original: '+a+' + '+b+'. '+(delta===0?'Drag the handle or press +1 to transfer 1 unit.': 'Transferred '+Math.abs(delta)+' unit'+(Math.abs(delta)===1?'':'s')+'. New parts: '+c+' and '+d+'.')+' The whole never gains or loses a unit.');
   return o;
  };
+ function rectOutline(x,y,w,h,color){return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="3" fill="none" stroke="'+color+'" stroke-dasharray="7 5" stroke-width="1.8"/>';}
  const drawRectangle=()=>{
-  const x=159,y=49,scale=clamp(330/Math.max(12,state.baseW,state.width),15,28),
-   W=state.width*scale,H=state.height*scale,BW=state.baseW*scale,BH=state.baseH*scale;
-  let o=shape(x,y,BW,BH,'#132c32','stroke="#c2d9d2" stroke-dasharray="5 5" stroke-width="2"');
+  const scale=Math.min(26,440/Math.max(state.baseW,state.width),158/Math.max(state.baseH,state.height)),
+    x=100+(state.moveX||0),y=55+(state.moveY||0),baseX=100,baseY=55,
+    W=state.width*scale,H=state.height*scale,BW=state.baseW*scale,BH=state.baseH*scale;
+  let o=rectOutline(baseX,baseY,BW,BH,'#94b5b0');
   o+=shape(x,y,W,H,'#2b8c80');
-  if(state.width<=22)for(let col=1;col<state.width;col++)o+=line(x+col*scale,y,x+col*scale,y+H,'#8dc8bd',.9);
-  if(state.height<=18)for(let row=1;row<state.height;row++)o+=line(x,y+row*scale,x+W,y+row*scale,'#8dc8bd',.9);
-  o+=label(x+W/2,y-15,state.width+' wide',18,'#f0c582');
-  o+=label(x+W+42,y+H/2,state.height+' high',18,'#f0c582');
+  if(state.width<=22)for(let col=1;col<state.width;col++)o+=line(x+col*scale,y,x+col*scale,y+H,'#8dc8bd',.9,'pointer-events="none"');
+  if(state.height<=18)for(let row=1;row<state.height;row++)o+=line(x,y+row*scale,x+W,y+row*scale,'#8dc8bd',.9,'pointer-events="none"');
+  o+=shape(x,y,W,H,'transparent','data-drag="move" style="cursor:move;touch-action:none" stroke="none"');
+  o+=label(x+W/2,y-14,state.width+' wide',17,'#f0c582');
+  o+=label(Math.min(655,x+W+28),y+H/2,state.height+' high',17,'#f0c582');
   o+=handle(x+W,y+H/2,'width','Drag to change rectangle width');
   o+=handle(x+W/2,y+H,'height','Drag to change rectangle height');
-  o+=handle(x+W,y+H,'corner','Drag the rectangle corner to resize width and height');
-  o+=label(340,268,'Dashed outline = starting rectangle; colour = your resized shape.',14,'#c6e9e0');
+  o+=handle(x+W,y+H,'corner','Drag the corner to resize both dimensions');
+  o+=label(340,272,'Move the whole shape by dragging its interior. Resize using the handles.',14,'#c6e9e0');
   const m=rectangleMeasures(state.width,state.height),base=rectangleMeasures(state.baseW,state.baseH);
-  if(state.reveal)o+=label(340,292,'Area '+m.area+' (was '+base.area+')   |   Perimeter '+m.perimeter+' (was '+base.perimeter+')',13,'#f7c27c');
-  status('Width '+m.width+'; height '+m.height+'. Resize either side or drag the corner. '+(state.reveal?'Area '+m.area+', perimeter '+m.perimeter+'.':'Predict what changes before revealing measurements.'));
+  if(state.reveal)o+=label(340,295,'Area '+m.area+' (was '+base.area+')   |   Perimeter '+m.perimeter+' (was '+base.perimeter+')',13,'#f7c27c');
+  status('Rectangle '+m.width+' wide by '+m.height+' high. You can move, resize and compare with the dashed original. '+(state.reveal?'Area '+m.area+', perimeter '+m.perimeter+'.':'Predict what changes before revealing the measurements.'));
   return o;
  };
  const drawTiles=()=>{
@@ -150,7 +161,7 @@ export function createInteractiveModels({onInteraction=()=>{}}={}){
     let x=x0+p.col*step+2,y=y0+p.row*step+2;
     if(drag&&drag.id==='tile'&&drag.index===i){x=drag.currentX-17;y=drag.currentY-17;}
     o+=shape(x,y,34,34,drag&&drag.id==='tile'&&drag.index===i?'#f5c174':'#2f9b8d',
-      'data-drag="tile" data-index="'+i+'" style="cursor:grab;touch-action:none"');
+      'data-drag="tile" data-index="'+i+'" tabindex="0" role="button" aria-label="Move counter '+(i+1)+'" style="cursor:grab;touch-action:none"');
   });
   if(state.reveal)o+=label(340,290,'Count preserved: '+state.n+' counters even when the array shape changes.',14,'#f7c27c');
   else o+=label(340,290,'Drag any square to a new grid cell. Count the counters.',14,'#c6e9e0');
@@ -248,12 +259,18 @@ export function createInteractiveModels({onInteraction=()=>{}}={}){
   drag.moved=true;drag.currentX=p.x;drag.currentY=p.y;
   if(drag.id==='transfer'){
    const baseline=drag.origin.delta;
-   state.delta=clamp(baseline+Math.round((p.x-drag.fromX)/16),1-state.a,state.b-1);
+   state.delta=clamp(baseline+Math.round((p.x-drag.fromX)/(480/(state.a+state.b))),1-state.a,state.b-1);
   }else if(drag.id==='width'||drag.id==='corner'){
-   state.width=clamp(drag.origin.width+Math.round((p.x-drag.fromX)/23),1,22);
+   const cell=Math.min(26,440/Math.max(drag.origin.baseW,drag.origin.width),158/Math.max(drag.origin.baseH,drag.origin.height));
+   state.width=clamp(drag.origin.width+Math.round((p.x-drag.fromX)/cell),1,22);
   }
   if(drag.id==='height'||drag.id==='corner'){
-   state.height=clamp(drag.origin.height+Math.round((p.y-drag.fromY)/23),1,18);
+   const cell=Math.min(26,440/Math.max(drag.origin.baseW,drag.origin.width),158/Math.max(drag.origin.baseH,drag.origin.height));
+   state.height=clamp(drag.origin.height+Math.round((p.y-drag.fromY)/cell),1,18);
+  }
+  if(drag.id==='move'){
+   state.moveX=clamp(drag.origin.moveX+(p.x-drag.fromX),-80,110);
+   state.moveY=clamp(drag.origin.moveY+(p.y-drag.fromY),-24,48);
   }
   if(drag.id==='shade'){
    state.num=clamp(Math.round((p.x-84)*state.den/514),0,state.den);
@@ -289,7 +306,16 @@ export function createInteractiveModels({onInteraction=()=>{}}={}){
   const target=e.target.closest('[data-drag]');
   if(!target)return;
   e.preventDefault();
-  if(target.dataset.drag==='height'){state.height=clamp(state.height+(e.key==='ArrowUp'?-1:1),1,18);interaction('keyboard');render();}
+  if(target.dataset.drag==='tile'){
+   const i=Number(target.dataset.index),pos=state.positions[i];if(!pos)return;
+   const dx=e.key==='ArrowLeft'?-1:e.key==='ArrowRight'?1:0,dy=e.key==='ArrowUp'?-1:e.key==='ArrowDown'?1:0;
+   const nx=clamp(pos.col+dx,0,11),ny=clamp(pos.row+dy,0,5);
+   const other=state.positions.findIndex((v,j)=>j!==i&&v.col===nx&&v.row===ny);
+   if(other>=0)state.positions[other]={...pos};state.positions[i]={col:nx,row:ny};interaction('keyboard');render();
+  }else if(target.dataset.drag==='move'){
+   state.moveX=clamp(state.moveX+(e.key==='ArrowLeft'?-5:e.key==='ArrowRight'?5:0),-80,110);
+   state.moveY=clamp(state.moveY+(e.key==='ArrowUp'?-5:e.key==='ArrowDown'?5:0),-24,48);interaction('keyboard');render();
+  }else if(target.dataset.drag==='height'){state.height=clamp(state.height+(e.key==='ArrowUp'?-1:1),1,18);interaction('keyboard');render();}
   else if(target.dataset.drag==='corner'){state.width=clamp(state.width+(e.key==='ArrowLeft'?-1:e.key==='ArrowRight'?1:0),1,22);state.height=clamp(state.height+(e.key==='ArrowUp'?-1:e.key==='ArrowDown'?1:0),1,18);interaction('keyboard');render();}
   else change(e.key==='ArrowLeft'||e.key==='ArrowDown'?-1:1);
  });
