@@ -222,7 +222,7 @@ function modelRatio(q,index,view){
   out+=rect(x,157,unit,56,'#b48c58');
   if(index>=1)out+=txt(x+unit/2,190,'1 part',12);
   if(index>=2)out+=brace(x,x+unit*k,44,k+' equal parts');
-  if(index>=3)out+=brace(x,x+unit*k,227,'Together '+sum+' parts',true);
+  if(index>=3)out+=txt(340,252,'Together: '+k+' + 1 = '+sum+' equal parts',17,'#f3bf78');
  }else{
   out+=txt(340,48,'One whole split into equal units',18);
   const x=69,unit=540/sum;
