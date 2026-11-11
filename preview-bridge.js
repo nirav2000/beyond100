@@ -7,3 +7,7 @@
   addEventListener('message',e=>{const m=e.data;if(!m||m.type!=='beyond100-set-scroll'||typeof m.ratio!=='number')return;const d=document.documentElement,max=Math.max(0,d.scrollHeight-innerHeight);applying=true;scrollTo(0,max*Math.max(0,Math.min(1,m.ratio)));lastRatio=m.ratio;setTimeout(()=>{applying=false},60)});
   addEventListener('load',()=>parent.postMessage({type:'beyond100-preview-ready'},'*'));
 })();
+// Load the optional curriculum-linked Thinking Lab on normal Beyond 100 pages.
+if(!new URLSearchParams(location.search).has('version-preview')){
+  import('./thinking-lab/main.mjs').catch(error=>console.warn('Thinking Lab unavailable:',error));
+}
