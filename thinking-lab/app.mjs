@@ -57,7 +57,7 @@ function renderDiagram(q,view=0){
  const d=q.diagram,kind=d.kind;
  if(kind==='arrays'){
   let o='';
-  d.pairs.forEach(([a,b],i)=>o+=arrayDiagram(a,b,i));
+  d.pairs.forEach(([a,b],i)=>o+='<g opacity="'+(i===view?1:.28)+'">'+arrayDiagram(a,b,i)+'</g>');
   return svg(o);
  }
  if(kind==='balance'){
@@ -67,29 +67,31 @@ function renderDiagram(q,view=0){
    const total=a+b,x=45,y=50+i*98,one=520*a/total;
    o+=rect(x,y,one,52,'#277f7a')+rect(x+one,y,520-one,52,'#a77d46');
    o+=tx(x+one/2,y+32,a,Math.max(12,Math.min(18,one/3)));
-   o+=tx(x+one+(520-one)/2,y+32,b,Math.max(12,Math.min(18,(520-one)/3)));
+   o+=tx(x+one+(520-one)/2,y+32,b,Math.max(12,Math.min(18,(520-one)/3)));o+='</g>';
   });return svg(o);
  }
  if(kind==='difference'){
   const pairs=d.pairs,lo=Math.min(...pairs.map(p=>p[0]))-4,hi=Math.max(...pairs.map(p=>p[1]))+4;
   let o='';pairs.forEach(([a,b],i)=>{
     const y=55+i*105,at=v=>55+510*(v-lo)/(hi-lo);
-    o+=ln(55,y,565,y,'#678d91',3)+ln(at(a),y,at(b),y,'#e2b474',9)+tx(at(a),y-17,a)+tx(at(b),y-17,b);
+    o+=ln(55,y,565,y,'#678d91',3)+ln(at(a),y,at(b),y,'#e2b474',9)+tx(at(a),y-17,a)+tx(at(b),y-17,b);o+='</g>';
   });return svg(o);
  }
  if(kind==='fractions'){
   let o='';
   d.pairs.forEach(([a,b],i)=>{
+   o+='<g opacity="'+(i===view?1:.28)+'">';
    const y=24+i*107,c=540/b;
    for(let j=0;j<b;j++)o+=rect(40+j*c,y,c,53,j<a?'#369d8d':'#2c5058');
-   o+=tx(310,y+77,a+'/'+b+' of the same whole',15);
+   o+=tx(310,y+77,a+'/'+b+' of the same whole',15);o+='</g>';
   });return svg(o);
  }
  if(kind==='groups'){
   let o='';d.pairs.forEach(([g,each],i)=>{
+   o+='<g opacity="'+(i===view?1:.28)+'">';
    const y=35+i*105,cw=Math.min(47,520/g);
    for(let k=0;k<g;k++)o+=rect(52+k*cw,y,cw-4,42,i?'#aa8859':'#28847a');
-   o+=tx(310,y+71,g+' groups x '+each+' in each',16);
+   o+=tx(310,y+71,g+' groups x '+each+' in each',16);o+='</g>';
   });return svg(o);
  }
  if(kind==='angle'){
@@ -160,7 +162,7 @@ function next(same=false){
 function displayVisual(){
  const q=state.question;
  $('tlDiagram').innerHTML=renderDiagram(q,state.view);
- $('tlViewA').disabled=!['arrays','fractions','angle','balance','difference','groups'].includes(q.diagram.kind);
+ $('tlViewA').disabled=(!['arrays','fractions','angle','balance','difference','groups'].includes(q.diagram.kind))||(q.diagram.kind!=='angle'&&(!q.diagram.pairs||q.diagram.pairs.length<2));
  $('tlViewB').disabled=$('tlViewA').disabled;
  $('tlVisual').hidden=!state.visual;
  $('tlShow').textContent=state.visual?'Hide diagram':'Show diagram';
@@ -184,7 +186,7 @@ function record(correct){
      anchorLabel:q.name,prompt:q.prompt,phase:'practise',
      promptLevel:assisted?'prompted':state.visual?'diagram':'independent',
      outcome:correct?(assisted?'prompted':ms>30000?'hesitant':'fast'):'noConcept',
-     responseSeconds:ms/1000,errorCode:state.wrong>0?'C':null,
+     responseSeconds:ms/1000,errorCode:null,
      observations:['technique:'+q.id,'strategy:'+(state.strategy||'not-selected'),
       'visual:'+state.visual,'hints:'+state.hints,'wrong:'+state.wrong,
       'reason-provided:'+Boolean(why)]
@@ -291,5 +293,6 @@ window.addEventListener('afterprint',()=>{$('tlPrint').innerHTML=''});
 window.BEYOND100_THINKING_LAB={openTechnique:(id)=>{const item=TECHNIQUES.find(t=>t.id===id);if(!item)return false;state.topic=item.topic;state.technique=item.id;options();next();document.querySelector('[data-section="thinking-lab"]')?.click();return true},skills:TECHNIQUES.map(t=>t.skill)};
 stat();options();next();showFactorExplorer();
 if(config.get('lab')==='1'||location.hash==='#thinking-lab'){
- window.addEventListener('load',()=>document.querySelector('.section-nav button[data-section="thinking-lab"]')?.click(),{once:true});
+ const open=()=>document.querySelector('.section-nav button[data-section="thinking-lab"]')?.click();
+ if(document.readyState==='complete')open();else window.addEventListener('load',open,{once:true});
 }
