@@ -65,7 +65,7 @@ export function createInteractiveModels({onInteraction=()=>{}}={}){
    let [a,b]=d.kind==='balance'?d.pairs[0]:[28,17];
    state={a,b,delta:0,reveal:false};
   }else if(model==='rectangle'){
-   const pair=d.pairs?.[0]||[4,7];
+   const pair=d.kind==='arrays'?d.pairs?.[0]||[4,7]:[4,7];
    state={width:clamp(Math.round(pair[0]),2,22),height:clamp(Math.round(pair[1]),2,18),moveX:0,moveY:0,
      baseW:clamp(Math.round(pair[0]),2,22),baseH:clamp(Math.round(pair[1]),2,18),reveal:false};
   }else if(model==='tiles'){
