@@ -1,13 +1,26 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.12.2',
+  currentVersion: '0.12.3',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.12.3',
+      date: '2026-11-11',
+      title: 'Maths Thinking Lab · Full-screen workspace',
+      ref: 'main',
+      status: 'current',
+      summary: 'Opens Maths Thinking Lab in a dedicated full-screen modal without the surrounding syllabus. Adds a persistent Close control, responsive sizing for iPad, phone and desktop, and preserves the current activity and parent/learner mode when reopened.',
+      areas: [
+        { id: 'thinking-fullscreen', title: 'Dedicated full-screen Lab', kind: 'ux', summary: 'Moves the entire interactive Thinking Lab out of the crowded syllabus panel and into a full-viewport native dialog with a fixed header and independent scroll region.' },
+        { id: 'thinking-return', title: 'Close, return and resume', kind: 'workflow', summary: 'Close or Escape returns to Beyond 100, restores keyboard focus and keeps the current exercise, input values, selected topic and mode alive for reopening.' },
+        { id: 'thinking-modal-tests', title: 'Responsive dialog regression', kind: 'workflow', summary: 'Extends phone and desktop browser smoke tests for deep linking, full-screen dimensions, absence of horizontal overflow, close/reopen state retention and Escape.' }
+      ]
+    },
     {
       version: '0.12.2',
       date: '2026-11-11',
       title: 'Explain Your Thinking · Maths Thinking Lab',
-      ref: 'main',
-      status: 'current',
+      ref: '1dff04aab7cb1590ba9f090761978547ec2f15a2',
+      status: 'archive',
       summary: 'Adds child-led mathematical explanations to all 20 Thinking Lab techniques: describe what changed, explain why, show evidence, compare everyday and mathematical models, improve wording and transfer the principle to new numbers.',
       areas: [
         { id: 'thinking-command-words', title: 'Question-word definitions', kind: 'curriculum', summary: 'Distinguishes describe, explain, why, how, justify and prove using clear primary-school language and mathematical examples.' },
