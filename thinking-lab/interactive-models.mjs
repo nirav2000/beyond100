@@ -109,10 +109,11 @@ export function createInteractiveModels({onInteraction=()=>{}}={}){
   let o=label(30,86,'Before',15,'#b4d9d1','start');
   o+=shape(x,y1,a*unit,67,'#27887e')+shape(split1,y1,b*unit,67,'#b38752');
   o+=label(x+a*unit/2,y1+40,a)+label(split1+b*unit/2,y1+40,b);
-  // A single, exactly one-unit-sized transferable slice is identified at the boundary.
-  o+=shape(split1,y1,unit,67,'#ffcc78','stroke="#fef6de" stroke-width="2"');
+  // Highlight the actual SOURCE side: right-to-left consumes B, reverse consumes A.
+  const moved=Math.max(1,Math.abs(delta)),sourceX=delta<0?split1-moved*unit:split1;
+  o+=shape(sourceX,y1,moved*unit,67,'#ffcc78','stroke="#fef6de" stroke-width="2"');
   o+=line(split1,y1-7,split1,y1+74,'#f4ca88',2,'stroke-dasharray="5 4"');
-  o+=label(Math.min(580,Math.max(100,split1+unit/2)),29,'1 unit',14,'#ffcc78');
+  o+=label(Math.min(580,Math.max(100,sourceX+moved*unit/2)),29,moved+' unit'+(moved===1?'':'s'),14,'#ffcc78');
   if(delta!==0){
     o+=label(30,207,'After',15,'#b4d9d1','start');
     o+=shape(x,y2,c*unit,67,'#27887e')+shape(split2,y2,d*unit,67,'#b38752');
