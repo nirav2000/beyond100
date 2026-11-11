@@ -2,7 +2,7 @@ import {compensationDiagram,friendlyExample} from './compensation-visual.mjs';
 // One child-led experiment: predict, physically move 1, compare, then apply it.
 const predictions=[['bigger','Yes — it gets bigger'],['same','No — it stays the same'],['smaller','Yes — it gets smaller']];
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-export function createCompensationExperiment({container,onSupport=()=>{},onFinish=()=>{}}={}){
+export function createCompensationExperiment({container,onSupport=()=>{},onPrediction=()=>{},onFinish=()=>{}}={}){
  if(!container)throw Error('Missing experiment host');
  container.classList.add('tl-comp-experiment');
  container.innerHTML='<h3>Will moving 1 change the total?</h3>'+
@@ -83,6 +83,7 @@ export function createCompensationExperiment({container,onSupport=()=>{},onFinis
  container.querySelector('.tl-comp-choices').addEventListener('click',e=>{
   const button=e.target.closest('[data-pred]');if(!button||phase>0)return;
   prediction=button.dataset.pred;container.querySelectorAll('[data-pred]').forEach(n=>n.setAttribute('aria-pressed',String(n===button)));
+  onPrediction({prediction,correct:prediction==='same'});
   $('tlCompAdvance').disabled=false;
   message('Good. Now test your idea. We haven’t checked it yet.');
  });
@@ -108,12 +109,21 @@ export function createCompensationExperiment({container,onSupport=()=>{},onFinis
   drag={pointerId:e.pointerId,x:e.clientX,y:e.clientY};
   e.target.closest('svg')?.setPointerCapture(e.pointerId);e.preventDefault();
  });
+ $('tlCompPicture').addEventListener('pointermove',e=>{
+  if(!drag||drag.pointerId!==e.pointerId||phase!==1)return;
+  const svg=$('tlCompPicture').querySelector('svg'),moving=svg?.querySelector('.tl-moving-one');
+  if(!moving||!svg)return;
+  const box=svg.getBoundingClientRect();
+  const dx=(e.clientX-drag.x)*680/box.width,dy=(e.clientY-drag.y)*340/box.height;
+  moving.setAttribute('transform','translate('+dx+' '+dy+')');
+ });
  $('tlCompPicture').addEventListener('pointerup',e=>{
   if(!drag||e.pointerId!==drag.pointerId)return;
   const distance=Math.hypot(e.clientX-drag.x,e.clientY-drag.y);drag=null;
   if(distance>13)moveOne('drag-one');
+  else $('tlCompPicture').querySelector('.tl-moving-one')?.removeAttribute('transform');
  });
- $('tlCompPicture').addEventListener('pointercancel',()=>{drag=null;});
+ $('tlCompPicture').addEventListener('pointercancel',()=>{drag=null;$('tlCompPicture').querySelector('.tl-moving-one')?.removeAttribute('transform');});
  $('tlCompPicture').addEventListener('keydown',e=>{
   if(phase===1&&(e.key==='Enter'||e.key===' '||e.key==='ArrowDown')&&e.target.closest('[data-drag-compensation]')){e.preventDefault();moveOne('keyboard-one');}
  });
