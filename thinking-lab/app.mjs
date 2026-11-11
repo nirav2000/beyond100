@@ -1,6 +1,7 @@
 import {TOPICS,TECHNIQUES,makeQuestion} from './engine.mjs';
 import {createGuidedDiscovery,buildStoryboard} from './guided-discovery.mjs';
 import {createInteractiveModels} from './interactive-models.mjs';
+import {createExplanationCoach} from './explanation-coach.mjs';
 
 const root=document.getElementById('thinkingLabRoot');
 if(!root) throw Error('Missing Maths Thinking Lab mount');
@@ -25,6 +26,7 @@ let histories={learner:loadHistory('learner'),parent:loadHistory('parent')};
 let factorNumber=validNum?contextNum:36;
 let factorVisible=sourceDol&&validNum;
 let factorSelected=1;
+let coach;
 const guide=createGuidedDiscovery({
  onReveal:()=>{state.guidedReveals=(state.guidedReveals||0)+1;},
  onPrediction:({prediction})=>{
@@ -34,13 +36,36 @@ const guide=createGuidedDiscovery({
  },
  onFinish:({correct})=>{
   if(state.done)return;state.done=true;record(correct);
-  text('tlStatus','Your experiment is recorded. Try 729 + 21 above, or change the numbers for another challenge.');
+  text('tlStatus','Now try 729 + 21. Then describe what you changed and why it works.');
+ },
+ onApplication:()=>{
+  coach?.setReady(true);
+  text('tlStatus','Now explain your method and why the sum stayed unchanged.');
  }
 });
 const manip=createInteractiveModels({onInteraction:()=>{state.manipInteractions=(state.manipInteractions||0)+1;}});
+coach=createExplanationCoach({onProgress:saveExplanation});
 
 function loadHistory(r){const x=read(pref+'history.'+r,[]);return Array.isArray(x)?x.slice(-400):[]}
 function storeHistory(r){write(pref+'history.'+r,histories[r])}
+function explanationHistory(r){const rows=read(pref+'explanations.'+r,[]);return Array.isArray(rows)?rows:[]}
+function saveExplanation({profile,record}){
+ const r=profile==='parent'?'parent':'learner',item={...record,exerciseId:state.exerciseId};
+ const rows=explanationHistory(r),ix=rows.findIndex(row=>row.id===item.id);
+ if(ix===-1)rows.push(item);else rows[ix]=item;
+ write(pref+'explanations.'+r,rows.slice(-150));
+ const attempt=histories[r].findLast(row=>row.exerciseId===state.exerciseId);
+ if(attempt){
+  attempt.explanationProvided=Boolean(item.firstWhy.trim());
+  attempt.explanation=item.firstWhy.slice(0,500);
+  attempt.explanationRevised=Boolean(item.improved);
+  attempt.explanationTransferCorrect=item.transfer?.correct;
+  attempt.explanationIndependentStart=item.independentStart;
+  attempt.explanationHelpUsed=item.helpUsed;
+  storeHistory(r);
+ }
+ if(r==='learner')coach?.renderReview(explanationHistory('learner'));
+}
 function text(id,s){const n=$(id);if(n)n.textContent=String(s??'')}
 function show(id,on){$(id).hidden=!on}
 function stat(){const rows=histories[role],first=rows.filter(e=>e.correct&&e.wrong===0).length,ind=rows.filter(e=>e.correct&&!e.assisted).length;
@@ -165,13 +190,13 @@ function next(same=false){
  const rows=histories[role],weak=rows.slice(-50).filter(r=>!r.correct||r.assisted||r.durationMs>30000).map(r=>r.technique);
  const topic=state.topic,technique=same&&state.question?state.question.id:state.technique;
  const question=makeQuestion({topic,technique,level:state.level,weak});
- state={...state,question,strategy:null,choice:null,hints:0,wrong:0,guidedReveals:0,manipInteractions:0,visual:false,view:0,started:performance.now(),firstAnswerMs:null,done:false,revealed:false};
+ state={...state,question,exerciseId:Date.now()+'-'+Math.random().toString(36).slice(2,9),strategy:null,choice:null,hints:0,wrong:0,guidedReveals:0,manipInteractions:0,visual:false,view:0,started:performance.now(),firstAnswerMs:null,done:false,revealed:false};
  text('tlTag',TOPICS.find(t=>t[0]===question.topic)?.[1]||question.topic);
  text('tlMethod',question.name);text('tlPrompt',question.prompt);text('tlHintText','');
  text('tlTopicSkill',question.skill);text('tlFeedback','');
  show('tlFeedback',false);show('tlSolution',false);show('tlVisual',false);show('tlHintText',false);
  $('tlShow').textContent='Show diagram';$('tlHint').textContent='Hint 1 of 2';$('tlHint').disabled=false;
- $('tlWhy').value='';$('tlCheck').disabled=true;$('tlCheck').textContent='Check prediction';
+ $('tlCheck').disabled=true;$('tlCheck').textContent='Check prediction';
  $('tlReveal').disabled=false; text('tlStatus','Look for a relationship first.');
  $('tlStrategies').innerHTML=randStrategies(question).map(s=>'<button type="button" class="tl-option" data-strategy="'+escapeText(s)+'">'+escapeText(s)+'</button>').join('');
  $('tlChoices').innerHTML=question.options.map(o=>'<button type="button" class="tl-option" data-choice="'+escapeText(o)+'">'+escapeText(o)+'</button>').join('');
@@ -185,6 +210,7 @@ function next(same=false){
  renderCoach();
  guide.load(question);
  manip.load(question);
+ coach.load(question,{profile:role,level:state.level});
 }
 function displayVisual(){
  const q=state.question;
