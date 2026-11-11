@@ -24,9 +24,12 @@ function bars(a,b,k,phase){
  o+=rect(x,y1,first,h,TEAL)+rect(x+first,y1,w-first,h,SAND);
  o+=text(x+first/2,y1+33,a,19)+text(x+first+(w-first)/2,y1+33,b,19);
  if(showHighlight){
-   o+=rect(x+first,y1,Math.max(piece,2),h,PURPLE,'#f0eaff');
+   o+='<g class="tl-moving-one" data-drag-compensation="1" tabindex="0" role="button" aria-label="Drag one unit into the other part" style="cursor:grab;touch-action:none">'+
+   rect(x+first,y1,Math.max(piece,3),h,PURPLE,'#f0eaff')+
+   '<circle cx="'+(x+first+piece/2)+'" cy="'+(y1+h/2)+'" r="21" fill="'+PURPLE+'" fill-opacity=".18" stroke="'+PURPLE+'" stroke-width="2"/>'+
+   '</g>';
    o+=line(x+first,y1+60,x+first,y2-5,PURPLE,2,'stroke-dasharray="5 5"');
-   o+=text(340,31,'Purple is the '+k+' we will move.',17,LIGHT);
+   o+=text(340,35,'Move the PURPLE '+k+' from brown to green.',16,LIGHT);
  }
  if(showMoved){
    o+=text(25,y2+34,'After',15,'#c4e5df','start');
@@ -51,8 +54,10 @@ function cards(a,b,k,phase){
  o+=rect(x1,y1,cardW,h,TEAL)+rect(x2,y1,cardW,h,SAND);
  o+=text(x1+cardW/2,y1+34,a,21)+text(x2+cardW/2,y1+34,b,21);
  if(showHighlight){
-   o+=rect(x2+8,y1+7,40,h-14,PURPLE,'#e8dcff');
-   o+=text(x2+28,y1+34,k,20,'#151d35');
+   o+='<g class="tl-moving-one" data-drag-compensation="1" tabindex="0" role="button" aria-label="Drag one from the brown part to the green part" style="cursor:grab;touch-action:none">'+
+      rect(x2+8,y1+7,40,h-14,PURPLE,'#e8dcff')+
+      text(x2+28,y1+34,k,20,'#151d35')+'</g>';
+   
    o+=text(340,78,'This '+k+' comes from the brown part.',15,'#ded4ff');
  }
  if(showMoved){
