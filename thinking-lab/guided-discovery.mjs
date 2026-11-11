@@ -411,6 +411,18 @@ export function createGuidedDiscovery({onReveal=()=>{}}={}){
  const subhead=anchor.previousElementSibling;
  if(subhead&&subhead.classList.contains('tl-subhead'))subhead.before(section);
  else anchor.before(section);
+ // The old quick diagram remains available, but as an alternative, not a duplicate
+ // instructional sequence that spoils the guided prediction.
+ const quickHeading=[...content.querySelectorAll('.tl-subhead')].find(n=>n.textContent.trim().startsWith('3. Explore the visual'));
+ const quick=document.createElement('details');quick.className='tl-quick';quick.id='tlQuickDetails';
+ const summary=document.createElement('summary');
+ summary.textContent='Alternative: quick diagram and hints';
+ quick.appendChild(summary);
+ if(quickHeading){
+  const items=[quickHeading,quickHeading.nextElementSibling,document.getElementById('tlHintText'),document.getElementById('tlVisual')].filter(Boolean);
+  quickHeading.before(quick);
+  items.forEach(n=>quick.appendChild(n));
+ }
  const $=id=>section.querySelector('#'+id);
  const body=$('tlGuideBody'),openButton=$('tlGuideOpen');
  let board=null,stage=0,view=0,opened=false,used=false,revealed=false;
@@ -434,6 +446,7 @@ export function createGuidedDiscovery({onReveal=()=>{}}={}){
  };
  const load=question=>{
   board=buildStoryboard(question);stage=0;view=0;opened=false;used=false;revealed=false;
+  quick.open=!board;
   openButton.textContent=board?'Start guided explanation':'Storyboard coming soon';
   openButton.disabled=!board;openButton.setAttribute('aria-expanded','false');
   body.hidden=true;
