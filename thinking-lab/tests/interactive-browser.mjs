@@ -59,6 +59,19 @@ try{
   assert.match(after,/Transferred 1 unit/);
   await drag(page,'#tlManipSvg [data-drag="transfer"]',45);
   assert.equal(await page.locator('#tlManipSvg [data-drag="transfer"]').count(),1);
+  if(width===390){
+   // Real touch events rather than mouse events in a mobile-sized window.
+   const handle=page.locator('#tlManipSvg [data-drag="transfer"]');
+   await handle.scrollIntoViewIfNeeded();
+   const pos=await handle.boundingBox(),cx=pos.x+pos.width/2,cy=pos.y+pos.height/2;
+   const beforeTouch=await page.locator('#tlManipStatus').innerText();
+   const cdp=await page.context().newCDPSession(page);
+   const finger=(x,y)=>({x,y,radiusX:4,radiusY:4,force:1,id:1});
+   await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[finger(cx,cy)]});
+   for(let i=1;i<=7;i++)await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[finger(cx+i*5,cy)]});
+   await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+   assert.notEqual(await page.locator('#tlManipStatus').innerText(),beforeTouch,'Touch drag should transfer a different number of units');
+  }
 
   await page.locator('#tlManipBody [data-model="rectangle"]').click();
   const rectangleBefore=await page.locator('#tlManipStatus').innerText();
