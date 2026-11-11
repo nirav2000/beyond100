@@ -164,3 +164,6 @@ body.annotating #notesDialog.is-minimised[data-note-anchor]{outline:3px solid rg
 .notes-head-actions,.notes-head-actions button{touch-action:manipulation}
 .notes-minimise{width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important}
 .notes-dialog.is-minimised .notes-minimise,.notes-dialog.is-minimised .notes-close{width:38px!important;height:38px!important}
+
+/* Switching topic must fully hide the previous topic's explanatory panels. */
+.topic-context[hidden]{display:none!important}

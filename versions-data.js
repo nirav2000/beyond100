@@ -1,9 +1,9 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.12.1',
+  currentVersion: '0.12.2',
   repository: 'nirav2000/beyond100',
   releases: [
     {
-      version: '0.12.1',
+      version: '0.12.2',
       date: '2026-11-11',
       title: 'Explain Your Thinking · Maths Thinking Lab',
       ref: 'main',
@@ -15,6 +15,7 @@ window.BEYOND100_RELEASES = {
         { id: 'thinking-compensation-transfer', title: 'Compensation in both directions', kind: 'learning', summary: 'Builds on the child-led 729 + 21 experiment and checks equivalent friendly-number transfers with new addends and both directions.' },
         { id: 'thinking-parent-review', title: 'Separate reasoning assessment', kind: 'assessment', summary: 'Parent Academy compares first and revised answers and separately assesses description, why, evidence and mathematical vocabulary, without treating correct arithmetic as proof of sound reasoning.' },
         { id: 'thinking-offline-records', title: 'Role-scoped explanation records', kind: 'data', summary: 'Retains independent first drafts, model/help exposure, revisions, new-example calculations and parent ratings in on-device history, separate from the existing learning-evidence hook.' },
+        { id: 'topic-context-visibility', title: 'Only the active topic remains visible', kind: 'platform', summary: 'Respects the hidden attribute on topic context panels so switching from Place Value to Roman Numerals does not leave previous lesson content on screen.' },
         { id: 'responsive-syllabus-smoke', title: 'Responsive syllabus navigation regression', kind: 'workflow', summary: 'The Pages smoke test opens the mobile syllabus menu only when visible; on desktop it checks the always-visible sidebar directly.' },
         { id: 'thinking-print-tests', title: 'Printable explanations and regression tests', kind: 'workflow', summary: 'Adds separate what/why/evidence lines on practice sheets and runs unit plus mobile/desktop browser explanation-flow tests in CI.' }
       ]
