@@ -41,7 +41,7 @@ export function makeQuestion({topic='all',technique='all',level=1,rng=Math.rando
  let a,b,c,k,n,w,h;
  switch(id){
  case 'balance-add':
-  a=r(14,35*s,rng);b=r(15,30*s,rng);k=r(2,Math.min(9,b-2),rng);
+  a=r(14,35*s,rng);b=r(15,30*s,rng);k=level===1?1:level===2?r(1,3,rng):r(1,Math.min(9,b-2),rng);
   return Q(id,'Without adding, compare '+a+' + '+b+' and '+(a+k)+' + '+(b-k)+'.',['Equal','First larger','Second larger'],'Equal','One part gains '+k+'; the other loses '+k+'. The total is unchanged.',{kind:'balance',pairs:[[a,b],[a+k,b-k]]},['Which part gains and which part loses?','Does the amount gained equal the amount lost?']);
  case 'balance-sub':
   b=r(8,24*s,rng);a=b+r(10,36*s,rng);k=r(2,11,rng);
