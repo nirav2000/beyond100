@@ -26,3 +26,14 @@ jobs:
           find thinking-lab -name '*.mjs' -exec node --check '{}' ';'
       - name: Test structural reasoning
         run: node --test thinking-lab/tests/engine.test.mjs
+
+      - name: Install browser test dependencies
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Browser smoke test (phone and desktop)
+        run: |
+          python3 -m http.server 8877 --bind 127.0.0.1 >/tmp/beyond100-lab-http.log 2>&1 &
+          server=$!
+          trap 'kill $server 2>/dev/null || true' EXIT
+          node thinking-lab/tests/browser-smoke.mjs
