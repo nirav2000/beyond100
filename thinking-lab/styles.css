@@ -63,3 +63,19 @@
  #thinking-lab .tl .tl-stat{padding:7px}
  #thinking-lab .tl .tl-stat strong{font-size:20px}
 }
+
+/* Keep printable questions out of the interactive screen; show only the sheet in print. */
+#tlPrint{display:none}
+@media print{
+ @page{size:A4;margin:14mm}
+ body .app-shell,body .scrim{display:none!important}
+ #tlPrint{display:block!important;position:static;background:white;color:#111;font:12pt/1.45 Arial,sans-serif}
+ #tlPrint h1{font-size:21pt;margin:0 0 10px}
+ #tlPrint h2{font-size:16pt}
+ #tlPrint h3{font-size:13pt;margin:0 0 5px}
+ #tlPrint section{break-inside:avoid;border-bottom:1px solid #aaa;padding:12px 0 16px}
+ #tlPrint p{margin:6px 0}
+ #tlPrint .writing{min-height:33px;padding-top:10px}
+ #tlPrint .answers{break-before:page}
+ #tlPrint .answers p{break-inside:avoid;margin-bottom:12px}
+}
