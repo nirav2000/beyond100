@@ -73,7 +73,7 @@ export function createInteractiveModels({onInteraction=()=>{}}={}){
    const cols=n%6===0?6:n%4===0?4:n%3===0?3:Math.ceil(Math.sqrt(n));
    state={n,sameQuestion:info.sameQuestion,positions:Array.from({length:n},(_,i)=>({col:i%cols,row:Math.floor(i/cols)})),reveal:false};
   }else if(model==='fraction'){
-   const [n,dn]=d.pairs?.[0]||[2,5];
+   const [n,dn]=d.kind==='fractions'?d.pairs?.[0]||[2,5]:[2,5];
    state={num:Math.max(1,Math.round(n)),den:Math.max(2,Math.round(dn)),reveal:false};
   }else if(model==='angle'){
    state={angle:clamp(Math.round(d.value||75),5,175),reveal:false};
