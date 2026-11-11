@@ -1,0 +1,81 @@
+/* Maths Thinking Lab: scoped to the existing Beyond 100 topic panel. */
+#thinking-lab .tl{--tl-ink:#172b35;--tl-muted:#64737b;--tl-line:#d9e2e0;--tl-accent:#146c67;color:var(--tl-ink);max-width:100%;font:inherit}
+#thinking-lab .tl *{box-sizing:border-box}
+#thinking-lab .tl h2,#thinking-lab .tl h3{line-height:1.25;letter-spacing:-.02em}
+#thinking-lab .tl h2{font-size:clamp(24px,3vw,33px);margin:0 0 8px}
+#thinking-lab .tl p{line-height:1.56}
+#thinking-lab .tl-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;margin-bottom:17px}
+#thinking-lab .tl-head p{margin:0;max-width:690px;color:var(--tl-muted)}
+#thinking-lab .tl-modes{display:flex;border:1px solid var(--tl-line);border-radius:12px;background:#eff5f2;padding:4px;gap:4px}
+#thinking-lab .tl-modes button{border:0;background:transparent;color:#33535b;padding:10px 12px;border-radius:8px;min-height:44px;font-weight:750}
+#thinking-lab .tl-modes button[aria-pressed="true"]{background:#146c67;color:#fff}
+#thinking-lab .tl-controls{display:grid;grid-template-columns:1fr 1.5fr .85fr;gap:11px;margin:18px 0}
+#thinking-lab .tl-controls label{display:grid;gap:6px;font-size:13px;font-weight:750;color:#395561}
+#thinking-lab .tl select,#thinking-lab .tl textarea{font:inherit;padding:11px;border:1px solid #8fa7a8;border-radius:10px;background:#fff;color:#162c35;width:100%;min-width:0}
+#thinking-lab .tl button{font:inherit;cursor:pointer;min-height:43px}
+#thinking-lab .tl button:focus-visible,#thinking-lab .tl select:focus-visible,#thinking-lab .tl textarea:focus-visible{outline:3px solid #bf8c46;outline-offset:2px}
+#thinking-lab .tl .tl-main{border:1px solid #cbdedb;border-radius:16px;background:#fff;overflow:hidden;box-shadow:0 8px 25px #18383d0a}
+#thinking-lab .tl .tl-question{background:#e9f5f1;padding:22px 24px}
+#thinking-lab .tl .tl-tag{font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:800;color:#176d64}
+#thinking-lab .tl .tl-question h3{font-size:clamp(22px,2.7vw,31px);margin:9px 0}
+#thinking-lab .tl .tl-instruction{font-size:13px;color:#57716f;margin:0}
+#thinking-lab .tl .tl-content{padding:23px 24px}
+#thinking-lab .tl .tl-subhead{font-size:15px;font-weight:800;margin:16px 0 9px}
+#thinking-lab .tl .tl-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:9px}
+#thinking-lab .tl .tl-option{border:1px solid #9dbab4;background:#f5fbf8;color:#173e40;border-radius:10px;text-align:left;padding:11px;min-height:50px;font-weight:650}
+#thinking-lab .tl .tl-option.selected{border-color:#086d62;box-shadow:inset 0 0 0 2px #086d62;background:#e5f7ec}
+#thinking-lab .tl .tl-option.correct{background:#e1f6e6;border-color:#278456}
+#thinking-lab .tl .tl-option:disabled{cursor:default}
+#thinking-lab .tl .tl-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:17px}
+#thinking-lab .tl .tl-btn{border:1px solid #a3bcb6;color:#174642;background:#f2f9f6;border-radius:10px;padding:10px 14px;font-weight:750}
+#thinking-lab .tl .tl-btn.primary{color:#fff;background:#126d61;border-color:#126d61}
+#thinking-lab .tl .tl-btn:disabled{opacity:.5;cursor:not-allowed}
+#thinking-lab .tl .tl-feedback{padding:11px 14px;border-radius:10px;background:#fff3e6;border:1px solid #d3a977;margin-top:14px}
+#thinking-lab .tl .tl-feedback.good{background:#e8f8ed;border-color:#6eac84}
+#thinking-lab .tl .tl-diagram{background:#13272e;color:#eaf8f5;border-radius:12px;padding:12px;margin:14px 0;max-width:100%;overflow:auto}
+#thinking-lab .tl .tl-diagram svg{max-width:100%;height:auto;display:block}
+#thinking-lab .tl .tl-model-actions{display:flex;gap:8px;margin:8px 0 0}
+#thinking-lab .tl .tl-solution{background:#edf6f5;border:1px solid #b8d9d1;border-radius:12px;margin:14px 0;padding:16px}
+#thinking-lab .tl .tl-solution p{margin:5px 0}
+#thinking-lab .tl .tl-coach,#thinking-lab .tl .tl-factor{background:#fefaf2;border:1px solid #e6d7b7;border-radius:14px;padding:18px;margin:16px 0}
+#thinking-lab .tl .tl-coach h3,#thinking-lab .tl .tl-factor h3{margin:0 0 9px}
+#thinking-lab .tl .tl-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:18px}
+#thinking-lab .tl .tl-stat{background:#f2f8f5;border:1px solid #d5e4de;border-radius:10px;padding:11px}
+#thinking-lab .tl .tl-stat strong{font-size:25px;display:block}
+#thinking-lab .tl .tl-stat span{font-size:12px;color:#536c69}
+#thinking-lab .tl .tl-caption{font-size:12px;color:#586e74;line-height:1.5}
+#thinking-lab .tl .tl-factor-controls{display:flex;flex-wrap:wrap;gap:12px;align-items:end;margin-top:8px}
+#thinking-lab .tl .tl-factor-controls label{min-width:155px;max-width:260px;font-weight:700;font-size:13px}
+#thinking-lab .tl .tl-factor-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(34px,1fr));gap:3px;margin:10px 0}
+#thinking-lab .tl .tl-square{aspect-ratio:1;background:#4c9f96;border:1px solid #1c595b;border-radius:2px}
+#thinking-lab .tl .tl-parent-steps{margin-top:12px;line-height:1.7}
+#thinking-lab .tl a{color:#075d69}
+#thinking-lab .tl .tl-curriculum{font-size:12px;color:#596c73;margin:8px 0}
+#thinking-lab .tl .tl-empty{color:#5b737a}
+#thinking-lab .tl [hidden]{display:none!important}
+@media(max-width:650px){
+ #thinking-lab .tl-controls{grid-template-columns:1fr 1fr}
+ #thinking-lab .tl-controls label:nth-child(2){grid-column:1/-1;grid-row:2}
+ #thinking-lab .tl .tl-question{padding:17px}
+ #thinking-lab .tl .tl-content{padding:17px}
+ #thinking-lab .tl .tl-options{grid-template-columns:1fr}
+ #thinking-lab .tl .tl-stats{gap:5px}
+ #thinking-lab .tl .tl-stat{padding:7px}
+ #thinking-lab .tl .tl-stat strong{font-size:20px}
+}
+
+/* Keep printable questions out of the interactive screen; show only the sheet in print. */
+#tlPrint{display:none}
+@media print{
+ @page{size:A4;margin:14mm}
+ body .app-shell,body .scrim{display:none!important}
+ #tlPrint{display:block!important;position:static;background:white;color:#111;font:12pt/1.45 Arial,sans-serif}
+ #tlPrint h1{font-size:21pt;margin:0 0 10px}
+ #tlPrint h2{font-size:16pt}
+ #tlPrint h3{font-size:13pt;margin:0 0 5px}
+ #tlPrint section{break-inside:avoid;border-bottom:1px solid #aaa;padding:12px 0 16px}
+ #tlPrint p{margin:6px 0}
+ #tlPrint .writing{min-height:33px;padding-top:10px}
+ #tlPrint .answers{break-before:page}
+ #tlPrint .answers p{break-inside:avoid;margin-bottom:12px}
+}
