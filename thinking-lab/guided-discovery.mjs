@@ -351,7 +351,7 @@ export function buildStoryboard(question){
 }
 export function listStoryboards(){return Object.keys(SCRIPT)}
 
-export function createGuidedDiscovery({onReveal=()=>{},onPrediction=()=>{},onFinish=()=>{}}={}){
+export function createGuidedDiscovery({onReveal=()=>{},onPrediction=()=>{},onFinish=()=>{},onApplication=()=>{}}={}){
  const content=document.querySelector('#thinkingLabRoot .tl-content');
  const anchor=document.querySelector('#tlStrategies');
  if(!content||!anchor)throw Error('Guided lesson requires the Thinking Lab content panel');
@@ -383,7 +383,7 @@ export function createGuidedDiscovery({onReveal=()=>{},onPrediction=()=>{},onFin
  const $=id=>section.querySelector('#'+id);
  const body=$('tlGuideBody'),openButton=$('tlGuideOpen');
  const special=document.createElement('div');special.id='tlCompHost';special.hidden=true;body.before(special);
- const experiment=createCompensationExperiment({container:special,onSupport:onReveal,onPrediction,onFinish});
+ const experiment=createCompensationExperiment({container:special,onSupport:onReveal,onPrediction,onFinish,onApplication});
  const topTitle=section.querySelector('.tl-guide-top h3'),intro=$('tlGuideIntroduction');
  let board=null,stage=0,view=0,opened=false,used=false,revealed=false;
  const draw=()=>{
