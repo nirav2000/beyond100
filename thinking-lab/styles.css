@@ -308,3 +308,11 @@
   #thinking-lab .tl .tl-explain-definition{grid-template-columns:1fr;gap:3px}
   #thinking-lab .tl .tl-explain-transfer-fields{grid-template-columns:1fr}
 }
+
+#thinking-lab .tl .tl-explain-parent h5{font-size:15px;margin:20px 0 10px;line-height:1.4}
+#thinking-lab .tl .tl-explain-parent-marks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#thinking-lab .tl .tl-explain-parent-marks label{font-size:13px;font-weight:700;line-height:1.45}
+#thinking-lab .tl .tl-explain-parent-marks select{display:block;margin-top:6px;font-weight:500;font-size:14px;width:100%}
+#thinking-lab .tl .tl-explain-note-label{display:block;font-weight:700;font-size:14px;margin:15px 0 10px}
+#thinking-lab .tl .tl-explain-parent .tl-explain-note-label textarea{display:block;margin-top:7px;width:100%;min-height:65px}
+@media(max-width:680px){#thinking-lab .tl .tl-explain-parent-marks{grid-template-columns:1fr}}
