@@ -365,63 +365,72 @@ export function createGuidedDiscovery({onReveal=()=>{}}={}){
  const anchor=document.querySelector('#tlStrategies');
  if(!content||!anchor)throw Error('Guided lesson requires the Thinking Lab content panel');
  const section=document.createElement('section');
- section.id='tlGuided';
- section.className='tl-guided';
- section.innerHTML='<div class="tl-guide-top"><div><span class="tl-guide-kicker">GUIDED DISCOVERY</span><h3>Pause. Predict. Reveal.</h3><p id="tlGuideIntroduction">Explore the thinking behind the answer, one piece at a time.</p></div><button id="tlGuideOpen" type="button" aria-expanded="false" class="tl-btn">Start guided explanation</button></div>'+
- '<div id="tlGuideBody" hidden><div class="tl-guide-status"><span id="tlGuideCounter">Step 1 of 5</span><span id="tlGuideStageLabel">Prediction</span></div>'+
+ section.id='tlGuided';section.className='tl-guided';
+ section.innerHTML='<div class="tl-guide-top"><div><span class="tl-guide-kicker">GUIDED DISCOVERY</span><h3>Pause. Predict. Reveal.</h3><p id="tlGuideIntroduction"></p></div><button id="tlGuideOpen" type="button" aria-expanded="false" aria-controls="tlGuideBody" class="tl-btn">Start guided explanation</button></div>'+
+ '<div id="tlGuideBody" hidden><div class="tl-guide-status"><span id="tlGuideCounter">Pause 1 of 5</span><span id="tlGuideStageLabel">Observe</span></div>'+
  '<div id="tlGuideQuestion" class="tl-guide-question" aria-live="polite"></div>'+
  '<div id="tlGuideVisual" class="tl-guide-graphic"></div>'+
  '<div class="tl-guide-views" role="group" aria-label="Choose a visual explanation"><button type="button" id="tlGuideViewA" aria-pressed="true"></button><button type="button" id="tlGuideViewB" aria-pressed="false"></button></div>'+
- '<div id="tlGuideReveal" class="tl-guide-reveal" aria-live="polite">Nothing revealed yet. Think about the question first.</div>'+
- '<div class="tl-guide-actions"><button type="button" id="tlGuidePrev" class="tl-btn">Previous layer</button><button type="button" id="tlGuideNext" class="tl-btn primary">Reveal first layer</button><button type="button" id="tlGuideRestart" class="tl-btn">Start again</button></div>'+
- '<p class="tl-caption">You control the pace. Seeing a teaching reveal is recorded as supported practice, not an independent answer.</p></div>';
+ '<div id="tlGuideReveal" class="tl-guide-reveal" aria-live="polite" hidden></div>'+
+ '<div class="tl-guide-actions"><button type="button" id="tlGuidePrev" class="tl-btn">Previous pause</button><button type="button" id="tlGuideRevealPart" class="tl-btn primary">Reveal this layer</button><button type="button" id="tlGuideNext" class="tl-btn">Next pause</button><button type="button" id="tlGuideRestart" class="tl-btn">Restart</button></div>'+
+ '<p class="tl-caption">Nothing advances automatically. Discuss each prediction before revealing the next relationship. A reveal counts as guided help, not independent success.</p></div>';
  const subhead=anchor.previousElementSibling;
  if(subhead&&subhead.classList.contains('tl-subhead'))subhead.before(section);
  else anchor.before(section);
  const $=id=>section.querySelector('#'+id);
  const body=$('tlGuideBody'),openButton=$('tlGuideOpen');
- let board=null,activeQuestion=null,stage=0,view=0,opened=false,used=false;
+ let board=null,stage=0,view=0,opened=false,used=false,revealed=false;
  const draw=()=>{
   if(!board)return;
-  $('tlGuideCounter').textContent='Layer '+(stage+1)+' of '+board.steps.length;
-  $('tlGuideStageLabel').textContent=stage===0?'Before the reveal':stage===4?'Generalise':'What changed?';
+  $('tlGuideCounter').textContent=(revealed?'Reveal ':'Pause ')+(stage+1)+' of '+board.steps.length;
+  $('tlGuideStageLabel').textContent=stage===0?'Observe and predict':stage===4?'Generalise':'Reason again';
   $('tlGuideQuestion').textContent=board.steps[stage].pause;
-  $('tlGuideVisual').innerHTML=board.image(stage,view);
-  $('tlGuideReveal').textContent=board.steps[stage].reveal;
+  const visibleStage=revealed?stage:Math.max(0,stage-1);
+  $('tlGuideVisual').innerHTML=board.image(visibleStage,view);
+  $('tlGuideReveal').hidden=!revealed;
+  $('tlGuideReveal').textContent=revealed?board.steps[stage].reveal:'';
   $('tlGuideViewA').textContent=board.views[0];
   $('tlGuideViewB').textContent=board.views[1];
   $('tlGuideViewA').setAttribute('aria-pressed',String(view===0));
   $('tlGuideViewB').setAttribute('aria-pressed',String(view===1));
   $('tlGuidePrev').disabled=stage===0;
-  $('tlGuideNext').disabled=stage===board.steps.length-1;
-  $('tlGuideNext').textContent=stage>=board.steps.length-2?'Finish explanation':'Reveal next layer';
-  if(stage===0)$('tlGuideReveal').textContent='No worked answer yet. Make your prediction, then reveal only what you need.';
+  $('tlGuideNext').disabled=!revealed||stage===board.steps.length-1;
+  $('tlGuideRevealPart').disabled=revealed;
+  $('tlGuideRevealPart').textContent=revealed?'Layer revealed':'Reveal this layer';
  };
  const load=question=>{
-  activeQuestion=question;board=buildStoryboard(question);stage=0;view=0;used=false;opened=false;
-  openButton.textContent=board?'Start guided explanation':'Guided storyboard not yet available';
-  openButton.disabled=!board;openButton.setAttribute('aria-expanded','false');body.hidden=true;
-  $('tlGuideIntroduction').textContent=board?'Two labelled ways to see '+board.title.toLowerCase()+'. Work through five learner-controlled steps.':'This technique currently has the basic diagram and hints. Richer guided storyboards are being developed.';
+  board=buildStoryboard(question);stage=0;view=0;opened=false;used=false;revealed=false;
+  openButton.textContent=board?'Start guided explanation':'Storyboard coming soon';
+  openButton.disabled=!board;openButton.setAttribute('aria-expanded','false');
+  body.hidden=true;
+  $('tlGuideIntroduction').textContent=board?
+   'Two labelled models for '+board.title.toLowerCase()+'. Five prediction pauses, each followed by a learner-controlled reveal.':
+   'The basic diagrams and hints remain available. Richer guided lessons are being added for this technique.';
   if(board)draw();
  };
- const toggle=()=>{
+ openButton.addEventListener('click',()=>{
   if(!board)return;
   opened=!opened;body.hidden=!opened;openButton.setAttribute('aria-expanded',String(opened));
   openButton.textContent=opened?'Close guided explanation':'Start guided explanation';
   if(opened)draw();
- };
- openButton.addEventListener('click',toggle);
- $('tlGuideNext').addEventListener('click',()=>{
-  if(!board||stage>=board.steps.length-1)return;
-  stage++;used=true;onReveal({id:board.id,stage,view});draw();
  });
- $('tlGuidePrev').addEventListener('click',()=>{if(stage>0){stage--;draw();}});
- $('tlGuideRestart').addEventListener('click',()=>{stage=0;view=0;draw();});
+ $('tlGuideRevealPart').addEventListener('click',()=>{
+  if(!board||revealed)return;
+  revealed=true;used=true;onReveal({id:board.id,stage:stage+1,view});
+  draw();
+ });
+ $('tlGuideNext').addEventListener('click',()=>{
+  if(!board||!revealed||stage>=board.steps.length-1)return;
+  stage++;revealed=false;draw();
+ });
+ $('tlGuidePrev').addEventListener('click',()=>{
+  if(stage===0)return;
+  stage--;revealed=false;draw();
+ });
+ $('tlGuideRestart').addEventListener('click',()=>{stage=0;view=0;revealed=false;draw()});
  for(const [id,v] of [['tlGuideViewA',0],['tlGuideViewB',1]])$(id).addEventListener('click',()=>{
   if(!board)return;
-  view=v;
-  // Choosing an alternate model is useful evidence but only revealing a layer counts as taught support.
-  draw();
+  view=v;draw();
  });
  return {load,used:()=>used,stage:()=>stage,available:()=>!!board};
 }
