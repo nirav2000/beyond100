@@ -217,14 +217,18 @@ function showFactorExplorer(){
  factorSelected=Math.max(1,Math.min(factorSelected,limit));$('tlFactorTest').value=String(factorSelected);
  const valid=n%factorSelected===0;
  text('tlFactorResult',valid?'Yes: '+factorSelected+' x '+n/factorSelected+' = '+n+'.':'No: '+n+' divided into '+factorSelected+' equal groups leaves remainder '+n%factorSelected+'.');
- const w=valid?Math.min(20,n/factorSelected):Math.min(20,factorSelected);
- const count=valid?Math.min(n,320):Math.min(n,120);
- const cols=valid?Math.max(1,Math.min(n/factorSelected,32)):Math.min(factorSelected,32);
- const rows=valid?Math.min(factorSelected,32):Math.ceil(count/cols);
  let o='';
- for(let k=0;k<Math.min(count,cols*rows);k++){
-  const x=24+(k%cols)*Math.min(17,560/cols),y=27+Math.floor(k/cols)*Math.min(17,155/rows);
-  o+=rect(x,y,Math.min(15,540/cols-1),Math.min(15,153/rows-1),valid?'#339e90':'#c09459');
+ if(valid){
+  const cols=n/factorSelected,rows=factorSelected;
+  const cell=Math.min(22,520/cols,140/rows),wide=cols*cell,high=rows*cell;
+  const x=310-wide/2,y=31+(146-Math.max(10,high))/2;
+  o+=rect(x,y,wide,Math.max(10,high),'#339e90');
+  if(cols<=32)for(let c=1;c<cols;c++)o+=ln(x+c*cell,y,x+c*cell,y+Math.max(10,high),'#8ed0c4',.7);
+  if(rows<=32&&high>=10)for(let r=1;r<rows;r++)o+=ln(x,y+r*cell,x+wide,y+r*cell,'#8ed0c4',.7);
+  o+=tx(310,210,rows+' rows x '+cols+' columns',16);
+ }else{
+  o+=tx(310,103,n+' divided by '+factorSelected,20);
+  o+=tx(310,142,'Remainder '+n%factorSelected+' : not a complete rectangle',16,'#f2be85');
  }
  $('tlFactorPicture').innerHTML=svg(o);
  text('tlFactorList','Factor pairs: '+pairs.map(p=>p[0]+' x '+p[1]).join(' · '));
@@ -293,6 +297,6 @@ window.addEventListener('afterprint',()=>{$('tlPrint').innerHTML=''});
 window.BEYOND100_THINKING_LAB={openTechnique:(id)=>{const item=TECHNIQUES.find(t=>t.id===id);if(!item)return false;state.topic=item.topic;state.technique=item.id;options();next();document.querySelector('[data-section="thinking-lab"]')?.click();return true},skills:TECHNIQUES.map(t=>t.skill)};
 stat();options();next();showFactorExplorer();
 if(config.get('lab')==='1'||location.hash==='#thinking-lab'){
- const open=()=>document.querySelector('.section-nav button[data-section="thinking-lab"]')?.click();
+ const open=()=>{document.querySelector('.section-nav button[data-section="thinking-lab"]')?.click();if(sourceDol&&validNum)requestAnimationFrame(()=>document.getElementById('tlFactor')?.scrollIntoView({behavior:'smooth',block:'start'}));};
  if(document.readyState==='complete')open();else window.addEventListener('load',open,{once:true});
 }
