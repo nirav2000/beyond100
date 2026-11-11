@@ -44,7 +44,7 @@ const guide=createGuidedDiscovery({
  }
 });
 const manip=createInteractiveModels({onInteraction:()=>{state.manipInteractions=(state.manipInteractions||0)+1;}});
-coach=createExplanationCoach({onProgress:saveExplanation});
+coach=createExplanationCoach({onProgress:saveExplanation,onReview:saveParentReview});
 
 function loadHistory(r){const x=read(pref+'history.'+r,[]);return Array.isArray(x)?x.slice(-400):[]}
 function storeHistory(r){write(pref+'history.'+r,histories[r])}
@@ -52,7 +52,7 @@ function explanationHistory(r){const rows=read(pref+'explanations.'+r,[]);return
 function saveExplanation({profile,record}){
  const r=profile==='parent'?'parent':'learner',item={...record,exerciseId:state.exerciseId};
  const rows=explanationHistory(r),ix=rows.findIndex(row=>row.id===item.id);
- if(ix===-1)rows.push(item);else rows[ix]=item;
+ if(ix===-1)rows.push(item);else rows[ix]={...item,parentReview:rows[ix].parentReview||item.parentReview};
  write(pref+'explanations.'+r,rows.slice(-150));
  const attempt=histories[r].findLast(row=>row.exerciseId===state.exerciseId);
  if(attempt){
@@ -65,6 +65,12 @@ function saveExplanation({profile,record}){
   storeHistory(r);
  }
  if(r==='learner')coach?.renderReview(explanationHistory('learner'));
+}
+function saveParentReview({id,parentReview}){
+ const rows=explanationHistory('learner'),entry=rows.find(row=>row.id===id);
+ if(!entry)return;
+ entry.parentReview=parentReview;
+ write(pref+'explanations.learner',rows.slice(-150));
 }
 function text(id,s){const n=$(id);if(n)n.textContent=String(s??'')}
 function show(id,on){$(id).hidden=!on}
