@@ -1,13 +1,29 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.11.5',
+  currentVersion: '0.12.0',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.12.0',
+      date: '2026-11-11',
+      title: 'Explain Your Thinking · Maths Thinking Lab',
+      ref: 'main',
+      status: 'current',
+      summary: 'Adds child-led mathematical explanations to all 20 Thinking Lab techniques: describe what changed, explain why, show evidence, compare everyday and mathematical models, improve wording and transfer the principle to new numbers.',
+      areas: [
+        { id: 'thinking-command-words', title: 'Question-word definitions', kind: 'curriculum', summary: 'Distinguishes describe, explain, why, how, justify and prove using clear primary-school language and mathematical examples.' },
+        { id: 'thinking-explain-ladder', title: 'First explanation, model comparison and revision', kind: 'learning', summary: 'Captures a learner-first answer before showing everyday and precise mathematical explanations, with vocabulary and a revised response.' },
+        { id: 'thinking-compensation-transfer', title: 'Compensation in both directions', kind: 'learning', summary: 'Builds on the child-led 729 + 21 experiment and checks equivalent friendly-number transfers with new addends and both directions.' },
+        { id: 'thinking-parent-review', title: 'Separate reasoning assessment', kind: 'assessment', summary: 'Parent Academy compares first and revised answers and separately assesses description, why, evidence and mathematical vocabulary, without treating correct arithmetic as proof of sound reasoning.' },
+        { id: 'thinking-offline-records', title: 'Role-scoped explanation records', kind: 'data', summary: 'Retains independent first drafts, model/help exposure, revisions, new-example calculations and parent ratings in on-device history, separate from the existing learning-evidence hook.' },
+        { id: 'thinking-print-tests', title: 'Printable explanations and regression tests', kind: 'workflow', summary: 'Adds separate what/why/evidence lines on practice sheets and runs unit plus mobile/desktop browser explanation-flow tests in CI.' }
+      ]
+    },
     {
       version: '0.11.5',
       date: '2026-10-04',
       title: 'Shared PWA Platform Adoption',
-      ref: 'main',
-      status: 'current',
+      ref: '98947643456c0205fa55d321f7577610d303389b',
+      status: 'archive',
       summary: 'Adopts the shared Apps PWA capability with a manifest, install icon, shared service-worker wrapper and release-gate protection.',
       areas: [
         { id: 'shared-pwa', title: 'Shared PWA capability', kind: 'platform', summary: 'Adds installable standalone app support through the central Apps PWA module while keeping Beyond 100 app logic separate.' },
