@@ -227,11 +227,14 @@ function feedback(ok,message){const n=$('tlFeedback');n.textContent=message;n.cl
 function record(correct){
  const q=state.question,ms=Math.round(performance.now()-state.started);
  const assisted=state.hints>0||state.wrong>0||state.guidedReveals>0||state.visual||state.manipInteractions>0;
- const why=$('tlWhy').value.trim();
- const row={at:new Date().toISOString(),technique:q.id,skill:q.skill,topic:q.topic,prompt:q.prompt,correct,
+ const explanation=coach?.snapshot();
+ const why=(explanation?.firstWhy||'').trim();
+ const row={at:new Date().toISOString(),exerciseId:state.exerciseId,technique:q.id,skill:q.skill,topic:q.topic,prompt:q.prompt,correct,
     assisted,visual:state.visual||state.guidedReveals>0||state.manipInteractions>0,hints:state.hints,wrong:state.wrong,guidedReveals:state.guidedReveals,manipInteractions:state.manipInteractions,
     strategy:state.strategy,firstAnswerMs:state.firstAnswerMs,predictionChoice:state.predictionChoice,durationMs:ms,
-    explanationProvided:Boolean(why),explanation:why.slice(0,500)};
+    explanationProvided:Boolean(why),explanation:why.slice(0,500),
+    explanationId:explanation?.id||null,explanationRevised:Boolean(explanation?.improved),
+    explanationTransferCorrect:explanation?.transfer?.correct??null,explanationIndependentStart:Boolean(explanation?.independentStart)};
  histories[role].push(row);histories[role]=histories[role].slice(-400);storeHistory(role);stat();
  if(role!=='learner')return;
  try{
@@ -245,7 +248,7 @@ function record(correct){
      responseSeconds:ms/1000,errorCode:null,
      observations:['technique:'+q.id,'strategy:'+(state.strategy||'not-selected'),
       'visual:'+state.visual,'hints:'+state.hints,'wrong:'+state.wrong,'guided-reveals:'+state.guidedReveals,'interactive-model-events:'+state.manipInteractions,
-      'reason-provided:'+Boolean(why)]
+      'reason-provided:'+Boolean(why),'reason-independent-start:'+Boolean(explanation?.independentStart)]
    });text('tlStatus','Recorded in Beyond 100 learning evidence.');
   }else{text('tlStatus','Saved on this device. Beyond 100 evidence is not ready.');}
  }catch(e){console.warn('Maths Thinking Lab evidence deferred',e);text('tlStatus','Saved on this device; evidence sync unavailable.');}
@@ -293,10 +296,11 @@ function buildPrintableQuestions(){
  const arr=Array.from({length:6},()=>makeQuestion({topic:state.topic,technique:state.technique,level:state.level}));
  const safe=s=>escapeText(s);
  const html='<h1>Beyond 100 · Maths Thinking Lab</h1><p>Printable practice | Name: ________________________ Date: __________</p>'+
- '<p>Make a prediction without doing the calculation first. Explain what stays the same or what changes.</p>'+
+ '<p>Describe WHAT you changed, explain WHY it works, then give an equation, diagram or maths fact as evidence.</p>'+
  arr.map((q,i)=>'<section><h3>'+(i+1)+'. '+safe(q.name)+'</h3><p>'+safe(q.prompt)+'</p>'+
- '<p>Circle one: '+q.options.map(safe).join(' / ')+'</p><div class="writing">Reason: __________________________________________________________</div>'+
- '<div class="writing">_____________________________________________________________________</div></section>').join('')+
+ '<p>Circle one: '+q.options.map(safe).join(' / ')+'</p><div class="writing">Describe what happened: __________________________________________</div>'+
+ '<div class="writing">Explain WHY: _____________________________________________________</div>'+
+ '<div class="writing">Evidence (equation / diagram / fact): _______________________________</div></section>').join('')+
  '<div class="answers"><h2>Parent answer key</h2><p>Ask for the mathematical reason, not just the answer.</p>'+
  arr.map((q,i)=>'<p><strong>'+(i+1)+'. '+safe(q.answer)+'</strong> — '+safe(q.explain)+'</p>').join('')+'</div>';
  $('tlPrint').innerHTML=html;
@@ -304,7 +308,7 @@ function buildPrintableQuestions(){
 function printPractice(){buildPrintableQuestions();window.print();}
 function swapRole(r){
  role=r;for(const v of ['learner','parent'])$('tlRole'+v).setAttribute('aria-pressed',String(v===r));
- stat();next();
+ stat();next();coach.renderReview(explanationHistory('learner'));
 }
 $('tlTopic').innerHTML=TOPICS.map(([id,name])=>'<option value="'+id+'">'+escapeText(name)+'</option>').join('');
 function options(){
@@ -358,7 +362,7 @@ $('tlParentExample').addEventListener('click',()=>{state.visual=true;displayVisu
 window.addEventListener('beforeprint',()=>{if(!$('tlPrint').innerHTML.trim())buildPrintableQuestions()});
 window.addEventListener('afterprint',()=>{$('tlPrint').innerHTML=''});
 window.BEYOND100_THINKING_LAB={openTechnique:(id)=>{const item=TECHNIQUES.find(t=>t.id===id);if(!item)return false;state.topic=item.topic;state.technique=item.id;options();next();document.querySelector('[data-section="thinking-lab"]')?.click();return true},skills:TECHNIQUES.map(t=>t.skill)};
-stat();options();next();showFactorExplorer();
+stat();options();next();coach.renderReview(explanationHistory('learner'));showFactorExplorer();
 if(config.get('lab')==='1'||location.hash==='#thinking-lab'){
  const open=()=>{document.querySelector('.section-nav button[data-section="thinking-lab"]')?.click();if(sourceDol&&validNum)requestAnimationFrame(()=>document.getElementById('tlFactor')?.scrollIntoView({behavior:'smooth',block:'start'}));};
  if(document.readyState==='complete')open();else window.addEventListener('load',open,{once:true});
