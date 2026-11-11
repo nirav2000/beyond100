@@ -49,7 +49,7 @@ function bars(a,b,k,phase){
 function cards(a,b,k,phase){
  const x1=72,x2=373,cardW=236,y1=98,y2=225,h=54;
  const showHighlight=phase>=1,showMoved=phase>=2,showProof=phase>=3;
- let o=text(340,32,'Number cards (not drawn to scale)',15,LIGHT);
+ let o=text(340,32,'Number cards (box lengths are not to scale)',15,LIGHT);
  o+=text(28,131,'Before',14,LIGHT,'start');
  o+=rect(x1,y1,cardW,h,TEAL)+rect(x2,y1,cardW,h,SAND);
  o+=text(x1+cardW/2,y1+34,a,21)+text(x2+cardW/2,y1+34,b,21);
@@ -58,7 +58,7 @@ function cards(a,b,k,phase){
       rect(x2+8,y1+7,40,h-14,PURPLE,'#e8dcff')+
       text(x2+28,y1+34,k,20,'#151d35')+'</g>';
    
-   o+=text(340,78,'This '+k+' comes from the brown part.',15,'#ded4ff');
+   if(!showProof)o+=text(340,78,'This '+k+' comes from the brown part.',15,'#ded4ff');
  }
  if(showMoved){
    o+=text(28,y2+32,'After',14,LIGHT,'start');
