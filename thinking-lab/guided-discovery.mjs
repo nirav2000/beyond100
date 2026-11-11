@@ -1,4 +1,5 @@
 // Maths Thinking Lab Guided Discovery — original, learner-controlled visual storyboards.
+import {createCompensationExperiment} from './compensation-experiment.mjs';
 // Pure storyboard data and renderers are separated from DOM controls for testing.
 const safe=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[ch]));
 const rect=(x,y,w,h,fill='#187b74',stroke='#c2e3de',extra='')=>'<rect x="'+x+'" y="'+y+'" width="'+Math.max(0,w)+'" height="'+Math.max(0,h)+'" rx="3" fill="'+fill+'" stroke="'+stroke+'" stroke-width="1.4" '+extra+'/>';
@@ -395,7 +396,7 @@ export function buildStoryboard(question){
 }
 export function listStoryboards(){return Object.keys(SCRIPT)}
 
-export function createGuidedDiscovery({onReveal=()=>{}}={}){
+export function createGuidedDiscovery({onReveal=()=>{},onPrediction=()=>{},onFinish=()=>{}}={}){
  const content=document.querySelector('#thinkingLabRoot .tl-content');
  const anchor=document.querySelector('#tlStrategies');
  if(!content||!anchor)throw Error('Guided lesson requires the Thinking Lab content panel');
@@ -426,6 +427,9 @@ export function createGuidedDiscovery({onReveal=()=>{}}={}){
  }
  const $=id=>section.querySelector('#'+id);
  const body=$('tlGuideBody'),openButton=$('tlGuideOpen');
+ const special=document.createElement('div');special.id='tlCompHost';special.hidden=true;body.before(special);
+ const experiment=createCompensationExperiment({container:special,onSupport:onReveal,onPrediction,onFinish});
+ const topTitle=section.querySelector('.tl-guide-top h3'),intro=$('tlGuideIntroduction');
  let board=null,stage=0,view=0,opened=false,used=false,revealed=false;
  const draw=()=>{
   if(!board)return;
@@ -448,12 +452,16 @@ export function createGuidedDiscovery({onReveal=()=>{}}={}){
  const load=question=>{
   board=buildStoryboard(question);stage=0;view=0;opened=false;used=false;revealed=false;
   quick.open=!board;
+  const isComp=question.id==='balance-add';
+  special.hidden=!isComp;body.hidden=true;openButton.hidden=isComp;
+  topTitle.textContent=isComp?'Let’s move 1 and see!':'Pause. Predict. Reveal.';
+  if(isComp){experiment.load(question);quick.open=false;}
   openButton.textContent=board?'Start guided explanation':'Storyboard coming soon';
   openButton.disabled=!board;openButton.setAttribute('aria-expanded','false');
   body.hidden=true;
-  $('tlGuideIntroduction').textContent=board?
-   'Two labelled models for '+board.title.toLowerCase()+'. Five prediction pauses, each followed by a learner-controlled reveal.':
-   'The basic diagrams and hints remain available. Richer guided lessons are being added for this technique.';
+  intro.textContent=question.id==='balance-add'?'First guess what happens. Then move the purple 1 and discover the answer.':board?
+   'Look at the picture, make a prediction, and reveal one clue at a time.':
+   'Try a picture or a hint if the question is difficult.';
   if(board)draw();
  };
  openButton.addEventListener('click',()=>{
