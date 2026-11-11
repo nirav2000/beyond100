@@ -157,13 +157,13 @@ function modelPerimeter(q,index,view){
  if(view===0){
   for(const [i,[a,b]] of [[0,[w,h]],[1,[ww,hh]]]){
    const scale=Math.min(17,190/Math.max(w,h,ww,hh)),x=i?410:126,y=65;
-   const ww=a*scale,hh=b*scale;
-   out+=rect(x,y,ww,hh,i?'#a78253':'#2a827a');
+   const rw=a*scale,rh=b*scale;
+   out+=rect(x,y,rw,rh,i?'#a78253':'#2a827a');
    if(index>=1){
-     out+=brace(x,x+ww,y-13,a+' units');
-     out+=txt(x+ww+18,y+hh/2,b,15,'#f3bf78');
+     out+=brace(x,x+rw,y-13,a+' units');
+     out+=txt(x+rw+18,y+rh/2,b,15,'#f3bf78');
    }
-   out+=txt(x+ww/2,252,i?'After':'Before',16);
+   out+=txt(x+rw/2,252,i?'After':'Before',16);
   }
   if(index>=2)out+=arrow(324,147,384,147,'+1 / -1');
   if(index>=3)out+=txt(340,273,'Each perimeter counts two widths and two heights.',13,'#f3bf78');
