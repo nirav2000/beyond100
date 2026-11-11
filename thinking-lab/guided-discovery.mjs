@@ -89,45 +89,68 @@ function modelDoubleHalf(q,index,view){
  return svg(out,'An equal area array rearranged from '+a+' by '+b+' to '+c+' by '+d);
 }
 function modelNearSquare(q,index,view){
- const [[a,b],[n]]=q.diagram.pairs,k=n-a;let out='';
+ const [[a,b],[n]]=q.diagram.pairs,k=n-a,side=184,cell=side/n;
+ let out='';
  if(view===0){
-  const side=188;
-  out+=rect(248,53,side,side,'#2a8278');
-  if(index>=1){out+=line(248+side*k/n,53,248+side*k/n,241,'#fff',2,'5,3');
-    out+=line(248,53+side*k/n,436,53+side*k/n,'#fff',2,'5,3');}
-  if(index>=2){out+=rect(436-side*k/n,241-side*k/n,side*k/n,side*k/n,'#f3bf78','#f3bf78');}
-  out+=txt(340,34,n+' x '+n,18);
-  if(index>=3)out+=arrow(439,186,493,194,'missing '+k+' x '+k);
+  const x=250,y=49,cut=a*cell,margin=k*cell;
+  out+=txt(340,34,'A square of '+n+' by '+n,17);
+  out+=rect(x,y,side,side,'#2a8278');
+  if(index>=1){
+    out+=line(x+cut,y,x+cut,y+side,'#d4e9e4',2,'5,3');
+    out+=line(x+cut,y+cut,x+side,y+cut,'#d4e9e4',2,'5,3');
+    out+=txt(x+cut/2,y+side+25,(n-k)+' units',13);
+  }
+  if(index>=2){
+    out+=rect(x+cut,y+cut,margin,margin,'#f3bf78','#f3bf78');
+    out+=txt(x+cut+margin/2,y+cut+margin/2+5,'?',17,'#162d33');
+  }
+  if(index>=3){
+    out+=arrow(x+side+8,y+cut+margin/2,x+side+67,y+cut+margin/2,'missing');
+    out+=txt(340,267,'Missing corner is '+k+' by '+k,16,'#f3bf78');
+  }
  }else{
-  out+=txt(340,59,'Factors on either side of '+n,19);
-  out+=rect(90,94,500,39,'#2e8c85')+txt(340,121,n+' - '+k+' and '+n+' + '+k);
-  if(index>=1){out+=line(320,94,320,133,'#fff',2,'4,4');}
-  if(index>=2){out+=txt(340,177,'A balanced change does not preserve a PRODUCT.',17,'#f3bf78');}
-  if(index>=3){out+=txt(340,223,'Difference from the square: '+k+' squared',19);}
+  const unit=Math.min(173/n,172/(n+k)),sx=92,sy=59,sideN=n*unit,wide=a*unit,margin=k*unit,rx=390;
+  out+=txt(195,40,n+' by '+n+' square',16);
+  out+=rect(sx,sy,wide,sideN,'#2a8278');
+  out+=rect(sx+wide,sy,margin,wide,'#5ca99d');
+  if(index>=2)out+=rect(sx+wide,sy+wide,margin,margin,'#f3bf78','#f3bf78');
+  out+=txt(488,40,(n-k)+' by '+(n+k)+' rectangle',16);
+  if(index>=1){
+    out+=rect(rx,sy,wide,sideN,'#2a8278');
+    if(index>=2)out+=rect(rx,sy+sideN,wide,margin,'#5ca99d');
+  }
+  if(index>=3){
+    out+=brace(rx,rx+wide,sy-9,(n-k)+' units');
+    out+=txt(rx+wide+18,sy+(sideN+margin)/2,(n+k)+' units',12,'#f3bf78','start');
+  }
+  if(index>=4)out+=txt(340,267,'The square has '+k*k+' more unit squares.',17,'#f3bf78');
  }
- return svg(out,'Comparison of two factors around a midpoint and a near-square product');
+ return svg(out,'The square is partitioned into pieces that form the near-square rectangle plus a '+k+' by '+k+' leftover corner');
 }
 function modelFractions(q,index,view){
- const [[a,b],[c,d]]=q.diagram.pairs,k=d/b;let out='';
+ const [[a,b],[c,d]]=q.diagram.pairs,k=d/b;
+ let out='';
  if(view===0){
-  for(const [i,[numer,denom]] of [[0,[a,b]],[1,[c,d]]]){
+  const bars=index>=2?[[a,b],[c,d]]:[[a,b]];
+  for(const [i,[numer,denom]] of bars.entries()){
    const y=i?167:47,x=65,w=540,one=w/denom;
    for(let j=0;j<denom;j++)out+=rect(x+j*one,y,one,53,j<numer?'#2f9789':'#2b5159');
-   if(index>=1)out+=txt(340,y+78,(i?'New cuts':'Original cuts')+' — '+(index>=3?numer+'/'+denom:'?'),15);
+   if(index>=1)out+=txt(340,y+78,(i?'New cuts':'Original cuts')+' - '+(index>=3?numer+'/'+denom:'?'),15);
   }
-  if(index<2){out=out.replace(/<rect x="65" y="167"[\s\S]*?(?=<text x="340" y="245"|$)/,'');}
-  if(index>=2)out+=arrow(340,136,340,157,'split each into '+k);
+  if(index>=2)out+=arrow(340,133,340,157,'split into '+k);
  }else{
   const x=65,w=540,y=125;
   out+=line(x,y,x+w,y,'#b8dcd6',4);
-  for(let j=0;j<=b;j++){const xx=x+j*w/b;out+=line(xx,y-13,xx,y+14,'#a3cac4',2);}
-  out+=rect(x,y-34,a*w/b,26,'#368f84')+txt(x,y+46,'0');
-  out+=txt(x+w,y+46,'1');
+  for(let j=0;j<=b;j++)out+=line(x+j*w/b,y-13,x+j*w/b,y+14,'#a3cac4',2);
+  out+=rect(x,y-34,a*w/b,26,'#368f84')+txt(x,y+46,'0')+txt(x+w,y+46,'1');
   if(index>=1)out+=brace(x,x+a*w/b,y-45,'same location');
-  if(index>=2){for(let j=1;j<d;j++)out+=line(x+j*w/d,y-17,x+j*w/d,y+17,'#f3bf78',1);out+=txt(340,225,'More marks, not more distance',17,'#f3bf78');}
+  if(index>=2){
+   for(let j=1;j<d;j++)out+=line(x+j*w/d,y-17,x+j*w/d,y+17,'#f3bf78',1);
+   out+=txt(340,225,'More divisions, same distance',17,'#f3bf78');
+  }
   if(index>=3)out+=txt(340,252,a+'/'+b+' = '+c+'/'+d,18);
  }
- return svg(out,'Two fractions shown as equal shaded lengths despite different denominators');
+ return svg(out,'Equivalent fractions showing the same shaded proportion of a single whole');
 }
 function modelPerimeter(q,index,view){
  const [[w,h],[ww,hh]]=q.diagram.pairs;let out='';
