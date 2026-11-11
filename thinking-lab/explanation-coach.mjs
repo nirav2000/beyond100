@@ -187,7 +187,7 @@ export function checkTransfer(t,first,second){
  return {correct:true,reason:'Yes. You changed both addends by opposite amounts and kept the sum unchanged.'};
 }
 
-export function createExplanationCoach({onProgress=()=>{}}={}){
+export function createExplanationCoach({onProgress=()=>{},onReview=()=>{}}={}){
  const original=document.getElementById('tlWhy'),content=document.querySelector('#thinkingLabRoot .tl-content');
  if(!original||!content)throw Error('Explanation coach needs an existing Thinking Lab explanation field');
  const oldHeading=original.previousElementSibling;
@@ -361,7 +361,39 @@ export function createExplanationCoach({onProgress=()=>{}}={}){
     'Independent first draft: '+(r.independentStart&&!r.supportBeforeFirstDraft?'Yes':'Not established')+
     ' · Model/help seen: '+(r.modelSeen?'Yes':'No')+
     ' · New calculation: '+(r.transfer?.correct===null?'Not checked':r.transfer?.correct?'Correct':'Needs work');
-   details.appendChild(status);host.appendChild(details);
+   details.appendChild(status);
+   const heading=document.createElement('h5');heading.textContent='Parent assessment — check each skill separately';
+   details.appendChild(heading);
+   const marks=document.createElement('div');marks.className='tl-explain-parent-marks';
+   const dimensions=[
+    ['description','Describes WHAT changed'],
+    ['reason','Explains WHY it works'],
+    ['evidence','Supports with maths evidence'],
+    ['terminology','Uses mathematical words accurately']
+   ];
+   for(const [id,label] of dimensions){
+    const wrapper=document.createElement('label');wrapper.textContent=label;
+    const select=document.createElement('select');select.dataset.rating=id;
+    for(const [value,title] of [['','Not assessed'],['support','Needs support'],['developing','Developing'],['secure','Secure']]){
+     const option=document.createElement('option');option.value=value;option.textContent=title;select.appendChild(option);
+    }
+    select.value=r.parentReview?.[id]||'';
+    wrapper.appendChild(select);marks.appendChild(wrapper);
+   }
+   details.appendChild(marks);
+   const noteLabel=document.createElement('label');noteLabel.className='tl-explain-note-label';
+   noteLabel.textContent='Parent feedback (optional)';
+   const note=document.createElement('textarea');note.rows=2;note.value=r.parentReview?.note||'';
+   noteLabel.appendChild(note);details.appendChild(noteLabel);
+   const button=document.createElement('button');button.type='button';button.className='tl-btn';button.textContent='Save my assessment';
+   const message=document.createElement('p');message.className='tl-caption';message.setAttribute('role','status');
+   button.addEventListener('click',()=>{
+    const data={id:r.id,parentReview:{note:note.value.slice(0,1200),at:new Date().toISOString()}};
+    marks.querySelectorAll('select[data-rating]').forEach(select=>{data.parentReview[select.dataset.rating]=select.value;});
+    onReview(data);message.textContent='Assessment saved on this device.';
+   });
+   details.append(button,message);
+   host.appendChild(details);
   });
  };
  return {load,setReady,renderReview,snapshot:()=>entry?structuredClone(entry):null};
