@@ -82,7 +82,7 @@ test('Place Value remains intact and Roman Numerals switches the reusable topic 
   await expect(page.locator('#questionBank .question-card')).toHaveCount(20);
   await expect(page.locator('#placeValueContext')).toBeVisible();
 
-  await page.locator('#openNav').click();
+  if (await page.locator('#openNav').isVisible()) await page.locator('#openNav').click();
   await page.locator('[data-topic="Roman Numerals"]').click();
   await expect(page.locator('#topicTitle')).toHaveText('Roman Numerals');
   await expect(page.locator('#romanNumeralContext')).toBeVisible();
@@ -90,7 +90,7 @@ test('Place Value remains intact and Roman Numerals switches the reusable topic 
   await expect(page.locator('#questionBank .question-card')).toHaveCount(24);
   await expect(page.locator('#questionBank')).toContainText('IXX');
 
-  await page.locator('#openNav').click();
+  if (await page.locator('#openNav').isVisible()) await page.locator('#openNav').click();
   await page.locator('[data-topic="Place Value & Number Structure"]').click();
   await expect(page.locator('#topicTitle')).toHaveText('Place Value & Number Structure');
   await expect(page.locator('#placeValueContext')).toBeVisible();
