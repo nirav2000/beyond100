@@ -20,7 +20,7 @@ test('a moved unit is conserved and appears at the correct step',()=>{
   assert.match(highlighted,/data-drag-compensation/);
   assert.doesNotMatch(highlighted,/After:/);
   assert.match(moved,/After/);
-  assert.match(proven,new RegExp('After: '+(a+b)+' altogether'));
+  assert.match(proven,new RegExp((a+b)>100?'Still '+(a+b)+' in total':'After: '+(a+b)+' altogether'));
   assert.doesNotMatch(proven,/undefined|NaN|Infinity/);
  }
 });
