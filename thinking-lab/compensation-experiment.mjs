@@ -2,7 +2,7 @@ import {compensationDiagram,friendlyExample} from './compensation-visual.mjs';
 // One child-led experiment: predict, physically move 1, compare, then apply it.
 const predictions=[['bigger','Yes — it gets bigger'],['same','No — it stays the same'],['smaller','Yes — it gets smaller']];
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-export function createCompensationExperiment({container,onSupport=()=>{},onPrediction=()=>{},onFinish=()=>{}}={}){
+export function createCompensationExperiment({container,onSupport=()=>{},onPrediction=()=>{},onFinish=()=>{},onApplication=()=>{}}={}){
  if(!container)throw Error('Missing experiment host');
  container.classList.add('tl-comp-experiment');
  container.innerHTML='<h3>Will moving 1 change the total?</h3>'+
@@ -77,7 +77,7 @@ export function createCompensationExperiment({container,onSupport=()=>{},onPredi
    const {sum}=friendlyExample(729,21);
    $('tlCompUseResult').innerHTML='<strong>Yes! 730 + 20 is easier.</strong><p>729 needs <strong>1</strong> to reach 730. We take it from 21, leaving 20. So 729 + 21 = 730 + 20 = <strong>'+sum+'</strong>.</p>';
    $('tlCompUsePicture').innerHTML=compensationDiagram({a:729,b:21,k:1,phase:3,view:'cards'});
-   $('tlCompNewPair').hidden=false;event('apply-large');
+   $('tlCompNewPair').hidden=false;event('apply-large');onApplication({before:[729,21],after:[730,20],sum});
   }else $('tlCompUseResult').innerHTML='<strong>Almost. Think about the 9 in 729.</strong><p>What would make 729 into 730? Remember: if one number gains 1, the other must lose 1.</p>';
  }
  container.querySelector('.tl-comp-choices').addEventListener('click',e=>{
