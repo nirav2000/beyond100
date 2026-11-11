@@ -190,3 +190,121 @@
  #thinking-lab .tl-comp-buttons button{flex:1 1 100%;text-align:center}
 }
 @media print{#thinking-lab .tl-comp-experiment,#tlCompHost{display:none!important}}
+
+
+/* Reusable Maths Thinking Lab explanation ladder:
+   describe the change -> why it works -> evidence -> vocabulary -> new example. */
+#thinking-lab .tl .tl-explain-coach {
+  margin:28px 0 18px;
+  padding:clamp(16px,3vw,24px);
+  border:1px solid #b4d3c7;
+  border-radius:16px;
+  background:#f9fcfa;
+  color:#173b3d;
+}
+#thinking-lab .tl .tl-explain-head h3{font-size:clamp(19px,2.5vw,25px);margin:5px 0 6px}
+#thinking-lab .tl .tl-explain-head p{margin:0 0 16px;color:#4a6866;font-size:15px}
+#thinking-lab .tl .tl-explain-words{
+  margin:12px 0 20px;
+  padding:12px 14px;
+  border:1px solid #c8ded4;
+  background:#f0f7f3;
+  border-radius:10px;
+}
+#thinking-lab .tl .tl-explain-words summary{font-weight:750;cursor:pointer;line-height:1.45}
+#thinking-lab .tl .tl-explain-words summary:focus-visible{outline:3px solid #bf8c46;outline-offset:3px}
+#thinking-lab .tl .tl-explain-words>p{font-size:13px;margin:12px 0 2px}
+#thinking-lab .tl .tl-explain-definition{
+  display:grid;
+  grid-template-columns:minmax(74px,105px) minmax(0,1fr);
+  gap:8px 14px;
+  margin-top:12px;
+  padding-bottom:10px;
+  border-bottom:1px solid #d5e6de;
+  line-height:1.5;
+  font-size:14px;
+}
+#thinking-lab .tl .tl-explain-definition:last-child{border:0}
+#thinking-lab .tl .tl-explain-coach h4{font-size:17px;margin:20px 0 10px;line-height:1.35}
+#thinking-lab .tl .tl-explain-coach label:not(.tl-explain-checklist label){
+  display:block;
+  font-size:14px;
+  font-weight:750;
+  color:#254b48;
+  margin:16px 0 8px;
+  line-height:1.5;
+}
+#thinking-lab .tl .tl-explain-coach textarea{
+  display:block;
+  min-height:78px;
+  width:100%;
+  background:white;
+  font-size:16px;
+  padding:12px;
+  resize:vertical;
+  line-height:1.55;
+}
+#thinking-lab .tl .tl-explain-coach textarea:read-only{background:#eef4f1;color:#264944}
+#thinking-lab .tl .tl-explain-coach p[role="status"]{min-height:1em}
+#thinking-lab .tl .tl-explain-gate{
+  border:1px solid #cfb37c;
+  background:#fff8e8;
+  padding:12px 14px;
+  border-radius:10px;
+  font-weight:600;
+}
+#thinking-lab .tl .tl-explain-versions{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+  margin:10px 0 16px;
+}
+#thinking-lab .tl .tl-explain-versions>div{
+  border:1px solid #c8dfd4;
+  border-radius:12px;
+  background:#fff;
+  padding:14px 16px;
+  min-width:0;
+}
+#thinking-lab .tl .tl-explain-versions>div:nth-child(2){background:#f0f8f1;border-color:#a6cdb6}
+#thinking-lab .tl .tl-explain-versions strong{display:block;margin-bottom:8px;font-size:15px}
+#thinking-lab .tl .tl-explain-versions p{font-size:15px;line-height:1.6;margin:0}
+#thinking-lab .tl .tl-explain-vocab{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 8px}
+#thinking-lab .tl .tl-explain-word{
+  min-height:40px;
+  font-size:13px;
+  border-radius:100px;
+  padding:8px 12px;
+}
+#thinking-lab .tl .tl-explain-checklist{margin:18px 0;padding:13px 14px;border:1px solid #bcd3c7;border-radius:10px}
+#thinking-lab .tl .tl-explain-checklist legend{font-weight:750;padding:0 4px}
+#thinking-lab .tl .tl-explain-checklist label{
+  font-size:14px;
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  margin:9px 0;
+  line-height:1.45;
+  cursor:pointer;
+}
+#thinking-lab .tl .tl-explain-checklist input{width:18px;height:18px;flex:0 0 auto}
+#thinking-lab .tl .tl-explain-transfer-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#thinking-lab .tl .tl-explain-transfer-fields:has(.tl-options){display:block}
+#thinking-lab .tl .tl-explain-transfer-fields .tl-options{margin-top:12px}
+#thinking-lab .tl .tl-explain-transfer-fields label{min-width:0}
+#thinking-lab .tl .tl-explain-transfer-fields input{
+  display:block;width:100%;min-width:0;padding:12px;margin-top:7px;
+  font:inherit;font-size:18px;border-radius:9px;border:1px solid #8fa7a8;background:#fff;color:#172b35;
+}
+#thinking-lab .tl .tl-explain-transfer-fields input:focus-visible{outline:3px solid #bf8c46;outline-offset:2px}
+#thinking-lab .tl .tl-explain-parent{margin-top:20px;padding:16px;background:#fff;border:1px solid #e2d7bb;border-radius:10px}
+#thinking-lab .tl .tl-explain-parent h4{margin:0 0 8px}
+#thinking-lab .tl .tl-explain-review-item{padding:10px 0;border-top:1px solid #e5e3d9}
+#thinking-lab .tl .tl-explain-review-item summary{cursor:pointer;font-weight:700;line-height:1.5}
+#thinking-lab .tl .tl-explain-review-item p{overflow-wrap:anywhere}
+@media(max-width:680px){
+  #thinking-lab .tl .tl-explain-versions{grid-template-columns:1fr}
+  #thinking-lab .tl .tl-explain-coach{padding:15px}
+  #thinking-lab .tl .tl-explain-definition{grid-template-columns:1fr;gap:3px}
+  #thinking-lab .tl .tl-explain-transfer-fields{grid-template-columns:1fr}
+}
