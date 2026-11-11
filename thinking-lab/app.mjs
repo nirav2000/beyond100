@@ -3,7 +3,6 @@ import {TOPICS,TECHNIQUES,makeQuestion} from './engine.mjs';
 const root=document.getElementById('thinkingLabRoot');
 if(!root) throw Error('Missing Maths Thinking Lab mount');
 const $=id=>document.getElementById(id);
-const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;':'&quot;'}[c]));
 const escapeText=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const pref='beyond100.thinking-lab.v1.';
 const read=(key,fallback)=>{try{return JSON.parse(localStorage.getItem(key)||'null')??fallback}catch{return fallback}};
