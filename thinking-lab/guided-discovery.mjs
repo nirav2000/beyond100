@@ -49,6 +49,7 @@ function modelBalance(q,index,view){
   if(index>=4)out+=txt(340,277,'Moving '+transfer+' changes the PARTS, never the WHOLE.',14,'#f4c579');
  }else{
   const left=75,right=327,box=185,y1=62,y2=188;
+  out+=txt(340,22,'Number-bond cards — symbolic, not to scale',13,'#b6d8d1');
   out+=txt(left+box/2,46,'Part A',16)+txt(right+box/2,46,'Part B',16);
   out+=rect(left,y1,box,56,'#24877e')+rect(right,y1,box,56,'#b38650');
   out+=txt(left+box/2,y1+35,a)+txt(right+box/2,y1+35,b);
