@@ -13,28 +13,63 @@ const PAIR=(p)=>String(p[0])+' and '+String(p[1]);
 
 export const GUIDED_IDS=['balance-add','balance-sub','double-half','near-square','fraction-equivalence','perimeter-invariant','area-scale','angle-straight','word-ratio','rounding-midpoint'];
 
+function flowArrow(x1,y1,x2,y2,caption=''){
+ const angle=Math.atan2(y2-y1,x2-x1),side=10;
+ const pX=x2-side*Math.cos(angle-.48),pY=y2-side*Math.sin(angle-.48);
+ const qX=x2-side*Math.cos(angle+.48),qY=y2-side*Math.sin(angle+.48);
+ return line(x1,y1,x2,y2,'#f4c579',3)+
+ '<path d="M'+pX+' '+pY+' L'+x2+' '+y2+' L'+qX+' '+qY+'" fill="none" stroke="#f4c579" stroke-width="3"/>'+
+ (caption?txt((x1+x2)/2,(y1+y2)/2-9,caption,13,'#f4c579'):'');
+}
 function modelBalance(q,index,view){
- const [[a,b],[c,d]]=q.diagram.pairs,k=c-a,total=a+b;
+ const [[a,b],[c,d]]=q.diagram.pairs,transfer=c-a,total=a+b;
  let out='';
  if(view===0){
-  out+=txt(42,59,'Before',15,'#a2cfc9','start')+txt(42,173,'After',15,'#a2cfc9','start');
-  for(const [i,p] of [[0,[a,b]],[1,[c,d]]]){
-   const x=126,y=i?152:43,w=490,f=w*p[0]/total;
-   out+=rect(x,y,f,66,'#218b83')+rect(x+f,y,w-f,66,'#b98b55');
-   out+=txt(x+f/2,y+39,p[0])+txt(x+f+(w-f)/2,y+39,p[1]);
-   if(index>=1)out+=line(x+f,y-5,x+f,y+74,'#fff',2,'6,4');
-   if(index>=3)out+=brace(x,x+w,y-10,'same total',false);
+  const x=128,w=485,y1=59,y2=167,unit=w/total,part=a*unit,shift=transfer*unit;
+  out+=txt(32,96,'Before',15,'#b9dfd8','start');
+  out+=rect(x,y1,part,63,'#24877e')+rect(x+part,y1,w-part,63,'#b38650');
+  out+=txt(x+part/2,98,a)+txt(x+part+(w-part)/2,98,b);
+  if(index>=1){
+   out+=rect(x+part,y1,shift,63,'#f6c579','#fff2d5')+
+     line(x+part,y1-10,x+part,y1+72,'#fff4dc',2,'5,3');
+   out+=txt(x+part+Math.max(shift/2,6),43,transfer+' unit'+(transfer===1?'':'s'),14,'#f4c579');
   }
-  if(index>=2)out+=arrow(126+490*a/total,120,126+490*c/total,120,'move '+k);
+  if(index>=2){
+   const next=part+shift;
+   out+=txt(32,204,'After',15,'#b9dfd8','start');
+   out+=rect(x,y2,next,63,'#24877e')+rect(x+next,y2,w-next,63,'#b38650');
+   out+=rect(x+part,y2,shift,63,'#f6c579','#fff2d5');
+   out+=txt(x+next/2,205,c)+txt(x+next+(w-next)/2,205,d);
+   out+=flowArrow(x+part+shift/2,125,x+part+shift/2,160);
+  }
+  if(index>=3){
+   out+=brace(x,x+w,y1-12,'unchanged whole',false);
+   out+=brace(x,x+w,y2+69,'same total',true);
+  }
+  if(index>=4)out+=txt(340,277,'Moving '+transfer+' changes the PARTS, never the WHOLE.',14,'#f4c579');
  }else{
-  out+=txt(105,56,'Part A',16)+txt(335,56,'Part B',16)+txt(548,56,'Whole',16);
-  out+=rect(40,74,132,65,'#218b83')+rect(270,74,132,65,'#b98b55');
-  out+=txt(106,112,a)+txt(336,112,b);
-  if(index>=1){out+=arrow(106,154,106,209,'+'+k)+arrow(336,154,336,209,'-'+k);}
-  if(index>=2){out+=rect(40,219,132,40,'#218b83')+rect(270,219,132,40,'#b98b55');out+=txt(106,246,c,16)+txt(336,246,d,16);}
-  if(index>=3){out+=txt(549,119,total,21,'#f3bf78')+txt(549,243,total,21,'#f3bf78');}
+  const left=75,right=327,box=185,y1=62,y2=188;
+  out+=txt(340,22,'Number-bond cards — symbolic, not to scale',13,'#b6d8d1');
+  out+=txt(left+box/2,46,'Part A',16)+txt(right+box/2,46,'Part B',16);
+  out+=rect(left,y1,box,56,'#24877e')+rect(right,y1,box,56,'#b38650');
+  out+=txt(left+box/2,y1+35,a)+txt(right+box/2,y1+35,b);
+  if(index>=1){
+   out+=rect(right+9,y1+9,38,38,'#f6c579','#fff4d6');
+   out+=txt(right+28,y1+34,transfer,17,'#19363d');
+   out+=txt(420,143,'Mark the '+transfer+' to move',14,'#f4c579');
+  }
+  if(index>=2){
+   out+=flowArrow(right+28,y1+61,left+box/2,y2-12,'transfer '+transfer);
+   out+=rect(left,y2,box,56,'#24877e')+rect(right,y2,box,56,'#b38650');
+   out+=txt(left+box/2,y2+35,c)+txt(right+box/2,y2+35,d);
+  }
+  if(index>=3){
+   out+=txt(606,94,'Same',15,'#f4c579')+txt(606,113,'whole',15,'#f4c579');
+   out+=txt(606,219,'=',22,'#f4c579');
+  }
+  if(index>=4)out+=txt(340,277,'(a + '+transfer+') + (b − '+transfer+') = a + b',16,'#f4c579');
  }
- return svg(out,'Two part-whole models showing a transfer of '+k+' and an unchanged total');
+ return svg(out,'Labelled number bonds: one part gains '+transfer+' while the other loses '+transfer+' and the total is preserved');
 }
 function modelSubtraction(q,index,view){
  const [[b,a],[d,c]]=q.diagram.pairs,move=d-b,span=a-b;
@@ -259,11 +294,11 @@ const SCRIPT={
  'balance-add':{
   title:'Keep the total unchanged',views:['Part-whole bars','Number bonds'],render:modelBalance,
   steps:[
-   step('Look at the two additions. Predict: same, greater or smaller?','Start with the quantity as two parts; do not calculate either sum.'),
-   step('Which part gained something? Which part lost something?','Align the boundaries of the two parts.'),
-   step('What has moved between the parts?','Reveal the transfer arrow: an equal amount moves from one part to another.'),
-   step('If nothing is added to the WHOLE, what happens to the total?','The whole-length brackets match. The total is unchanged.'),
-   step('How would you prove that for any two numbers?','Write (a + k) + (b - k) = a + b. The +k and -k cancel.')
+   step('Without calculating, predict whether the two expressions have equal totals.','First identify the two parts of the ORIGINAL sum; the second bar is deliberately still hidden.'),
+   step('Where exactly could one unit move from?','Highlight the single unit on the right of the dividing line. Nothing has moved yet.'),
+   step('Move that unit into the other part. What happens to each number?','Now reveal the transferred unit and the second bar; one part gains precisely what the other loses.'),
+   step('Compare the WHOLE length before and after. Can it have changed?','The brackets align. No unit entered or left: total preserved.'),
+   step('How would this work for any pair of numbers?','(a + k) + (b − k) = a + b. Begin with k = 1; use larger moves once the idea is secure.')
   ]},
  'balance-sub':{
   title:'Keep the difference unchanged',views:['Number-line gaps','Distance bars'],render:modelSubtraction,
@@ -377,6 +412,18 @@ export function createGuidedDiscovery({onReveal=()=>{}}={}){
  const subhead=anchor.previousElementSibling;
  if(subhead&&subhead.classList.contains('tl-subhead'))subhead.before(section);
  else anchor.before(section);
+ // The old quick diagram remains available, but as an alternative, not a duplicate
+ // instructional sequence that spoils the guided prediction.
+ const quickHeading=[...content.querySelectorAll('.tl-subhead')].find(n=>n.textContent.trim().startsWith('3. Explore the visual'));
+ const quick=document.createElement('details');quick.className='tl-quick';quick.id='tlQuickDetails';
+ const summary=document.createElement('summary');
+ summary.textContent='Alternative: quick diagram and hints';
+ quick.appendChild(summary);
+ if(quickHeading){
+  const items=[quickHeading,quickHeading.nextElementSibling,document.getElementById('tlHintText'),document.getElementById('tlVisual')].filter(Boolean);
+  quickHeading.before(quick);
+  items.forEach(n=>quick.appendChild(n));
+ }
  const $=id=>section.querySelector('#'+id);
  const body=$('tlGuideBody'),openButton=$('tlGuideOpen');
  let board=null,stage=0,view=0,opened=false,used=false,revealed=false;
@@ -400,6 +447,7 @@ export function createGuidedDiscovery({onReveal=()=>{}}={}){
  };
  const load=question=>{
   board=buildStoryboard(question);stage=0;view=0;opened=false;used=false;revealed=false;
+  quick.open=!board;
   openButton.textContent=board?'Start guided explanation':'Storyboard coming soon';
   openButton.disabled=!board;openButton.setAttribute('aria-expanded','false');
   body.hidden=true;

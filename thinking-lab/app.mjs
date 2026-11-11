@@ -1,5 +1,6 @@
 import {TOPICS,TECHNIQUES,makeQuestion} from './engine.mjs';
-import {createGuidedDiscovery} from './guided-discovery.mjs';
+import {createGuidedDiscovery,buildStoryboard} from './guided-discovery.mjs';
+import {createInteractiveModels} from './interactive-models.mjs';
 
 const root=document.getElementById('thinkingLabRoot');
 if(!root) throw Error('Missing Maths Thinking Lab mount');
@@ -19,12 +20,13 @@ const CURRENT_VERSION=1;
 let role='learner';
 let saved=read(pref+'preferences',{});
 let state={topic:chosen?.topic||saved.topic||'all',technique:chosen?.id||'all',level:[1,2,3].includes(saved.level)?saved.level:1,
- question:null,strategy:null,choice:null,hints:0,wrong:0,guidedReveals:0,visual:false,view:0,started:0,firstAnswerMs:null,done:false,revealed:false};
+ question:null,strategy:null,choice:null,hints:0,wrong:0,guidedReveals:0,manipInteractions:0,visual:false,view:0,started:0,firstAnswerMs:null,done:false,revealed:false};
 let histories={learner:loadHistory('learner'),parent:loadHistory('parent')};
 let factorNumber=validNum?contextNum:36;
 let factorVisible=sourceDol&&validNum;
 let factorSelected=1;
 const guide=createGuidedDiscovery({onReveal:()=>{state.guidedReveals=(state.guidedReveals||0)+1;}});
+const manip=createInteractiveModels({onInteraction:()=>{state.manipInteractions=(state.manipInteractions||0)+1;}});
 
 function loadHistory(r){const x=read(pref+'history.'+r,[]);return Array.isArray(x)?x.slice(-400):[]}
 function storeHistory(r){write(pref+'history.'+r,histories[r])}
@@ -57,6 +59,8 @@ function arrayDiagram(a,b,offset=0){
 }
 function renderDiagram(q,view=0){
  const d=q.diagram,kind=d.kind;
+ const storyboard=buildStoryboard(q);
+ if(storyboard)return storyboard.image(2,view);
  if(kind==='arrays'){
   let o='';
   d.pairs.forEach(([a,b],i)=>o+='<g opacity="'+(i===view?1:.28)+'">'+arrayDiagram(a,b,i)+'</g>');
@@ -66,6 +70,7 @@ function renderDiagram(q,view=0){
   const pairs=d.pairs||[];
   let o='';
   pairs.forEach(([a,b],i)=>{
+   o+='<g opacity="'+(i===view?1:.27)+'">';
    const total=a+b,x=45,y=50+i*98,one=520*a/total;
    o+=rect(x,y,one,52,'#277f7a')+rect(x+one,y,520-one,52,'#a77d46');
    o+=tx(x+one/2,y+32,a,Math.max(12,Math.min(18,one/3)));
@@ -75,6 +80,7 @@ function renderDiagram(q,view=0){
  if(kind==='difference'){
   const pairs=d.pairs,lo=Math.min(...pairs.map(p=>p[0]))-4,hi=Math.max(...pairs.map(p=>p[1]))+4;
   let o='';pairs.forEach(([a,b],i)=>{
+    o+='<g opacity="'+(i===view?1:.27)+'">';
     const y=55+i*105,at=v=>55+510*(v-lo)/(hi-lo);
     o+=ln(55,y,565,y,'#678d91',3)+ln(at(a),y,at(b),y,'#e2b474',9)+tx(at(a),y-17,a)+tx(at(b),y-17,b);o+='</g>';
   });return svg(o);
@@ -148,7 +154,7 @@ function next(same=false){
  const rows=histories[role],weak=rows.slice(-50).filter(r=>!r.correct||r.assisted||r.durationMs>30000).map(r=>r.technique);
  const topic=state.topic,technique=same&&state.question?state.question.id:state.technique;
  const question=makeQuestion({topic,technique,level:state.level,weak});
- state={...state,question,strategy:null,choice:null,hints:0,wrong:0,guidedReveals:0,visual:false,view:0,started:performance.now(),firstAnswerMs:null,done:false,revealed:false};
+ state={...state,question,strategy:null,choice:null,hints:0,wrong:0,guidedReveals:0,manipInteractions:0,visual:false,view:0,started:performance.now(),firstAnswerMs:null,done:false,revealed:false};
  text('tlTag',TOPICS.find(t=>t[0]===question.topic)?.[1]||question.topic);
  text('tlMethod',question.name);text('tlPrompt',question.prompt);text('tlHintText','');
  text('tlTopicSkill',question.skill);text('tlFeedback','');
@@ -161,11 +167,15 @@ function next(same=false){
  $('tlViewA').setAttribute('aria-pressed','true');$('tlViewB').setAttribute('aria-pressed','false');
  renderCoach();
  guide.load(question);
+ manip.load(question);
 }
 function displayVisual(){
  const q=state.question;
  $('tlDiagram').innerHTML=renderDiagram(q,state.view);
- $('tlViewA').disabled=(!['arrays','fractions','angle','balance','difference','groups'].includes(q.diagram.kind))||(q.diagram.kind!=='angle'&&(!q.diagram.pairs||q.diagram.pairs.length<2));
+ const storyboard=buildStoryboard(q);
+ $('tlViewA').textContent=storyboard?storyboard.views[0]:'Diagram A';
+ $('tlViewB').textContent=storyboard?storyboard.views[1]:'Diagram B';
+ $('tlViewA').disabled=!storyboard&&((!['arrays','fractions','angle','balance','difference','groups'].includes(q.diagram.kind))||(q.diagram.kind!=='angle'&&(!q.diagram.pairs||q.diagram.pairs.length<2)));
  $('tlViewB').disabled=$('tlViewA').disabled;
  $('tlVisual').hidden=!state.visual;
  $('tlShow').textContent=state.visual?'Hide diagram':'Show diagram';
@@ -173,10 +183,10 @@ function displayVisual(){
 function feedback(ok,message){const n=$('tlFeedback');n.textContent=message;n.classList.toggle('good',ok);n.hidden=false}
 function record(correct){
  const q=state.question,ms=Math.round(performance.now()-state.started);
- const assisted=state.hints>0||state.wrong>0||state.guidedReveals>0;
+ const assisted=state.hints>0||state.wrong>0||state.guidedReveals>0||state.visual||state.manipInteractions>0;
  const why=$('tlWhy').value.trim();
  const row={at:new Date().toISOString(),technique:q.id,skill:q.skill,topic:q.topic,prompt:q.prompt,correct,
-    assisted,visual:state.visual||state.guidedReveals>0,hints:state.hints,wrong:state.wrong,guidedReveals:state.guidedReveals,
+    assisted,visual:state.visual||state.guidedReveals>0||state.manipInteractions>0,hints:state.hints,wrong:state.wrong,guidedReveals:state.guidedReveals,manipInteractions:state.manipInteractions,
     strategy:state.strategy,firstAnswerMs:state.firstAnswerMs,durationMs:ms,
     explanationProvided:Boolean(why),explanation:why.slice(0,500)};
  histories[role].push(row);histories[role]=histories[role].slice(-400);storeHistory(role);stat();
@@ -191,7 +201,7 @@ function record(correct){
      outcome:correct?(assisted?'prompted':ms>30000?'hesitant':'fast'):'noConcept',
      responseSeconds:ms/1000,errorCode:null,
      observations:['technique:'+q.id,'strategy:'+(state.strategy||'not-selected'),
-      'visual:'+state.visual,'hints:'+state.hints,'wrong:'+state.wrong,'guided-reveals:'+state.guidedReveals,
+      'visual:'+state.visual,'hints:'+state.hints,'wrong:'+state.wrong,'guided-reveals:'+state.guidedReveals,'interactive-model-events:'+state.manipInteractions,
       'reason-provided:'+Boolean(why)]
    });text('tlStatus','Recorded in Beyond 100 learning evidence.');
   }else{text('tlStatus','Saved on this device. Beyond 100 evidence is not ready.');}
@@ -236,14 +246,19 @@ function showFactorExplorer(){
  $('tlFactorPicture').innerHTML=svg(o);
  text('tlFactorList','Factor pairs: '+pairs.map(p=>p[0]+' x '+p[1]).join(' · '));
 }
-function printPractice(){
+function buildPrintableQuestions(){
  const arr=Array.from({length:6},()=>makeQuestion({topic:state.topic,technique:state.technique,level:state.level}));
  const safe=s=>escapeText(s);
- const html='<h1>Beyond 100 · Maths Thinking Lab</h1><p>Predict and explain without calculating first. Name: _____________________ Date: __________</p>'+
-  arr.map((q,i)=>'<section><h3>'+(i+1)+'. '+safe(q.name)+'</h3><p>'+safe(q.prompt)+'</p><p>Circle: '+q.options.map(safe).join(' / ')+'</p><div class="writing">My reason: __________________________________________________________</div></section>').join('')+
-  '<div class="answers"><h2>Parent answer key</h2>'+arr.map((q,i)=>'<p><strong>'+(i+1)+'. '+safe(q.answer)+'</strong> — '+safe(q.explain)+'</p>').join('')+'</div>';
- const area=$('tlPrint');area.innerHTML=html;window.print();
+ const html='<h1>Beyond 100 · Maths Thinking Lab</h1><p>Printable practice | Name: ________________________ Date: __________</p>'+
+ '<p>Make a prediction without doing the calculation first. Explain what stays the same or what changes.</p>'+
+ arr.map((q,i)=>'<section><h3>'+(i+1)+'. '+safe(q.name)+'</h3><p>'+safe(q.prompt)+'</p>'+
+ '<p>Circle one: '+q.options.map(safe).join(' / ')+'</p><div class="writing">Reason: __________________________________________________________</div>'+
+ '<div class="writing">_____________________________________________________________________</div></section>').join('')+
+ '<div class="answers"><h2>Parent answer key</h2><p>Ask for the mathematical reason, not just the answer.</p>'+
+ arr.map((q,i)=>'<p><strong>'+(i+1)+'. '+safe(q.answer)+'</strong> — '+safe(q.explain)+'</p>').join('')+'</div>';
+ $('tlPrint').innerHTML=html;
 }
+function printPractice(){buildPrintableQuestions();window.print();}
 function swapRole(r){
  role=r;for(const v of ['learner','parent'])$('tlRole'+v).setAttribute('aria-pressed',String(v===r));
  stat();next();
@@ -271,6 +286,7 @@ $('tlChoices').addEventListener('click',e=>{
  state.choice=button.dataset.choice;
  if(state.firstAnswerMs==null)state.firstAnswerMs=Math.round(performance.now()-state.started);
  $('tlChoices').querySelectorAll('button').forEach(b=>b.classList.toggle('selected',b===button));
+ text('tlStatus','Prediction chosen, but not checked yet. You can still change your mind.');
  $('tlCheck').disabled=false;
 });
 $('tlShow').addEventListener('click',()=>{state.visual=!state.visual;displayVisual()});
@@ -296,6 +312,7 @@ $('tlFactorOpen').addEventListener('click',()=>{factorVisible=!factorVisible;fac
 $('tlFactorTest').addEventListener('change',e=>{factorSelected=Number(e.target.value);showFactorExplorer()});
 $('tlPrintButton').addEventListener('click',printPractice);
 $('tlParentExample').addEventListener('click',()=>{state.visual=true;displayVisual();show('tlSolution',true);text('tlSolutionText',state.question.explain)});
+window.addEventListener('beforeprint',()=>{if(!$('tlPrint').innerHTML.trim())buildPrintableQuestions()});
 window.addEventListener('afterprint',()=>{$('tlPrint').innerHTML=''});
 window.BEYOND100_THINKING_LAB={openTechnique:(id)=>{const item=TECHNIQUES.find(t=>t.id===id);if(!item)return false;state.topic=item.topic;state.technique=item.id;options();next();document.querySelector('[data-section="thinking-lab"]')?.click();return true},skills:TECHNIQUES.map(t=>t.skill)};
 stat();options();next();showFactorExplorer();
