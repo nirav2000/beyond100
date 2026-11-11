@@ -246,14 +246,19 @@ function showFactorExplorer(){
  $('tlFactorPicture').innerHTML=svg(o);
  text('tlFactorList','Factor pairs: '+pairs.map(p=>p[0]+' x '+p[1]).join(' · '));
 }
-function printPractice(){
+function buildPrintableQuestions(){
  const arr=Array.from({length:6},()=>makeQuestion({topic:state.topic,technique:state.technique,level:state.level}));
  const safe=s=>escapeText(s);
- const html='<h1>Beyond 100 · Maths Thinking Lab</h1><p>Predict and explain without calculating first. Name: _____________________ Date: __________</p>'+
-  arr.map((q,i)=>'<section><h3>'+(i+1)+'. '+safe(q.name)+'</h3><p>'+safe(q.prompt)+'</p><p>Circle: '+q.options.map(safe).join(' / ')+'</p><div class="writing">My reason: __________________________________________________________</div></section>').join('')+
-  '<div class="answers"><h2>Parent answer key</h2>'+arr.map((q,i)=>'<p><strong>'+(i+1)+'. '+safe(q.answer)+'</strong> — '+safe(q.explain)+'</p>').join('')+'</div>';
- const area=$('tlPrint');area.innerHTML=html;window.print();
+ const html='<h1>Beyond 100 · Maths Thinking Lab</h1><p>Printable practice | Name: ________________________ Date: __________</p>'+
+ '<p>Make a prediction without doing the calculation first. Explain what stays the same or what changes.</p>'+
+ arr.map((q,i)=>'<section><h3>'+(i+1)+'. '+safe(q.name)+'</h3><p>'+safe(q.prompt)+'</p>'+
+ '<p>Circle one: '+q.options.map(safe).join(' / ')+'</p><div class="writing">Reason: __________________________________________________________</div>'+
+ '<div class="writing">_____________________________________________________________________</div></section>').join('')+
+ '<div class="answers"><h2>Parent answer key</h2><p>Ask for the mathematical reason, not just the answer.</p>'+
+ arr.map((q,i)=>'<p><strong>'+(i+1)+'. '+safe(q.answer)+'</strong> — '+safe(q.explain)+'</p>').join('')+'</div>';
+ $('tlPrint').innerHTML=html;
 }
+function printPractice(){buildPrintableQuestions();window.print();}
 function swapRole(r){
  role=r;for(const v of ['learner','parent'])$('tlRole'+v).setAttribute('aria-pressed',String(v===r));
  stat();next();
@@ -307,6 +312,7 @@ $('tlFactorOpen').addEventListener('click',()=>{factorVisible=!factorVisible;fac
 $('tlFactorTest').addEventListener('change',e=>{factorSelected=Number(e.target.value);showFactorExplorer()});
 $('tlPrintButton').addEventListener('click',printPractice);
 $('tlParentExample').addEventListener('click',()=>{state.visual=true;displayVisual();show('tlSolution',true);text('tlSolutionText',state.question.explain)});
+window.addEventListener('beforeprint',()=>{if(!$('tlPrint').innerHTML.trim())buildPrintableQuestions()});
 window.addEventListener('afterprint',()=>{$('tlPrint').innerHTML=''});
 window.BEYOND100_THINKING_LAB={openTechnique:(id)=>{const item=TECHNIQUES.find(t=>t.id===id);if(!item)return false;state.topic=item.topic;state.technique=item.id;options();next();document.querySelector('[data-section="thinking-lab"]')?.click();return true},skills:TECHNIQUES.map(t=>t.skill)};
 stat();options();next();showFactorExplorer();
