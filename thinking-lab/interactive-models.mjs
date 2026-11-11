@@ -122,13 +122,12 @@ export function createInteractiveModels({onInteraction=()=>{}}={}){
     o+=label(340,151,(delta>0?'→ transfer '+delta+' from right to left':'transfer '+Math.abs(delta)+' from left to right ←'),14,'#ffcc78');
     o+=line(split1,y1+68,split2,y2-3,'#ffcc78',3);
   }else{
-    o+=rectOutline(x,y2,w,67,'#73918f');
-    o+=label(340,y2+41,'Move 1, then reveal the changed parts',16,'#aecdc8');
+    o+=label(340,y2+41,'What might happen if one unit moves?',16,'#aecdc8');
   }
   o+=handle(delta===0?split1:split2,y2+34,'transfer','Drag the divider to move an exact number of units');
   if(state.reveal)o+=label(340,282,'Total before = '+total+'   |   Total after = '+total,16,'#f7c27c');
   else o+=label(340,282,'Drag the gold handle or press +1 to transfer one unit.',14,'#c6e9e0');
-  status('Original: '+a+' + '+b+'. '+(delta===0?'Drag the handle or press +1 to transfer 1 unit.': 'Transferred '+Math.abs(delta)+' unit'+(Math.abs(delta)===1?'':'s')+'. New parts: '+c+' and '+d+'.')+' The whole never gains or loses a unit.');
+  status('Original: '+a+' + '+b+'. '+(delta===0?'Drag the handle or press +1 to transfer 1 unit.': 'Transferred '+Math.abs(delta)+' unit'+(Math.abs(delta)===1?'':'s')+'. New parts: '+c+' and '+d+'.')+' What do you notice about the whole?');
   return o;
  };
  function rectOutline(x,y,w,h,color){return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="3" fill="none" stroke="'+color+'" stroke-dasharray="7 5" stroke-width="1.8"/>';}
