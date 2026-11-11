@@ -197,7 +197,7 @@ function complete(good){
  state.done=true;state.revealed=!good;
  const q=state.question;
  record(good);
- feedback(good,'Correct. Now explain why this relationship works.':'The model answer is revealed. This will be marked for review, not as an independent success.');
+ feedback(good,good?'Correct. Now explain why this relationship works.':'The model answer is revealed. This will be marked for review, not as an independent success.');
  show('tlSolution',true);text('tlSolutionText',q.explain);
  $('tlChoices').querySelectorAll('button').forEach(b=>{b.disabled=true;if(b.dataset.choice===q.answer)b.classList.add('correct')});
  $('tlCheck').disabled=true;$('tlReveal').disabled=true;
