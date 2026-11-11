@@ -20,12 +20,23 @@ const CURRENT_VERSION=1;
 let role='learner';
 let saved=read(pref+'preferences',{});
 let state={topic:chosen?.topic||saved.topic||'all',technique:chosen?.id||'all',level:[1,2,3].includes(saved.level)?saved.level:1,
- question:null,strategy:null,choice:null,hints:0,wrong:0,guidedReveals:0,manipInteractions:0,visual:false,view:0,started:0,firstAnswerMs:null,done:false,revealed:false};
+ question:null,strategy:null,choice:null,hints:0,wrong:0,guidedReveals:0,manipInteractions:0,visual:false,view:0,started:0,firstAnswerMs:null,predictionChoice:null,done:false,revealed:false};
 let histories={learner:loadHistory('learner'),parent:loadHistory('parent')};
 let factorNumber=validNum?contextNum:36;
 let factorVisible=sourceDol&&validNum;
 let factorSelected=1;
-const guide=createGuidedDiscovery({onReveal:()=>{state.guidedReveals=(state.guidedReveals||0)+1;}});
+const guide=createGuidedDiscovery({
+ onReveal:()=>{state.guidedReveals=(state.guidedReveals||0)+1;},
+ onPrediction:({prediction})=>{
+  const labels={bigger:'Yes — it gets bigger',same:'No — it stays the same',smaller:'Yes — it gets smaller'};
+  state.choice=labels[prediction];state.predictionChoice=prediction;
+  if(state.firstAnswerMs===null)state.firstAnswerMs=Math.round(performance.now()-state.started);
+ },
+ onFinish:({correct})=>{
+  if(state.done)return;state.done=true;record(correct);
+  text('tlStatus','Your experiment is recorded. Try 729 + 21 above, or change the numbers for another challenge.');
+ }
+});
 const manip=createInteractiveModels({onInteraction:()=>{state.manipInteractions=(state.manipInteractions||0)+1;}});
 
 function loadHistory(r){const x=read(pref+'history.'+r,[]);return Array.isArray(x)?x.slice(-400):[]}
@@ -164,6 +175,12 @@ function next(same=false){
  $('tlReveal').disabled=false; text('tlStatus','Look for a relationship first.');
  $('tlStrategies').innerHTML=randStrategies(question).map(s=>'<button type="button" class="tl-option" data-strategy="'+escapeText(s)+'">'+escapeText(s)+'</button>').join('');
  $('tlChoices').innerHTML=question.options.map(o=>'<button type="button" class="tl-option" data-choice="'+escapeText(o)+'">'+escapeText(o)+'</button>').join('');
+ // The compensation experiment has its own child-friendly prediction controls.
+ // Don't ask the same question again in the generic test panel.
+ const isComp=question.id==='balance-add';
+ for(const id of ['tlStrategies','tlChoices','tlCheck','tlReveal'])$(id).hidden=isComp;
+ $('tlStrategies').previousElementSibling.hidden=isComp;
+ $('tlChoices').previousElementSibling.hidden=isComp;
  $('tlViewA').setAttribute('aria-pressed','true');$('tlViewB').setAttribute('aria-pressed','false');
  renderCoach();
  guide.load(question);
@@ -187,7 +204,7 @@ function record(correct){
  const why=$('tlWhy').value.trim();
  const row={at:new Date().toISOString(),technique:q.id,skill:q.skill,topic:q.topic,prompt:q.prompt,correct,
     assisted,visual:state.visual||state.guidedReveals>0||state.manipInteractions>0,hints:state.hints,wrong:state.wrong,guidedReveals:state.guidedReveals,manipInteractions:state.manipInteractions,
-    strategy:state.strategy,firstAnswerMs:state.firstAnswerMs,durationMs:ms,
+    strategy:state.strategy,firstAnswerMs:state.firstAnswerMs,predictionChoice:state.predictionChoice,durationMs:ms,
     explanationProvided:Boolean(why),explanation:why.slice(0,500)};
  histories[role].push(row);histories[role]=histories[role].slice(-400);storeHistory(role);stat();
  if(role!=='learner')return;

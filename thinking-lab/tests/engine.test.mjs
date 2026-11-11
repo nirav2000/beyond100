@@ -27,7 +27,7 @@ test('the mathematical relationships are preserved by the generators',()=>{
  for(let seed=1;seed<=250;seed++)for(let level=1;level<=3;level++){
   const rnd=seeded(seed*113+level);
   const q=id=>makeQuestion({technique:id,level,rng:rnd});
-  let a=q('balance-add');assert.equal(a.answer,'Equal');
+  let a=q('balance-add');assert.equal(a.answer,'No — it stays the same');
   a=q('balance-sub');assert.equal(a.answer,'Equal');
   a=q('double-half');assert.equal(a.answer,'Equal');
   a=q('fraction-equivalence');assert.equal(a.answer,'Equal');

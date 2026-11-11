@@ -41,8 +41,12 @@ export function makeQuestion({topic='all',technique='all',level=1,rng=Math.rando
  let a,b,c,k,n,w,h;
  switch(id){
  case 'balance-add':
-  a=r(14,35*s,rng);b=r(15,30*s,rng);k=level===1?1:level===2?r(1,3,rng):r(1,Math.min(9,b-2),rng);
-  return Q(id,'Without adding, compare '+a+' + '+b+' and '+(a+k)+' + '+(b-k)+'.',['Equal','First larger','Second larger'],'Equal','One part gains '+k+'; the other loses '+k+'. The total is unchanged.',{kind:'balance',pairs:[[a,b],[a+k,b-k]]},['Which part gains and which part loses?','Does the amount gained equal the amount lost?']);
+  a=r(8,25*s,rng);b=r(8,25*s,rng);k=1;
+  return Q(id,'You have '+a+' and '+b+'. If you move 1 from the second number to the first, will the TOTAL change?',
+   ['Yes — it gets bigger','No — it stays the same','Yes — it gets smaller'],'No — it stays the same',
+   'Moving 1 gives '+(a+1)+' and '+(b-1)+'. One part is 1 bigger and the other is 1 smaller. Nothing has been added to or removed from the total.',
+   {kind:'balance',pairs:[[a,b],[a+1,b-1]]},
+   ['Which number loses the 1?','Look at the WHOLE, not just the green or brown part.']);
  case 'balance-sub':
   b=r(8,24*s,rng);a=b+r(10,36*s,rng);k=r(2,11,rng);
   return Q(id,'Compare '+a+' - '+b+' and '+(a+k)+' - '+(b+k)+'.',['Equal','First larger','Second larger'],'Equal','Both endpoints move by '+k+'. Their separation is unchanged.',{kind:'difference',pairs:[[b,a],[b+k,a+k]]},['Mark both pairs on a number line.','Compare the distance between each pair.']);

@@ -1,4 +1,6 @@
 // Maths Thinking Lab Guided Discovery — original, learner-controlled visual storyboards.
+import {createCompensationExperiment} from './compensation-experiment.mjs';
+import {compensationDiagram} from './compensation-visual.mjs';
 // Pure storyboard data and renderers are separated from DOM controls for testing.
 const safe=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[ch]));
 const rect=(x,y,w,h,fill='#187b74',stroke='#c2e3de',extra='')=>'<rect x="'+x+'" y="'+y+'" width="'+Math.max(0,w)+'" height="'+Math.max(0,h)+'" rx="3" fill="'+fill+'" stroke="'+stroke+'" stroke-width="1.4" '+extra+'/>';
@@ -22,54 +24,8 @@ function flowArrow(x1,y1,x2,y2,caption=''){
  (caption?txt((x1+x2)/2,(y1+y2)/2-9,caption,13,'#f4c579'):'');
 }
 function modelBalance(q,index,view){
- const [[a,b],[c,d]]=q.diagram.pairs,transfer=c-a,total=a+b;
- let out='';
- if(view===0){
-  const x=128,w=485,y1=59,y2=167,unit=w/total,part=a*unit,shift=transfer*unit;
-  out+=txt(32,96,'Before',15,'#b9dfd8','start');
-  out+=rect(x,y1,part,63,'#24877e')+rect(x+part,y1,w-part,63,'#b38650');
-  out+=txt(x+part/2,98,a)+txt(x+part+(w-part)/2,98,b);
-  if(index>=1){
-   out+=rect(x+part,y1,shift,63,'#f6c579','#fff2d5')+
-     line(x+part,y1-10,x+part,y1+72,'#fff4dc',2,'5,3');
-   out+=txt(x+part+Math.max(shift/2,6),43,transfer+' unit'+(transfer===1?'':'s'),14,'#f4c579');
-  }
-  if(index>=2){
-   const next=part+shift;
-   out+=txt(32,204,'After',15,'#b9dfd8','start');
-   out+=rect(x,y2,next,63,'#24877e')+rect(x+next,y2,w-next,63,'#b38650');
-   out+=rect(x+part,y2,shift,63,'#f6c579','#fff2d5');
-   out+=txt(x+next/2,205,c)+txt(x+next+(w-next)/2,205,d);
-   out+=flowArrow(x+part+shift/2,125,x+part+shift/2,160);
-  }
-  if(index>=3){
-   out+=brace(x,x+w,y1-12,'unchanged whole',false);
-   out+=brace(x,x+w,y2+69,'same total',true);
-  }
-  if(index>=4)out+=txt(340,277,'Moving '+transfer+' changes the PARTS, never the WHOLE.',14,'#f4c579');
- }else{
-  const left=75,right=327,box=185,y1=62,y2=188;
-  out+=txt(340,22,'Number-bond cards — symbolic, not to scale',13,'#b6d8d1');
-  out+=txt(left+box/2,46,'Part A',16)+txt(right+box/2,46,'Part B',16);
-  out+=rect(left,y1,box,56,'#24877e')+rect(right,y1,box,56,'#b38650');
-  out+=txt(left+box/2,y1+35,a)+txt(right+box/2,y1+35,b);
-  if(index>=1){
-   out+=rect(right+9,y1+9,38,38,'#f6c579','#fff4d6');
-   out+=txt(right+28,y1+34,transfer,17,'#19363d');
-   out+=txt(420,143,'Mark the '+transfer+' to move',14,'#f4c579');
-  }
-  if(index>=2){
-   out+=flowArrow(right+28,y1+61,left+box/2,y2-12,'transfer '+transfer);
-   out+=rect(left,y2,box,56,'#24877e')+rect(right,y2,box,56,'#b38650');
-   out+=txt(left+box/2,y2+35,c)+txt(right+box/2,y2+35,d);
-  }
-  if(index>=3){
-   out+=txt(606,94,'Same',15,'#f4c579')+txt(606,113,'whole',15,'#f4c579');
-   out+=txt(606,219,'=',22,'#f4c579');
-  }
-  if(index>=4)out+=txt(340,277,'(a + '+transfer+') + (b − '+transfer+') = a + b',16,'#f4c579');
- }
- return svg(out,'Labelled number bonds: one part gains '+transfer+' while the other loses '+transfer+' and the total is preserved');
+ const [[a,b],[c]]=q.diagram.pairs;
+ return compensationDiagram({a,b,k:c-a,phase:Math.min(3,index),view:view===0?'bars':'cards'});
 }
 function modelSubtraction(q,index,view){
  const [[b,a],[d,c]]=q.diagram.pairs,move=d-b,span=a-b;
@@ -395,7 +351,7 @@ export function buildStoryboard(question){
 }
 export function listStoryboards(){return Object.keys(SCRIPT)}
 
-export function createGuidedDiscovery({onReveal=()=>{}}={}){
+export function createGuidedDiscovery({onReveal=()=>{},onPrediction=()=>{},onFinish=()=>{}}={}){
  const content=document.querySelector('#thinkingLabRoot .tl-content');
  const anchor=document.querySelector('#tlStrategies');
  if(!content||!anchor)throw Error('Guided lesson requires the Thinking Lab content panel');
@@ -426,6 +382,9 @@ export function createGuidedDiscovery({onReveal=()=>{}}={}){
  }
  const $=id=>section.querySelector('#'+id);
  const body=$('tlGuideBody'),openButton=$('tlGuideOpen');
+ const special=document.createElement('div');special.id='tlCompHost';special.hidden=true;body.before(special);
+ const experiment=createCompensationExperiment({container:special,onSupport:onReveal,onPrediction,onFinish});
+ const topTitle=section.querySelector('.tl-guide-top h3'),intro=$('tlGuideIntroduction');
  let board=null,stage=0,view=0,opened=false,used=false,revealed=false;
  const draw=()=>{
   if(!board)return;
@@ -448,12 +407,16 @@ export function createGuidedDiscovery({onReveal=()=>{}}={}){
  const load=question=>{
   board=buildStoryboard(question);stage=0;view=0;opened=false;used=false;revealed=false;
   quick.open=!board;
+  const isComp=question.id==='balance-add';
+  special.hidden=!isComp;body.hidden=true;openButton.hidden=isComp;
+  topTitle.textContent=isComp?'Let’s move 1 and see!':'Pause. Predict. Reveal.';
+  if(isComp){experiment.load(question);quick.open=false;}
   openButton.textContent=board?'Start guided explanation':'Storyboard coming soon';
   openButton.disabled=!board;openButton.setAttribute('aria-expanded','false');
   body.hidden=true;
-  $('tlGuideIntroduction').textContent=board?
-   'Two labelled models for '+board.title.toLowerCase()+'. Five prediction pauses, each followed by a learner-controlled reveal.':
-   'The basic diagrams and hints remain available. Richer guided lessons are being added for this technique.';
+  intro.textContent=question.id==='balance-add'?'First guess what happens. Then move the purple 1 and discover the answer.':board?
+   'Look at the picture, make a prediction, and reveal one clue at a time.':
+   'Try a picture or a hint if the question is difficult.';
   if(board)draw();
  };
  openButton.addEventListener('click',()=>{
