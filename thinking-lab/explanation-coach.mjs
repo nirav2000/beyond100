@@ -118,7 +118,7 @@ export function modelFor(q,sequence=0,level=2){
    method:'How did you organise the equal parts?',
    why:'Why does your answer represent Ben’s share?',
    plain:'Ben has one part and Asha has the other equal parts. I counted every part to find Ben’s share.',
-   formal:'The ratio represented by the bar model is '+q.diagram.parts.join(':')+'. Ben’s fraction of the whole is '+q.answer+'.',
+   formal:'The ratio represented by the bar model is '+(q.diagram.parts||[]).join(':')+'. Ben’s fraction of the whole is '+q.answer+'.',
    words:['ratio','fraction','whole','evidence']},
   'word-change':{
    method:'Which quantities are the parts and the whole?',
