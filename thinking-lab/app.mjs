@@ -1,4 +1,5 @@
 import {TOPICS,TECHNIQUES,makeQuestion} from './engine.mjs';
+import {createGuidedDiscovery} from './guided-discovery.mjs';
 
 const root=document.getElementById('thinkingLabRoot');
 if(!root) throw Error('Missing Maths Thinking Lab mount');
@@ -18,11 +19,12 @@ const CURRENT_VERSION=1;
 let role='learner';
 let saved=read(pref+'preferences',{});
 let state={topic:chosen?.topic||saved.topic||'all',technique:chosen?.id||'all',level:[1,2,3].includes(saved.level)?saved.level:1,
- question:null,strategy:null,choice:null,hints:0,wrong:0,visual:false,view:0,started:0,firstAnswerMs:null,done:false,revealed:false};
+ question:null,strategy:null,choice:null,hints:0,wrong:0,guidedReveals:0,visual:false,view:0,started:0,firstAnswerMs:null,done:false,revealed:false};
 let histories={learner:loadHistory('learner'),parent:loadHistory('parent')};
 let factorNumber=validNum?contextNum:36;
 let factorVisible=sourceDol&&validNum;
 let factorSelected=1;
+const guide=createGuidedDiscovery({onReveal:()=>{state.guidedReveals=(state.guidedReveals||0)+1;}});
 
 function loadHistory(r){const x=read(pref+'history.'+r,[]);return Array.isArray(x)?x.slice(-400):[]}
 function storeHistory(r){write(pref+'history.'+r,histories[r])}
@@ -146,7 +148,7 @@ function next(same=false){
  const rows=histories[role],weak=rows.slice(-50).filter(r=>!r.correct||r.assisted||r.durationMs>30000).map(r=>r.technique);
  const topic=state.topic,technique=same&&state.question?state.question.id:state.technique;
  const question=makeQuestion({topic,technique,level:state.level,weak});
- state={...state,question,strategy:null,choice:null,hints:0,wrong:0,visual:false,view:0,started:performance.now(),firstAnswerMs:null,done:false,revealed:false};
+ state={...state,question,strategy:null,choice:null,hints:0,wrong:0,guidedReveals:0,visual:false,view:0,started:performance.now(),firstAnswerMs:null,done:false,revealed:false};
  text('tlTag',TOPICS.find(t=>t[0]===question.topic)?.[1]||question.topic);
  text('tlMethod',question.name);text('tlPrompt',question.prompt);text('tlHintText','');
  text('tlTopicSkill',question.skill);text('tlFeedback','');
@@ -158,6 +160,7 @@ function next(same=false){
  $('tlChoices').innerHTML=question.options.map(o=>'<button type="button" class="tl-option" data-choice="'+escapeText(o)+'">'+escapeText(o)+'</button>').join('');
  $('tlViewA').setAttribute('aria-pressed','true');$('tlViewB').setAttribute('aria-pressed','false');
  renderCoach();
+ guide.load(question);
 }
 function displayVisual(){
  const q=state.question;
@@ -170,10 +173,10 @@ function displayVisual(){
 function feedback(ok,message){const n=$('tlFeedback');n.textContent=message;n.classList.toggle('good',ok);n.hidden=false}
 function record(correct){
  const q=state.question,ms=Math.round(performance.now()-state.started);
- const assisted=state.hints>0||state.wrong>0;
+ const assisted=state.hints>0||state.wrong>0||state.guidedReveals>0;
  const why=$('tlWhy').value.trim();
  const row={at:new Date().toISOString(),technique:q.id,skill:q.skill,topic:q.topic,prompt:q.prompt,correct,
-    assisted,visual:state.visual,hints:state.hints,wrong:state.wrong,
+    assisted,visual:state.visual||state.guidedReveals>0,hints:state.hints,wrong:state.wrong,guidedReveals:state.guidedReveals,
     strategy:state.strategy,firstAnswerMs:state.firstAnswerMs,durationMs:ms,
     explanationProvided:Boolean(why),explanation:why.slice(0,500)};
  histories[role].push(row);histories[role]=histories[role].slice(-400);storeHistory(role);stat();
@@ -188,7 +191,7 @@ function record(correct){
      outcome:correct?(assisted?'prompted':ms>30000?'hesitant':'fast'):'noConcept',
      responseSeconds:ms/1000,errorCode:null,
      observations:['technique:'+q.id,'strategy:'+(state.strategy||'not-selected'),
-      'visual:'+state.visual,'hints:'+state.hints,'wrong:'+state.wrong,
+      'visual:'+state.visual,'hints:'+state.hints,'wrong:'+state.wrong,'guided-reveals:'+state.guidedReveals,
       'reason-provided:'+Boolean(why)]
    });text('tlStatus','Recorded in Beyond 100 learning evidence.');
   }else{text('tlStatus','Saved on this device. Beyond 100 evidence is not ready.');}
