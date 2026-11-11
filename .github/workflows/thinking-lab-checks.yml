@@ -1,0 +1,28 @@
+name: Maths Thinking Lab checks
+on:
+  push:
+    paths:
+      - 'thinking-lab/**'
+      - 'preview-bridge.js'
+      - '.github/workflows/thinking-lab-checks.yml'
+  pull_request:
+    paths:
+      - 'thinking-lab/**'
+      - 'preview-bridge.js'
+      - '.github/workflows/thinking-lab-checks.yml'
+permissions:
+  contents: read
+jobs:
+  thinking:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript syntax
+        run: |
+          node --check preview-bridge.js
+          find thinking-lab -name '*.mjs' -exec node --check '{}' ';'
+      - name: Test structural reasoning
+        run: node --test thinking-lab/tests/engine.test.mjs
