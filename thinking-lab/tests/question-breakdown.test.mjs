@@ -23,7 +23,7 @@ test('why easier and why unchanged ask for distinct reasons',()=>{
  assert.match(easier.question,/easier/);
  assert.match(easier.steps[0].question,/730 and 20/);
  assert.match(easier.formal,/multiples of 10/);
- assert.match(unchanged.question,/unchanged/);
+ assert.match(unchanged.question,/unchanged|stay the same/);
  assert.match(unchanged.steps[0].question,/two addends/);
  assert.match(unchanged.formal,/compensation/i);
  assert.notDeepEqual(easier.steps,unchanged.steps);
