@@ -474,3 +474,9 @@ dialog#thinkingLabDialog.tl-fullscreen-dialog::backdrop{background:rgba(11,27,31
 @media print{
  #thinking-lab .tl-qb-coach,#thinking-lab .tl-qb-switcher{display:none!important}
 }
+
+
+#thinking-lab .tl-qb-ideas{display:grid;grid-template-columns:repeat(auto-fit,minmax(235px,1fr));gap:9px;margin:13px 0}
+#thinking-lab .tl-qb-idea{background:#f1f7f3;border:1px solid #d3e5dc;border-radius:10px;padding:12px 14px;min-width:0}
+#thinking-lab .tl-qb-idea strong{font-size:13px;color:#244f48;line-height:1.5}
+#thinking-lab .tl-qb-idea p{font-size:15px;margin:7px 0 0;color:#243e3d;overflow-wrap:anywhere}
