@@ -40,8 +40,9 @@ export function createQuestionBreakdownCoach({legacyCoach,onProgress=()=>{},init
   '<button type="button" class="tl-btn primary" id="tlQbNext">Next small question</button>'+
   '<button type="button" class="tl-btn" id="tlQbSkip">Skip this one — I need help</button></div>'+
   '<p id="tlQbStepsMessage" class="tl-caption" role="status" aria-live="polite"></p></div>'+
-  '<div id="tlQbBuild" hidden><h4>3 · Join your answers</h4>'+
+  '<div id="tlQbBuild" hidden><h4>3 · Join your answers</h4><p>Look at the small ideas you have collected. The next box joins them with words like <strong>because</strong> and <strong>therefore</strong>.</p>'+
   '<p>The joining words <strong>because</strong>, <strong>so</strong> and <strong>therefore</strong> help show your reasoning, not just list steps.</p>'+
+  '<div id="tlQbIdeas" class="tl-qb-ideas" aria-label="Your small answers"></div>'+ 
   '<div class="tl-qb-actions"><button type="button" class="tl-btn" id="tlQbRebuild">Rebuild from my small answers</button>'+
   '<button type="button" class="tl-btn" id="tlQbBack">Edit my small answers</button></div>'+
   '<label for="tlQbCombined">Your combined answer — edit it so it sounds natural</label>'+
@@ -146,6 +147,13 @@ export function createQuestionBreakdownCoach({legacyCoach,onProgress=()=>{},init
   if(!entry)return;
   const result=combineBreakdown(lesson,entry.scaffold.answers);
   $('tlQbBuild').hidden=false;
+  const ideas=$('tlQbIdeas');ideas.replaceChildren();
+  lesson.steps.forEach((item,i)=>{
+   const row=document.createElement('div');row.className='tl-qb-idea';
+   const caption=document.createElement('strong');caption.textContent=(i+1)+'. '+item.question;
+   const answer=document.createElement('p');answer.textContent=entry.scaffold.answers[item.id]?.trim()||'Not answered yet';
+   row.append(caption,answer);ideas.appendChild(row);
+  });
   $('tlQbCombined').value=result.text;
   entry.scaffold.assembled=result.text;entry.scaffold.edited=result.text;
   $('tlQbMissing').textContent=result.complete?'All the small questions are represented. Improve the flow if it sounds repetitive.':
