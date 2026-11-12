@@ -31,6 +31,7 @@ export function mountPanel(){
   dialog.showModal();
  }
  button.addEventListener('click',openLab);
+  document.getElementById('launchMathsThinkingLab')?.addEventListener('click',openLab);
  windowHeader.querySelector('#closeThinkingLab').addEventListener('click',()=>dialog.close());
  dialog.addEventListener('close',()=>{
   const target=returnFocus?.isConnected?returnFocus:button;

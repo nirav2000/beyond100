@@ -1,13 +1,26 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.12.3',
+  currentVersion: '0.12.4',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.12.4',
+      date: '2026-11-11',
+      title: 'Maths Thinking Lab · Live integration and visible explanation stages',
+      ref: 'main',
+      status: 'current',
+      summary: 'Loads Maths Thinking Lab on the real Beyond 100 homepage and provides a visible launcher, lesson map and shortcuts for explanation practice, glossary and parent review.',
+      areas: [
+        { id: 'lab-live-entrypoint', title: 'Fix missing homepage module', kind: 'repair', summary: 'Adds thinking-lab/main.mjs to the production index and binds a visible launcher to the full-screen Maths Thinking Lab dialog.' },
+        { id: 'lab-visible-journey', title: 'Make explanation activities discoverable', kind: 'ux', summary: 'A learning journey panel locates the maths experiment, six question words, the explanation ladder and parent review before any model answers are revealed.' },
+        { id: 'lab-real-page-smoke', title: 'Verify the real homepage', kind: 'workflow', summary: 'Deployment smoke tests ensure index.html loads and opens the Lab, with glossary, explanation, parent review, and close/reopen.' }
+      ]
+    },
     {
       version: '0.12.3',
       date: '2026-11-11',
       title: 'Maths Thinking Lab · Full-screen workspace',
-      ref: 'main',
-      status: 'current',
+      ref: '878ede51cda7ed9c19b2fc8b9a853b6aa89846ad',
+      status: 'archive',
       summary: 'Opens Maths Thinking Lab in a dedicated full-screen modal without the surrounding syllabus. Adds a persistent Close control, responsive sizing for iPad, phone and desktop, and preserves the current activity and parent/learner mode when reopened.',
       areas: [
         { id: 'thinking-fullscreen', title: 'Dedicated full-screen Lab', kind: 'ux', summary: 'Moves the entire interactive Thinking Lab out of the crowded syllabus panel and into a full-viewport native dialog with a fixed header and independent scroll region.' },

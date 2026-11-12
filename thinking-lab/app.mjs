@@ -40,11 +40,36 @@ const guide=createGuidedDiscovery({
  },
  onApplication:()=>{
   coach?.setReady(true);
+  text('tlJourneyStatus','Ready to write! Choose “2. Explain your thinking” above.');
   text('tlStatus','Now explain your method and why the sum stayed unchanged.');
  }
 });
 const manip=createInteractiveModels({onInteraction:()=>{state.manipInteractions=(state.manipInteractions||0)+1;}});
 coach=createExplanationCoach({onProgress:saveExplanation,onReview:saveParentReview});
+// Always-visible map to find the writing ladder without revealing its answers.
+const journey=document.createElement('nav');
+journey.id='tlJourney';journey.className='tl-journey';journey.setAttribute('aria-label','Maths Thinking Lab lesson stages');
+journey.innerHTML=
+ '<div class="tl-journey-intro"><strong>Your learning journey</strong>'+
+ '<p>Explore the maths → describe and explain → compare two answers → improve yours → try new numbers. Then a parent can review the reasoning.</p></div>'+
+ '<div class="tl-journey-actions">'+
+ '<button type="button" id="tlJumpExplore" class="tl-btn">1. Explore</button>'+
+ '<button type="button" id="tlJumpExplain" class="tl-btn primary">2. Explain your thinking</button>'+
+ '<button type="button" id="tlJumpVocabulary" class="tl-btn">Question words</button>'+
+ '<button type="button" id="tlJumpParent" class="tl-btn">Parent review</button></div>'+
+ '<p id="tlJourneyStatus" class="tl-caption" role="status" aria-live="polite"></p>';
+root.querySelector('.tl-controls').after(journey);
+const goToLabPart=id=>{const node=$(id);if(node)node.scrollIntoView({behavior:'smooth',block:'start'});};
+$('tlJumpExplore').addEventListener('click',()=>goToLabPart('tlGuided'));
+$('tlJumpExplain').addEventListener('click',()=>goToLabPart('tlExplainCoach'));
+$('tlJumpVocabulary').addEventListener('click',()=>{
+ const glossary=root.querySelector('.tl-explain-words');
+ if(glossary){glossary.open=true;glossary.scrollIntoView({behavior:'smooth',block:'start'});}
+});
+$('tlJumpParent').addEventListener('click',()=>{
+ if(role!=='parent')swapRole('parent');
+ goToLabPart('tlExplainParentReview');
+});
 
 function loadHistory(r){const x=read(pref+'history.'+r,[]);return Array.isArray(x)?x.slice(-400):[]}
 function storeHistory(r){write(pref+'history.'+r,histories[r])}
@@ -217,6 +242,7 @@ function next(same=false){
  guide.load(question);
  manip.load(question);
  coach.load(question,{profile:role,level:state.level});
+ text('tlJourneyStatus',question.id==='balance-add'?'First try the experiment and 729 + 21. The writing prompts then appear under “2. Explain your thinking”.':'The writing prompts are ready. Choose “2. Explain your thinking” above to jump to them.');
 }
 function displayVisual(){
  const q=state.question;

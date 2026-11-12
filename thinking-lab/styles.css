@@ -377,3 +377,16 @@ dialog#thinkingLabDialog.tl-fullscreen-dialog::backdrop{background:rgba(11,27,31
 @media print{
   dialog#thinkingLabDialog.tl-fullscreen-dialog{display:none!important}
 }
+
+/* Explain-your-thinking navigation stays visible before worked models unlock. */
+#thinking-lab .tl-journey{display:grid;gap:10px;margin:12px 0 20px;padding:16px 18px;background:#edf6f2;border:1px solid #b6d8cb;border-radius:14px;color:#173b3d}
+#thinking-lab .tl-journey-intro strong{font-size:17px;color:#174b45}
+#thinking-lab .tl-journey-intro p{font-size:14px;line-height:1.55;margin:5px 0 0}
+#thinking-lab .tl-journey-actions{display:flex;gap:9px;flex-wrap:wrap}
+#thinking-lab .tl-journey-actions .tl-btn{font-size:14px;line-height:1.3;min-height:44px}
+#thinking-lab .tl-journey #tlJourneyStatus{margin:0;font-size:13px;color:#365d57;line-height:1.5}
+@media(max-width:610px){
+ #thinking-lab .tl-journey{padding:14px 12px}
+ #thinking-lab .tl-journey-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+ #thinking-lab .tl-journey-actions .tl-btn{padding:10px 8px;font-size:13px}
+}

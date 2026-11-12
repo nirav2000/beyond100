@@ -96,3 +96,30 @@ test('Place Value remains intact and Roman Numerals switches the reusable topic 
   await expect(page.locator('#placeValueContext')).toBeVisible();
   await expect(page.locator('#questionBank .question-card')).toHaveCount(20);
 });
+
+test('Real homepage loads full-screen Maths Thinking Lab and explanation navigation', async ({page})=>{
+ const errors=[];
+ page.on('pageerror',error=>{if(/thinking-lab|Explanation coach|Maths Thinking Lab/i.test(String(error)))errors.push(String(error));});
+ await page.goto('http://127.0.0.1:4173/?lab=1&technique=balance-add',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#openThinkingLab')).toBeAttached({timeout:15000});
+ await expect(page.locator('#thinkingLabDialog')).toHaveJSProperty('open',true);
+ await expect(page.locator('#tlPrompt')).toBeVisible();
+ await expect(page.locator('#tlJourney')).toBeVisible();
+ await expect(page.locator('#tlExplainCoach')).toBeAttached();
+ await expect(page.locator('#tlExplainModels')).toBeHidden();
+ await page.locator('#tlJumpVocabulary').click();
+ await expect(page.locator('.tl-explain-words')).toHaveAttribute('open','');
+ for(const word of ['Describe','Explain','Why?','How?','Justify','Prove'])await expect(page.locator('#tlExplainWordList')).toContainText(word);
+ await page.locator('#tlJumpExplain').click();
+ await expect(page.locator('#tlExplainCoach')).toBeVisible();
+ await expect(page.locator('#tlExplainGate')).toBeVisible();
+ await page.locator('#tlJumpParent').click();
+ await expect(page.locator('#tlParent')).toBeVisible();
+ await expect(page.locator('#tlExplainParentReview')).toBeVisible();
+ await page.locator('#closeThinkingLab').click();
+ await expect(page.locator('#thinkingLabDialog')).not.toHaveJSProperty('open',true);
+ await expect(page.locator('#launchMathsThinkingLab')).toBeVisible();
+ await page.locator('#launchMathsThinkingLab').click();
+ await expect(page.locator('#thinkingLabDialog')).toHaveJSProperty('open',true);
+ expect(errors).toEqual([]);
+});

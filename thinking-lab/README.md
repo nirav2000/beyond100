@@ -36,3 +36,7 @@ The *Keep the total* experiment runs before the language ladder. After predictin
 ### Tests
 
 The unit suite checks all techniques, glossary words and transfers. The GitHub Actions browser suite checks the first-draft → compare → improve → new-example flow at mobile and desktop widths.
+
+### Live-app entry point and navigation
+
+The production Beyond 100 homepage now loads `thinking-lab/main.mjs` and shows an **Open Maths Thinking Lab** button. Inside the fullscreen Lab, a persistent journey map provides shortcuts for **Explore**, **Explain your thinking**, **Question words** and **Parent review**. The six command-word definitions are available before the compensation task is complete; the child's first writing prompt becomes available after applying 729 + 21. Comparison answers are intentionally learner-controlled. A production-page integration test (not merely the teaching fixture) checks all entry points.
