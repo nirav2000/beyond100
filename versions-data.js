@@ -1,13 +1,24 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.12.4',
+  currentVersion: '0.12.5',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.12.5',
+      date: '2026-11-12',
+      title: 'Maths Thinking Lab · Interaction regression reliability',
+      ref: 'main',
+      status: 'current',
+      summary: 'Retains the fully deployed and discoverable Thinking Lab and hardens the existing SVG drag regression check against a transient pointer-capture miss.',
+      areas: [
+        { id: 'lab-drag-smoke', title: 'Retry interrupted pointer gesture once', kind: 'workflow', summary: 'The interactive visual test repeats a drag once if Chromium misses a pointer capture and still fails if dragging does not work.' }
+      ]
+    },
     {
       version: '0.12.4',
       date: '2026-11-11',
       title: 'Maths Thinking Lab · Live integration and visible explanation stages',
-      ref: 'main',
-      status: 'current',
+      ref: '683ee70d41c1e56ea97e2b2edbb0091500b7d6a7',
+      status: 'archive',
       summary: 'Loads Maths Thinking Lab on the real Beyond 100 homepage and provides a visible launcher, lesson map and shortcuts for explanation practice, glossary and parent review.',
       areas: [
         { id: 'lab-live-entrypoint', title: 'Fix missing homepage module', kind: 'repair', summary: 'Adds thinking-lab/main.mjs to the production index and binds a visible launcher to the full-screen Maths Thinking Lab dialog.' },

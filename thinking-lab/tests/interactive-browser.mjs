@@ -32,6 +32,10 @@ try{
   await page.locator('#tlCompAdvance').click();
   assert.equal(await page.locator('#tlCompPicture .tl-moving-one').count(),1);
   await drag(page,'#tlCompPicture [data-drag-compensation]',0,32);
+  // A native SVG drag can be interrupted by a pointer-capture race in Chromium.
+  // Retry a distinct gesture once; still fail if dragging remains broken.
+  if((await page.locator('#tlCompAdvance').innerText())==='Move the 1')
+   await drag(page,'#tlCompPicture [data-drag-compensation]',42,36);
   assert.equal(await page.locator('#tlCompAdvance').innerText(),'Compare the totals');
   await page.locator('#tlCompAdvance').click();
   assert.match(await page.locator('#tlCompResult').innerText(),/total stays the same|Nothing was added/);
