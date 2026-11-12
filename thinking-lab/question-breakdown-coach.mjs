@@ -195,8 +195,8 @@ export function createQuestionBreakdownCoach({legacyCoach,onProgress=()=>{},init
  WHY_TARGETS.forEach(t=>{
   const option=document.createElement('option');option.value=t.id;option.textContent=t.label;$('tlQbWhyTarget').appendChild(option);
  });
- $('tlQbCommand').addEventListener('change',e=>{if(!question)return;freshWord(e.target.value,whyFocus);notice('change-command-word');});
- $('tlQbWhyTarget').addEventListener('change',e=>{if(!question)return;freshWord('Why',e.target.value);notice('change-why-target');});
+ $('tlQbCommand').addEventListener('change',e=>{if(!question)return;freshWord(e.target.value,whyFocus);});
+ $('tlQbWhyTarget').addEventListener('change',e=>{if(!question)return;freshWord('Why',e.target.value);});
  $('tlQbFirst').addEventListener('input',()=>{
   if(!entry||firstLocked)return;
   entry.independentAnswer=$('tlQbFirst').value.slice(0,2000);
