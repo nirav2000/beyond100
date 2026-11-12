@@ -40,3 +40,4 @@ jobs:
           node thinking-lab/tests/guided-browser.mjs
           node thinking-lab/tests/interactive-browser.mjs
           node thinking-lab/tests/explanation-browser.mjs
+          node thinking-lab/tests/question-breakdown-browser.mjs
