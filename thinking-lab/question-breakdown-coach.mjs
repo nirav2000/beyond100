@@ -103,7 +103,7 @@ export function createQuestionBreakdownCoach({legacyCoach,onProgress=()=>{},init
   $('tlQbMeaning').textContent=meaning.meaning;
   $('tlQbNeed').textContent=meaning.need+(word==='Prove'?' This is an extension challenge: try counters or diagrams before using letters.':'');
   $('tlQbQuestion').textContent=lesson.question;
-  $('tlQbCommand').value=word;$('tlQbWhyWrap').hidden=word!=='Why';$('tlQbWhyTarget').value=focus;
+  $('tlQbCommand').value=word;$('tlQbWhyWrap').hidden=word!=='Why'||!lesson.isComp;$('tlQbWhyTarget').value=focus;
   for(const id of ['tlQbFirst','tlQbStepAnswer','tlQbCombined','tlQbImproved','tlQbTransferWhy'])$(id).value='';
   for(const id of ['tlQbFirstMessage','tlQbStepsMessage','tlQbBuildMessage','tlQbSaveMessage','tlQbTransferMessage','tlQbTermDefinition','tlQbMissing'])$(id).textContent='';
   for(const id of ['tlQbSteps','tlQbBuild','tlQbModels','tlQbTransfer'])$(id).hidden=true;
@@ -175,6 +175,7 @@ export function createQuestionBreakdownCoach({legacyCoach,onProgress=()=>{},init
   }
  }
  function load(q,options={}){
+  legacyCoach.load(q,options);
   question=q;role=options.profile||'learner';level=options.level||2;
   model=modelFor(q,0,level);
   freshWord(chosenWord,whyFocus);
