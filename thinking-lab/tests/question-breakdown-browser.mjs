@@ -105,7 +105,7 @@ try{
 
   await page.locator('#tlRoleparent').click();
   assert.equal(await page.locator('#tlParent').isVisible(),true);
-  const summaries=await page.locator('#tlExplainParentRows summary').allInnerTexts();
+  const summaries=await page.locator('#tlExplainParentRows > details > summary').allInnerTexts();
   assert.equal(summaries.length,2);
   assert.ok(summaries.some(s=>s.includes('Guided breakdown')));
   assert.ok(summaries.some(s=>s.includes('Current way')));
