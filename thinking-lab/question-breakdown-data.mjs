@@ -120,7 +120,23 @@ export function questionBreakdown(question,word='Explain',whyFocus='easier',mode
 }
 export function combineBreakdown(lesson,answers={}){
  const missing=lesson.steps.filter(s=>!get(answers,s.id)).map(s=>s.id);
- const clause=(id,label)=>get(answers,id)||'['+label+']';
+ const clause=(id,label)=>{
+  let value=get(answers,id);
+  if(!value)return '['+label+']';
+  // Children may answer in full sentences despite being given sentence starters.
+  // Remove only obvious repeated openings, then leave the draft editable.
+  if(id==='start')value=value.replace(/^(?:we started with)\s+/i,'');
+  if(id==='aim')value=value.replace(/^(?:i wanted to make\s+729\s+into|729\s+into)\s+/i,'');
+  if(id==='move')value=value.replace(/^(?:(?:to do that,?\s*)?i\s+|to do that,?\s*)/i,'');
+  if(['benefit','feature','reason','rule','unchanged'].includes(id)){
+   value=value.replace(/^(?:the (?:sum|total) (?:stays|stayed) (?:the same|unchanged)\s+)?because\s+/i,'');
+  }
+  if(id==='result')value=value.replace(/^(?:so|therefore),?\s+/i,'');
+  if(id==='claim')value=value.replace(/^i claim that\s+/i,'');
+  if(id==='general')value=value.replace(/^suppose\s+/i,'');
+  if(id==='evidence')value=value.replace(/^(?:for example|in symbols),?\s+/i,'');
+  return value||'['+label+']';
+ };
  let sentences=[];
  if(lesson.isComp){
   switch(lesson.word){
