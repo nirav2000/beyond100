@@ -2,6 +2,7 @@ import {TOPICS,TECHNIQUES,makeQuestion} from './engine.mjs';
 import {createGuidedDiscovery,buildStoryboard} from './guided-discovery.mjs';
 import {createInteractiveModels} from './interactive-models.mjs';
 import {createExplanationCoach} from './explanation-coach.mjs';
+import {createQuestionBreakdownCoach} from './question-breakdown-coach.mjs';
 
 const root=document.getElementById('thinkingLabRoot');
 if(!root) throw Error('Missing Maths Thinking Lab mount');
@@ -45,7 +46,9 @@ const guide=createGuidedDiscovery({
  }
 });
 const manip=createInteractiveModels({onInteraction:()=>{state.manipInteractions=(state.manipInteractions||0)+1;}});
-coach=createExplanationCoach({onProgress:saveExplanation,onReview:saveParentReview});
+const previousCoach=createExplanationCoach({onProgress:saveExplanation,onReview:saveParentReview});
+coach=createQuestionBreakdownCoach({legacyCoach:previousCoach,onProgress:saveExplanation,
+ initialMode:config.get('explain')==='guided'?'guided':'existing'});
 // Always-visible map to find the writing ladder without revealing its answers.
 const journey=document.createElement('nav');
 journey.id='tlJourney';journey.className='tl-journey';journey.setAttribute('aria-label','Maths Thinking Lab lesson stages');
@@ -61,8 +64,9 @@ journey.innerHTML=
 root.querySelector('.tl-controls').after(journey);
 const goToLabPart=id=>{const node=$(id);if(node)node.scrollIntoView({behavior:'smooth',block:'start'});};
 $('tlJumpExplore').addEventListener('click',()=>goToLabPart('tlGuided'));
-$('tlJumpExplain').addEventListener('click',()=>goToLabPart('tlExplainCoach'));
+$('tlJumpExplain').addEventListener('click',()=>goToLabPart(coach.getMode()==='guided'?'tlQbCoach':'tlExplainCoach'));
 $('tlJumpVocabulary').addEventListener('click',()=>{
+ if(coach.getMode()==='guided'){goToLabPart('tlQbSwitcher');document.getElementById('tlQbCommand')?.focus({preventScroll:true});return;}
  const glossary=root.querySelector('.tl-explain-words');
  if(glossary){glossary.open=true;glossary.scrollIntoView({behavior:'smooth',block:'start'});}
 });
@@ -81,8 +85,9 @@ function saveExplanation({profile,record}){
  write(pref+'explanations.'+r,rows.slice(-150));
  const attempt=histories[r].findLast(row=>row.exerciseId===state.exerciseId);
  if(attempt){
-  attempt.explanationProvided=Boolean(item.firstWhy.trim());
-  attempt.explanation=item.firstWhy.slice(0,500);
+  attempt.explanationProvided=Boolean((item.firstWhy||item.independentAnswer||'').trim());
+  attempt.explanation=(item.firstWhy||item.independentAnswer||'').slice(0,500);
+  attempt.explanationApproach=item.approach||'current';
   attempt.explanationRevised=Boolean(item.improved);
   attempt.explanationTransferCorrect=item.transfer?.correct;
   attempt.explanationIndependentStart=item.independentStart;
@@ -260,7 +265,7 @@ function record(correct){
  const q=state.question,ms=Math.round(performance.now()-state.started);
  const assisted=state.hints>0||state.wrong>0||state.guidedReveals>0||state.visual||state.manipInteractions>0;
  const explanation=coach?.snapshot();
- const why=(explanation?.firstWhy||'').trim();
+ const why=(explanation?.firstWhy||explanation?.independentAnswer||'').trim();
  const row={at:new Date().toISOString(),exerciseId:state.exerciseId,technique:q.id,skill:q.skill,topic:q.topic,prompt:q.prompt,correct,
     assisted,visual:state.visual||state.guidedReveals>0||state.manipInteractions>0,hints:state.hints,wrong:state.wrong,guidedReveals:state.guidedReveals,manipInteractions:state.manipInteractions,
     strategy:state.strategy,firstAnswerMs:state.firstAnswerMs,predictionChoice:state.predictionChoice,durationMs:ms,
