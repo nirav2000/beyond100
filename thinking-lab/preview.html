@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width,initial-scale=1">
+ <meta name="color-scheme" content="light">
+ <title>Maths Thinking Lab · Experimental Comparison</title>
+ <style>
+ :root{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#173a38;background:#f6f8f4}
+ *{box-sizing:border-box}
+ body{margin:0}
+ main{max-width:920px;margin:auto;padding:clamp(16px,5vw,46px)}
+ header{margin:22px 0}
+ .eyebrow{text-transform:uppercase;letter-spacing:.09em;font-size:12px;font-weight:800;color:#317366}
+ h1{font-size:clamp(29px,5vw,46px);line-height:1.15;margin:8px 0 14px}
+ h2{font-size:21px}
+ p{font-size:16px;line-height:1.55}
+ .intro{max-width:700px;color:#45615c}
+ .card{background:#fff;border:1px solid #d0e0d7;border-radius:17px;padding:clamp(17px,3vw,25px);box-shadow:0 8px 30px #163f2108}
+ .options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:19px 0 15px}
+ .option{padding:19px;border:1px solid #bcd1c7;border-radius:13px;background:#f9fcfa;display:flex;flex-direction:column;gap:12px}
+ .option h3{font-size:20px;margin:0}
+ .option p{font-size:14px;margin:0;flex:1}
+ .option a,button{display:inline-block;text-align:center;font:inherit;text-decoration:none;font-weight:750;padding:12px 16px;border-radius:10px;background:#166d61;color:#fff;border:1px solid #166d61;cursor:pointer}
+ .option:first-child a{background:white;color:#145b55}
+ .muted{color:#526b65;font-size:13px}
+ .section-nav button{border-radius:8px;background:#ebf4ef;color:#20534d;border:1px solid #a8c8b8;font-size:13px;padding:8px 12px}
+ .content-section:not(.active){display:none!important}
+ @media(max-width:630px){.options{grid-template-columns:1fr}}
+ </style>
+</head>
+<body>
+ <main id="main">
+  <header>
+   <div class="eyebrow">Beyond 100 · Experimental branch</div>
+   <h1>Maths Thinking Lab</h1>
+   <p class="intro">Compare the current explanation routine with a new way of building answers from smaller questions. The maths experiment is the same in both versions.</p>
+  </header>
+  <nav class="section-nav" aria-label="Lab activity navigation"><button type="button" data-section="assessments" class="active">Comparison guide</button></nav>
+  <section class="content-section active card" id="assessments">
+   <h2>Choose how Sai explains his thinking</h2>
+   <div class="options">
+    <article class="option">
+     <h3>Current way</h3>
+     <p>Describe what changed and why it works. Compare two model answers, improve the language and try another calculation.</p>
+     <a href="?lab=1&amp;technique=balance-add&amp;explain=existing">Open current approach</a>
+    </article>
+    <article class="option">
+     <h3>Guided breakdown <span aria-hidden="true">✦</span></h3>
+     <p>Choose Describe, How, Why, Explain, Justify or Prove. Answer one short question at a time, then join the answers into a fuller explanation.</p>
+     <a href="?lab=1&amp;technique=balance-add&amp;explain=guided">Open new approach</a>
+    </article>
+   </div>
+   <p class="muted">Within Maths Thinking Lab, you can switch between the two approaches without losing what you have written. To unlock the writing activity, complete the predict → move → 729 + 21 experiment first.</p>
+   <p class="muted">This is a standalone experimental preview. It does not sign in or write to the production app; practice text is kept locally in this browser.</p>
+  </section>
+ </main>
+ <script>window.__labEvents=[];window.BEYOND100_EVIDENCE={recordFocusResponse(e){window.__labEvents.push(e)}}</script>
+ <script type="module" src="./main.mjs"></script>
+</body>
+</html>
