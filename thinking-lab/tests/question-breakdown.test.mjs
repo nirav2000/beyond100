@@ -52,6 +52,22 @@ test('combines five answers into a complete editable draft without revealing mod
  assert.match(draft.text,/729 \+ 21 = 730 \+ 20 = 750/);
  assert.doesNotMatch(draft.text,/undefined|\[|\bNaN\b/);
 });
+test('the composer removes obvious duplicated openings from full-sentence child answers',()=>{
+ const lesson=get('Explain');
+ const draft=combineBreakdown(lesson,{
+  aim:'I wanted to make 729 into 730',
+  benefit:'Because 730 is a multiple of 10',
+  move:'I moved 1 from 21 to 729, leaving 20',
+  unchanged:'Because the amount gained equals the amount lost',
+  result:'Therefore, 730 + 20 = 750'
+ });
+ assert.equal(draft.complete,true);
+ assert.doesNotMatch(draft.text,/into I wanted to make/i);
+ assert.doesNotMatch(draft.text,/because Because/i);
+ assert.doesNotMatch(draft.text,/I I moved/i);
+ assert.doesNotMatch(draft.text,/Therefore, Therefore/i);
+ assert.match(draft.text,/730 \+ 20 = 750/);
+});
 test('incomplete drafts retain blank prompts rather than inventing a reason',()=>{
  const lesson=get('Explain');
  const draft=combineBreakdown(lesson,{aim:'730'});
