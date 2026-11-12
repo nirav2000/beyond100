@@ -348,6 +348,7 @@ export function createExplanationCoach({onProgress=()=>{},onReview=()=>{}}={}){
    const details=document.createElement('details');details.className='tl-explain-review-item';
    const summary=document.createElement('summary');
    summary.textContent=(r.technique||'Thinking')+' · '+new Date(r.createdAt).toLocaleDateString('en-GB')+
+    ' · '+(r.approach==='guided-breakdown'?'Guided breakdown':'Current way')+
     ' · '+(r.improved?'Revised':'First draft')+
     (r.transfer?.correct===true?' · New calculation correct':'');
    details.appendChild(summary);
@@ -356,6 +357,31 @@ export function createExplanationCoach({onProgress=()=>{},onReview=()=>{}}={}){
     if(!value)continue;
     const p=document.createElement('p');const strong=document.createElement('strong');strong.textContent=label+': ';
     p.append(strong,document.createTextNode(value));details.appendChild(p);
+   }
+   if(r.approach==='guided-breakdown'){
+    const detailsTitle=document.createElement('h5');detailsTitle.textContent='Breakdown of the question';
+    details.appendChild(detailsTitle);
+    for(const [label,value] of [
+      ['Question word',r.word],['Which why?',r.whyFocus==='unchanged'?'Why is the sum unchanged?':'Why choose an easier calculation?'],
+      ['First independent response',r.independentAnswer],
+      ['Joined step answers',r.scaffold?.edited],
+      ['Hints used',String(r.scaffold?.hints?.length||0)],
+      ['Examples revealed',String(r.scaffold?.examples?.length||0)]
+    ]){
+     if(!value)continue;
+     const p=document.createElement('p'),strong=document.createElement('strong');
+     strong.textContent=label+': ';p.append(strong,document.createTextNode(String(value)));details.appendChild(p);
+    }
+    if(r.scaffold?.answers){
+     const stepDetails=document.createElement('details');stepDetails.className='tl-explain-review-item';
+     const sum=document.createElement('summary');sum.textContent='See Sai’s individual small answers';
+     stepDetails.appendChild(sum);
+     Object.entries(r.scaffold.answers).forEach(([word,answer])=>{
+      const p=document.createElement('p');const strong=document.createElement('strong');strong.textContent=word+': ';
+      p.append(strong,document.createTextNode(String(answer)));stepDetails.appendChild(p);
+     });
+     details.appendChild(stepDetails);
+    }
    }
    const status=document.createElement('p');status.textContent=
     'Independent first draft: '+(r.independentStart&&!r.supportBeforeFirstDraft?'Yes':'Not established')+
@@ -371,6 +397,9 @@ export function createExplanationCoach({onProgress=()=>{},onReview=()=>{}}={}){
     ['evidence','Supports with maths evidence'],
     ['terminology','Uses mathematical words accurately']
    ];
+   if(r.approach==='guided-breakdown')dimensions.push(
+    ['purpose','Explains WHY this method was chosen'],
+    ['validity','Explains WHY the mathematics works']);
    for(const [id,label] of dimensions){
     const wrapper=document.createElement('label');wrapper.textContent=label;
     const select=document.createElement('select');select.dataset.rating=id;
