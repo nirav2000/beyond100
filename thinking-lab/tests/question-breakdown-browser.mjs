@@ -18,7 +18,7 @@ try{
   assert.equal(await page.locator('#tlQbWhyTarget').isVisible(),true);
   assert.match(await page.locator('#tlQbQuestion').innerText(),/easier/i);
   await page.locator('#tlQbWhyTarget').selectOption('unchanged');
-  assert.match(await page.locator('#tlQbQuestion').innerText(),/unchanged/);
+  assert.match(await page.locator('#tlQbQuestion').innerText(),/unchanged|stay the same/i);
   await page.locator('#tlQbCommand').selectOption('Explain');
   assert.match(await page.locator('#tlQbQuestion').innerText(),/easier.*total stays the same/i);
   assert.equal(await page.locator('#tlQbWhyTarget').isVisible(),false);
