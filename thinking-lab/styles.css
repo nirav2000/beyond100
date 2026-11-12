@@ -390,3 +390,87 @@ dialog#thinkingLabDialog.tl-fullscreen-dialog::backdrop{background:rgba(11,27,31
  #thinking-lab .tl-journey-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
  #thinking-lab .tl-journey-actions .tl-btn{padding:10px 8px;font-size:13px}
 }
+
+
+/* Experiment only: compare the existing explanation coach with question-led scaffolding. */
+#thinking-lab .tl-qb-switcher{
+ display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px 18px;
+ padding:15px 18px;margin:18px 0 10px;border:1px solid #a6c9ba;border-radius:15px;
+ background:#edf6f1;
+}
+#thinking-lab .tl-qb-switcher strong{font-size:17px;color:#173a33}
+#thinking-lab .tl-qb-switcher p{margin:4px 0 0;font-size:14px;max-width:470px}
+#thinking-lab .tl-qb-switcher .tl-qb-note{flex-basis:100%;font-size:12px;color:#526b65;margin:0}
+#thinking-lab .tl-qb-switch-buttons{display:flex;flex-wrap:wrap;gap:7px}
+#thinking-lab .tl-qb-switch-buttons button{
+ border:1.5px solid #799c91;border-radius:9px;padding:10px 13px;font-weight:750;
+ color:#224b46;background:white;min-height:45px;line-height:1.4;
+}
+#thinking-lab .tl-qb-switch-buttons button[aria-pressed="true"]{
+ background:#126d61;border-color:#126d61;color:white;
+}
+#thinking-lab .tl-qb-coach{
+ max-width:960px;margin:16px auto 24px;padding:clamp(16px,3vw,28px);
+ background:#fcfdfb;border:1px solid #bbd5cb;border-radius:18px;color:#173a3b;
+}
+#thinking-lab .tl-qb-top h3{font-size:clamp(21px,2.8vw,29px);line-height:1.25;margin:8px 0 7px}
+#thinking-lab .tl-qb-top>p{margin:0 0 18px;color:#44615d}
+#thinking-lab .tl-qb-selectors{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;max-width:820px}
+#thinking-lab .tl-qb-selectors label{display:block;font-weight:750;font-size:14px;color:#244e48}
+#thinking-lab .tl-qb-selectors select{display:block;margin-top:7px;font:inherit;font-weight:650;width:100%}
+#thinking-lab .tl-qb-definition{
+ margin:14px 0;padding:12px 16px;background:#eff8f2;border-left:4px solid #267962;
+ border-radius:9px;
+}
+#thinking-lab .tl-qb-definition strong{display:block;font-size:16px;line-height:1.45}
+#thinking-lab .tl-qb-definition p{margin:4px 0 0;font-size:14px;color:#3a5b53}
+#thinking-lab .tl-qb-question{
+ background:#f2f6f4;border:1px solid #d6e7df;
+ border-radius:13px;padding:16px 18px;margin:16px 0 22px;
+}
+#thinking-lab .tl-qb-question span{font-size:11px;font-weight:850;letter-spacing:.07em;color:#45716a}
+#thinking-lab .tl-qb-question h4{font-size:clamp(18px,2.2vw,23px);line-height:1.4;margin:8px 0 0}
+#thinking-lab .tl-qb-coach h4{font-size:19px;line-height:1.35;margin:24px 0 12px}
+#thinking-lab .tl-qb-coach label{display:block;font-size:15px;font-weight:750;line-height:1.45;margin:14px 0 8px}
+#thinking-lab .tl-qb-coach textarea{font-size:16px;line-height:1.55;min-height:85px;padding:12px;width:100%;resize:vertical}
+#thinking-lab .tl-qb-coach textarea:read-only{background:#f2f7f3;color:#355650}
+#thinking-lab .tl-qb-actions{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin:13px 0 5px}
+#thinking-lab .tl-qb-actions button{min-height:46px}
+#thinking-lab .tl-qb-coach p[role="status"]{min-height:16px}
+#thinking-lab .tl-qb-progress{font-size:14px;color:#477169;font-weight:750}
+#thinking-lab .tl-qb-step{
+ background:#fff;border:1px solid #c8dfd3;border-radius:13px;padding:18px;
+ box-shadow:0 4px 12px #112a2006;
+}
+#thinking-lab .tl-qb-step label{font-size:clamp(16px,2vw,20px);margin:0 0 11px;color:#1b5148}
+#thinking-lab .tl-qb-starter{font-size:14px;font-weight:650;margin:6px 0;color:#46776d}
+#thinking-lab .tl-qb-step-help{
+ padding:11px 13px;border-left:4px solid #a78242;background:#fff6e8;border-radius:6px;
+ font-size:14px;line-height:1.6;margin:10px 0 0;
+}
+#thinking-lab .tl-qb-two-models{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:14px 0}
+#thinking-lab .tl-qb-two-models>div{
+ padding:15px 17px;background:#fff;border:1px solid #c8dbd3;border-radius:12px;
+}
+#thinking-lab .tl-qb-two-models>div:last-child{background:#f1f8f2}
+#thinking-lab .tl-qb-two-models p{font-size:15px;line-height:1.6;margin:8px 0 0}
+#thinking-lab .tl-qb-coach #tlQbCombined{min-height:190px}
+#thinking-lab .tl-qb-coach #tlQbImproved{min-height:160px}
+#thinking-lab .tl-qb-checks{border:1px solid #c2d7cc;border-radius:10px;margin:17px 0;padding:12px 16px}
+#thinking-lab .tl-qb-checks legend{font-weight:800}
+#thinking-lab .tl-qb-checks label{font-weight:500;display:flex;gap:10px;align-items:flex-start;cursor:pointer;margin:9px 0}
+#thinking-lab .tl-qb-checks input[type="checkbox"]{width:19px;height:19px;flex:none;margin:1px 0 0}
+#thinking-lab .tl-qb-coach .tl-explain-transfer-fields input{display:block;width:100%;margin-top:8px;padding:12px}
+@media(max-width:690px){
+ #thinking-lab .tl-qb-switcher{padding:13px}
+ #thinking-lab .tl-qb-switch-buttons{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+ #thinking-lab .tl-qb-switch-buttons button{padding:10px 8px}
+ #thinking-lab .tl-qb-coach{padding:15px;margin:14px 0}
+ #thinking-lab .tl-qb-selectors{grid-template-columns:1fr}
+ #thinking-lab .tl-qb-two-models{grid-template-columns:1fr}
+ #thinking-lab .tl-qb-actions button{flex:1 1 auto}
+ #thinking-lab .tl-qb-step{padding:13px}
+}
+@media print{
+ #thinking-lab .tl-qb-coach,#thinking-lab .tl-qb-switcher{display:none!important}
+}
