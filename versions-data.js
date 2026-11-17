@@ -1,13 +1,24 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.12.6',
+  currentVersion: '0.12.7',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.12.7',
+      date: '2026-11-17',
+      title: 'Learning Evidence · Verified browser deployment',
+      ref: 'main',
+      status: 'current',
+      summary: 'Pins the Pages and Thinking Lab browser-test runners to a supported Ubuntu release so the shared evidence integration can pass full deployment smoke checks.',
+      areas: [
+        { id: 'supported-browser-runner', title: 'Restore Playwright browser validation', kind: 'workflow', summary: 'Runs Chromium smoke tests on Ubuntu 24.04 rather than Ubuntu 26.04, which is not supported by the pinned browser package.' }
+      ]
+    },
     {
       version: '0.12.6',
       date: '2026-11-17',
       title: 'Shared Learning Evidence · Independent mastery checks',
-      ref: 'main',
-      status: 'current',
+      ref: '1ddcdb9a7d70422d74428e5e6feed03c652c0fee',
+      status: 'archive',
       summary: 'Adds the common four-measure learning record to Beyond100 while preserving existing diagnostic and Firebase evidence. Parent checks measure accuracy, independence, seven-day retention and transfer.',
       areas: [
         { id: 'shared-learning-evidence-v1', title: 'Cross-app learning evidence', kind: 'data', summary: 'Records accuracy, support level, delayed retention and novel transfer separately without regrading existing assessments.' },
