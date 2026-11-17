@@ -1,13 +1,26 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.12.5',
+  currentVersion: '0.12.6',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.12.6',
+      date: '2026-11-17',
+      title: 'Shared Learning Evidence · Independent mastery checks',
+      ref: 'main',
+      status: 'current',
+      summary: 'Adds the common four-measure learning record to Beyond100 while preserving existing diagnostic and Firebase evidence. Parent checks measure accuracy, independence, seven-day retention and transfer.',
+      areas: [
+        { id: 'shared-learning-evidence-v1', title: 'Cross-app learning evidence', kind: 'data', summary: 'Records accuracy, support level, delayed retention and novel transfer separately without regrading existing assessments.' },
+        { id: 'evidence-followups', title: 'Day 1, day 7 and day 28 review checks', kind: 'assessment', summary: 'Schedules delayed checks from recorded teaching dates without counting reminders as successful recall.' },
+        { id: 'evidence-parent-panel', title: 'Parent assessment panel', kind: 'ux', summary: 'Provides concise scores, due reviews, manual result entry, scoped local saving and JSON export in the Evidence Plan.' }
+      ]
+    },
     {
       version: '0.12.5',
       date: '2026-11-12',
       title: 'Maths Thinking Lab · Interaction regression reliability',
-      ref: 'main',
-      status: 'current',
+      ref: 'f8ec438e801ef1950b375f72d40c480dfc6e3f67',
+      status: 'archive',
       summary: 'Retains the fully deployed and discoverable Thinking Lab and hardens the existing SVG drag regression check against a transient pointer-capture miss.',
       areas: [
         { id: 'lab-drag-smoke', title: 'Retry interrupted pointer gesture once', kind: 'workflow', summary: 'The interactive visual test repeats a drag once if Chromium misses a pointer capture and still fails if dragging does not work.' }
