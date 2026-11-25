@@ -278,9 +278,13 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 
 function recordFocusResponse(detail={}){
-  const at=now(),skill=detail.skill||'Focused learning',phase=detail.phase||'diagnose';
+  const tense=detail.source==='tense-timeline';
+  const parsed=tense?Date.parse(detail.occurredAt||''):NaN;
+  const at=Number.isFinite(parsed)&&parsed<=Date.now()?new Date(parsed).toISOString():now(),skill=detail.skill||'Focused learning',phase=detail.phase||'diagnose';
+  const externalId=tense&&typeof detail.externalId==='string'?detail.externalId:null;
+  if(externalId){const prior=state.events.find(e=>e.id===externalId);if(prior)return prior;}
   const event={
-    id:crypto.randomUUID(),kind:'focus-response',app:'beyond100',topicId:topicId(),subject:subject(),
+    id:externalId||crypto.randomUUID(),kind:'focus-response',app:'beyond100',topicId:tense?'english-tense-aspect':topicId(),subject:tense?'English':subject(),
     skill,prompt:detail.prompt||'',outcome:detail.outcome||'noConcept',errorCode:detail.errorCode||null,
     responseSeconds:Number.isFinite(detail.responseSeconds)?detail.responseSeconds:null,phase,
     promptLevel:detail.promptLevel||'independent',observations:[...(detail.observations||[])],confidence:detail.confidence||null,
