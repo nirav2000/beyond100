@@ -36,7 +36,7 @@
     const items = data.subjects[activeSubject].topics
       .filter(t => t.toLowerCase().includes(query));
     $("topicList").innerHTML = items.map(name => {
-      const detailed = Boolean(data.detailedTopics[name]);
+      const detailed = Boolean(data.detailedTopics[name]) || name === "Tense & Aspect";
       const selected = detailed && (topicState?.getName?.() === name);
       return `<button class="topic-item ${detailed ? "active" : "placeholder"} ${selected ? "selected" : ""}" data-topic="${escapeHtml(name)}">${escapeHtml(name)}</button>`;
     }).join("") || `<div class="empty-state">No matching topics.</div>`;
