@@ -14,7 +14,8 @@ const model=(function buildModel(){
  ["By 5 pm yesterday, the activity had been going on for a while.","Up to now, the activity has been going on for a while.","By 5 pm tomorrow, the activity will have been going on for a while."]
  ];
  function form(k,t,a){const v=verbs[k];if(!v||!times[t]||!aspects[a])throw Error("Unknown form");const [base,past,part,ing]=v;return [[past,base,"will "+base],["was "+ing,"am "+ing,"will be "+ing],["had "+part,"have "+part,"will have "+part],["had been "+ing,"have been "+ing,"will have been "+ing]][a][t]}
- const sentence=(k,t,a)=>"I "+form(k,t,a)+verbs[k][4]+".";
+ const context=(k,t,a)=>k==="read"&&a===0?(t===0?" yesterday":t===1?" every day":" tomorrow"):"";
+ const sentence=(k,t,a)=>"I "+form(k,t,a)+verbs[k][4]+context(k,t,a)+".";
  const norm=s=>String(s||"").toLowerCase().trim().replace(/[.!?]+$/,"").replace(/\s+/g," ").trim();
  const mark=(s,q)=>[q.answer,...(q.accept||[])].some(x=>norm(s)===norm(x));
  const rotate=(r,n)=>r.slice(n%r.length).concat(r.slice(0,n%r.length));
@@ -40,6 +41,6 @@ const model=(function buildModel(){
  }
  function reviews(completed,rows,now=Date.now()){return Object.entries(completed).filter(([s,v])=>lessons[+s]&&Number.isFinite(v.at)).flatMap(([s,v])=>days.map(day=>({stage:+s,day,due:v.at+day*DAY,done:rows.some(r=>r.stage===+s&&r.mode==="review"&&r.day===day&&r.complete)}))).sort((a,b)=>a.due-b.due).map(r=>({...r,ready:!r.done&&now>=r.due}))}
  function stats(rows){const pct=(r,fn)=>r.length?Math.round(100*r.filter(fn).length/r.length):null,ind=r=>r.correct&&!r.hints;return [pct(rows,r=>r.correct),pct(rows,ind),pct(rows.filter(r=>r.mode==="review"),ind),pct(rows.filter(r=>r.transfer),ind)]}
- return {verbs,times,aspects,lessons,days,explanations,cues,form,sentence,mark,questions,reviews,stats};
+ return {verbs,times,aspects,lessons,days,explanations,cues,form,context,sentence,mark,questions,reviews,stats};
 })();
 export default model;
