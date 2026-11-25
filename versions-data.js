@@ -1,13 +1,27 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.13.1',
+  currentVersion: '0.14.0',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.14.0',
+      date: '2026-11-25',
+      title: 'Grammar Workshop · Explore, analyse and construct',
+      ref: 'main',
+      status: 'current',
+      summary: 'Adds a person-aware grammar explorer inspired by the French grammar diagrams, sentence deconstruction, progressive sentence construction and delayed recall.',
+      areas: [
+        { id: 'grammar-explorer', title: 'Interactive grammar explorer', kind: 'ux', summary: 'Choose person, action, time, aspect and optional modality. Coloured verb blocks, diagrams and light/dark themes update together.' },
+        { id: 'grammar-analyser', title: 'Analyse a sentence one feature at a time', kind: 'curriculum', summary: 'Identify time, aspect, person and verb roles, with advanced modality and went playing examples.' },
+        { id: 'grammar-construction', title: 'Construct and transform sentences', kind: 'assessment', summary: 'Write the complete sentence, then change one feature at a time, followed by changed-verb transfer.' },
+        { id: 'grammar-retrieval', title: 'Grammar evidence and spaced reviews', kind: 'data', summary: 'Records first answers and hints by grammatical feature; schedules day 1, 3 and 7 recall without immediate corrections.' }
+      ]
+    },
     {
       version: '0.13.1',
       date: '2026-11-25',
       title: 'Understand first · interactive tense comparisons',
-      ref: 'main',
-      status: 'current',
+      ref: 'fed084b1ed6edb44c1ee3f373049fe521882dc2b',
+      status: 'archive',
       summary: 'Adds concise side-by-side comparisons of the same action, a movable viewpoint timeline and a verb form guide; introduces everyday meanings before grammar names.',
       areas: [
         { id: 'tense-compact-compare', title: 'Dynamic simple, continuous and perfect chart', kind: 'ux', summary: 'Switch the time and the verb while keeping the subject and context fixed.' },
