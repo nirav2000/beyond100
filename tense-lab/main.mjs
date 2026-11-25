@@ -1,5 +1,6 @@
 import model from "./model.mjs";
 import visuals from "./visuals.mjs";
+import comparison from "./comparison.mjs";
 (function mount(model,visuals,w){
  const {verbs:V,times:T,aspects:A,lessons:L,days:D,explanations,form,context,sentence,questions,mark,reviews,stats}=model;
  const {esc,chart,card,personal,stateCompare}=visuals;
@@ -8,7 +9,7 @@ import visuals from "./visuals.mjs";
  const preview=new URLSearchParams(w.location.search).has("version-preview"),storageKey="beyond100.tense-timeline.v1";
  const fresh=()=>({rows:[],completed:{},taught:{},pending:[],lastStage:0,lastVerb:"play"});
  function load(){try{const s=JSON.parse(w.localStorage.getItem(storageKey)||"{}");return {...fresh(),...s,rows:Array.isArray(s.rows)?s.rows:[],pending:Array.isArray(s.pending)?s.pending:[],completed:s.completed||{},taught:s.taught||{}}}catch{return fresh()}}
- let state=preview?fresh():load(),stage=L[state.lastStage]?state.lastStage:0,view="learn",verb=V[state.lastVerb]?state.lastVerb:"play",aspect=0,birth="",today="",quiz=null,focus=null,localOK=true,bridgeOK=false,flushing=false;
+ let state=preview?fresh():load(),stage=L[state.lastStage]?state.lastStage:0,view="learn",verb=V[state.lastVerb]?state.lastVerb:"play",aspect=0,compareTime=0,momentMinute=270,showTerms=false,birth="",today="",quiz=null,focus=null,localOK=true,bridgeOK=false,flushing=false;
  function save(){if(preview)return;try{w.localStorage.setItem(storageKey,JSON.stringify(state));localOK=true}catch{localOK=false}}
  function flush(){
   if(preview||flushing||!w.BEYOND100_EVIDENCE?.recordFocusResponse)return;
@@ -23,11 +24,25 @@ import visuals from "./visuals.mjs";
  d.body.append(dlg);
  const root=$("ttContent");
  const supportedVerbs=["play","practise","walk","eat","read","write"];
+ const plainLessons=["My life timeline","Events and habits","In the middle of doing it","Looking back","Doing it for a while","Match grammar names"];
+ function terms(){return showTerms||stage===5}
  function explore(){
-  const a=stage===5?aspect:stage-1,k=verb;
-  return `<div class="tt-card"><div class="tt-kicker">Isolate the change</div><h3>${L[stage]}</h3><p>Keep <strong>I</strong> and <strong>${esc(V[k][4].trim()||"the same action")}</strong> fixed. Watch only the highlighted verb words.</p><div class="tt-controls"><label class="tt-field">Explore a verb<select id="ttVerb">${supportedVerbs.map(v=>`<option value="${v}"${k===v?" selected":""}>${V[v][0]+V[v][4]}</option>`).join("")}</select></label>${stage===5?`<label class="tt-field">Aspect<select id="ttAspect">${A.map((v,i)=>`<option value="${i}"${i===a?" selected":""}>${v}</option>`).join("")}</select></label>`:""}</div><div class="tt-grid">${T.map((_,t)=>card(k,t,a)).join("")}</div><p>${explanations[a]}</p>${k==="read"&&a===0?'<p class="tt-note"><strong>Same spelling, different sound:</strong> past read rhymes with red; present read rhymes with seed. Time clues distinguish the two written forms.</p>':""}<p class="tt-muted">Past / present / future tell us when. Aspect tells us how we view the event. The dotted line marks the time we are talking about; the green line marks now. These are illustrative timelines, not a rule that all events last the same length of time.</p>${stage===5?'<p class="tt-note"><strong>Grammar note:</strong> These are the twelve familiar classroom forms. English has past and present inflected tenses; “will” is an auxiliary expressing future time. Continuous and progressive are two names for the same aspect.</p>':""}</div>${a>0?`<div class="tt-card"><h4>Compare the same action</h4><div class="tt-compare">${card(k,0,0,"Simple past")}${card(k,0,a,"Past "+A[a].toLowerCase())}</div></div>`:""}${a===1?stateCompare():""}${stage===5?`<div class="tt-card"><h4>All twelve forms · one verb</h4><table class="tt-table"><thead><tr><th>Aspect</th>${T.map(t=>`<th>${t}</th>`).join("")}</tr></thead><tbody>${A.map((x,a)=>`<tr><th>${x}</th>${T.map((_,t)=>`<td>I <strong>${form(k,t,a)}</strong>${esc(V[k][4]+context(k,t,a))}.</td>`).join("")}</tr>`).join("")}</tbody></table><p class="tt-muted">Matching practice builds on your earlier Tense Matching Game, without timer pressure or multiplayer distraction.</p></div>`:""}`;
+  const a=stage===5?aspect:stage-1,k=verb,names=terms(),advanced=stage>=4;
+  const timeCards=`<div class="tt-grid">${T.map((_,t)=>card(k,t,a,names?T[t]+" · "+A[a]:T[t])).join("")}</div>`;
+  return `<div class="tt-card tt-teaching-head"><div class="tt-kicker">Understand first · name it later</div><h3>${plainLessons[stage]}</h3><p>${explanations[a]}</p><div class="tt-controls"><label class="tt-field">Choose a verb<select id="ttVerb">${supportedVerbs.map(v=>`<option value="${v}"${k===v?" selected":""}>${V[v][0]+V[v][4]}</option>`).join("")}</select></label>${stage===5?`<label class="tt-field">Aspect<select id="ttAspect">${A.map((v,i)=>`<option value="${i}"${i===a?" selected":""}>${v}</option>`).join("")}</select></label>`:`<button type="button" data-action="terms" aria-pressed="${showTerms}">${showTerms?"Hide grammar names":"Show grammar names"}</button>`}</div>${k==="read"&&a===0?'<p class="tt-note"><strong>Same spelling, different sound:</strong> past read rhymes with red; present read rhymes with seed.</p>':""}${stage===1?timeCards:""}</div>${stage===1?`<details class="tt-card tt-expand"><summary>Explore how the same action can be described differently</summary>${comparison.panel(k,compareTime,names,advanced)}${comparison.verbGuide(k,compareTime,names)}</details>`:`${comparison.panel(k,compareTime,names,advanced)}${comparison.momentPanel(k,momentMinute,names)}${comparison.verbGuide(k,compareTime,names)}<details class="tt-card tt-expand"><summary>See past, present and future together</summary>${timeCards}</details>`}${a===1?`<details class="tt-card tt-expand"><summary>Long-lasting does not mean continuous · Year 4 example</summary>${stateCompare()}</details>`:""}${stage===5?`<div class="tt-card"><h4>All twelve forms · one verb</h4><table class="tt-table"><thead><tr><th>Aspect</th>${T.map(t=>`<th>${t}</th>`).join("")}</tr></thead><tbody>${A.map((x,a)=>`<tr><th>${x}</th>${T.map((_,t)=>`<td>I <strong>${form(k,t,a)}</strong>${esc(V[k][4]+context(k,t,a))}.</td>`).join("")}</tr>`).join("")}</tbody></table><details><summary>Grammar notes for later</summary><p>English has past and present inflected tenses; “will” expresses future time. Continuous and progressive are two names for the same aspect.</p></details></div>`:""}`;
  }
- function nav(){$("ttNav").innerHTML=`<div class="tt-actions"><button type="button" data-action="learn"${view==="learn"?' class="tt-selected"':""}>Learn</button><button type="button" data-action="dashboard"${view==="dashboard"?' class="tt-selected"':""}>Progress &amp; reviews</button></div><nav class="tt-nav" aria-label="Lessons">${L.map((l,i)=>`<button type="button" data-stage="${i}"${i===stage&&view!=="dashboard"?' aria-current="step"':""}>${state.completed[i]?"✓ ":""}${i+1}. ${l}</button>`).join("")}</nav>`}
+ function updateComparison(){
+  const el=$("ttCompareRows");if(el)el.innerHTML=comparison.rows(verb,compareTime,terms(),stage>=4);
+  for(const b of root.querySelectorAll("[data-compare-time]")){const selected=+b.dataset.compareTime===compareTime;b.classList.toggle("tt-selected",selected);b.setAttribute("aria-pressed",String(selected))}
+  const guide=$("ttVerbGuide");if(guide){const wasOpen=guide.querySelector("details")?.open;guide.outerHTML=comparison.verbGuide(verb,compareTime,terms());if(wasOpen)$("ttVerbGuide").querySelector("details").open=true}
+ }
+ function updateMoment(){
+  const el=$("ttMomentResult"),range=$("ttMoment"),label=$("ttMomentTime");
+  if(el)el.innerHTML=comparison.momentContent(verb,momentMinute,terms());
+  if(range){range.value=String(momentMinute);range.setAttribute("aria-valuetext",comparison.clock(momentMinute))}
+  if(label)label.textContent=comparison.clock(momentMinute);
+ }
+ function nav(){$("ttNav").innerHTML=`<div class="tt-actions"><button type="button" data-action="learn"${view==="learn"?' class="tt-selected"':""}>Learn</button><button type="button" data-action="dashboard"${view==="dashboard"?' class="tt-selected"':""}>Progress &amp; reviews</button></div><nav class="tt-nav" aria-label="Lessons">${L.map((l,i)=>`<button type="button" data-stage="${i}"${i===stage&&view!=="dashboard"?' aria-current="step"':""}>${state.completed[i]?"✓ ":""}${i+1}. ${terms()?l:plainLessons[i]}</button>`).join("")}</nav>`}
  function render(){
   nav();
   if(view==="learn")root.innerHTML=(stage===0?personal(birth,today):explore())+'<div class="tt-actions"><button type="button" class="tt-primary" data-action="start">Start practice</button><span class="tt-muted">One question at a time · hints tracked · no timer pressure</span></div>';
@@ -79,10 +94,13 @@ import visuals from "./visuals.mjs";
  dlg.addEventListener("click",e=>{
   const b=e.target.closest("button");if(!b)return;
   if(b.id==="closeTenseLab"){dlg.close();return}
+  if(b.dataset.compareTime!==undefined){compareTime=+b.dataset.compareTime;updateComparison();return}
+  if(b.dataset.moment!==undefined){momentMinute=+b.dataset.moment;updateMoment();return}
   if(b.dataset.stage!==undefined){if(!leave())return;stage=+b.dataset.stage;state.lastStage=stage;view="learn";save();render();return}
   if(b.dataset.review){if(!leave())return;const [s,day]=b.dataset.review.split(":").map(Number);begin(s,"review",day);return}
   if(b.dataset.choice!==undefined&&view==="quiz"&&!quiz.done){quiz.choice=quiz.items[quiz.i].options[+b.dataset.choice];renderQuiz();root.querySelector('[data-choice="'+b.dataset.choice+'"]')?.focus();return}
   switch(b.dataset.action){
+   case "terms":showTerms=!showTerms;render();root.querySelector('[data-action="terms"]')?.focus();break;
    case "dates":birth=$("ttBirth").value;today=$("ttToday").value;render();break;
    case "learn":if(leave()){view="learn";render()}break;
    case "dashboard":if(leave()){view="dashboard";render()}break;
@@ -93,7 +111,7 @@ import visuals from "./visuals.mjs";
    case "export":{const a=d.createElement("a"),url=URL.createObjectURL(new Blob([JSON.stringify({schema:"beyond100-tense-timeline-v1",rows:state.rows,completed:state.completed,taught:state.taught},null,2)],{type:"application/json"}));a.href=url;a.download="tense-timeline-evidence.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);break}
   }
  });
- dlg.addEventListener("input",e=>{const el=e.target;if(el.id==="ttBirth")birth=el.value;if(el.id==="ttToday")today=el.value;if(el.id==="ttAnswer"&&!quiz.done){quiz.choice=el.value;root.querySelector('[data-action="check"]').disabled=!quiz.choice.trim()}if(el.id==="ttExplain"&&quiz?.done){quiz.rows.at(-1).explanation=el.value.slice(0,1000);save()}});
+ dlg.addEventListener("input",e=>{const el=e.target;if(el.id==="ttMoment"){momentMinute=+el.value;updateMoment();return}if(el.id==="ttBirth")birth=el.value;if(el.id==="ttToday")today=el.value;if(el.id==="ttAnswer"&&!quiz.done){quiz.choice=el.value;root.querySelector('[data-action="check"]').disabled=!quiz.choice.trim()}if(el.id==="ttExplain"&&quiz?.done){quiz.rows.at(-1).explanation=el.value.slice(0,1000);save()}});
  dlg.addEventListener("change",e=>{if(e.target.id==="ttVerb"){verb=e.target.value;state.lastVerb=verb;save();render();$("ttVerb")?.focus()}if(e.target.id==="ttAspect"){aspect=+e.target.value;render();$("ttAspect")?.focus()}});
  dlg.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.id==="ttAnswer"){e.preventDefault();check()}});
  dlg.addEventListener("close",()=>{birth="";today="";if($("ttBirth"))$("ttBirth").value="";if($("ttToday"))$("ttToday").value="";focus?.focus?.()});
