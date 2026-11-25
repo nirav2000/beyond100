@@ -17,7 +17,7 @@ import visuals from "./visuals.mjs";
  }
  function send(x){if(preview)return;state.pending.push({source:"tense-timeline",topicId:"english-tense-aspect",subject:"English",...x});save();flush()}
  function status(){return preview?"Historical preview · no evidence saved":!localOK?"Device storage unavailable · export before closing":state.pending.length?"Saved on device · shared evidence pending":bridgeOK?"Saved on device · answer evidence forwarded to Beyond100 · cloud sync follows existing sign-in":"Saved on device · shared evidence not yet ready"}
- const link=d.createElement("link");link.rel="stylesheet";link.href=new URL("./styles.css",import.meta.url).href;d.head.append(link);
+ 
  const dlg=d.createElement("dialog");dlg.id="tenseLabDialog";dlg.setAttribute("aria-labelledby","tenseLabTitle");dlg.dataset.noteIgnore="true";
  dlg.innerHTML='<header class="tt-header"><div><div class="tt-kicker">Beyond 100 · English</div><h2 id="tenseLabTitle">Time, Tense &amp; Timeline</h2></div><button id="closeTenseLab" type="button">Close ×</button></header><div class="tt-shell"><div id="ttNav"></div><section id="ttContent" aria-label="Tense lesson"></section><p id="ttStatus" class="tt-muted" role="status"></p></div>';
  d.body.append(dlg);
@@ -40,7 +40,7 @@ import visuals from "./visuals.mjs";
   const k=mode==="review"?(state.completed[s]?.verb||"play"):verb;
   if(mode==="practice"&&!state.taught[s]){
    state.taught[s]=Date.now();save();
-   send({skill:"tense-timeline:"+s,anchorId:"tense:"+s,anchorLabel:L[s],prompt:"Studied "+L[s],phase:"teach",outcome:"completed",promptLevel:"explained"});
+   send({externalId:"tense:teach:"+s+":"+state.taught[s],occurredAt:new Date(state.taught[s]).toISOString(),skill:"tense-timeline:"+s,anchorId:"tense:"+s,anchorLabel:L[s],prompt:"Studied "+L[s],phase:"teach",outcome:"completed",promptLevel:"explained"});
   }
   quiz={id:w.crypto?.randomUUID?.()||String(Date.now())+"-"+Math.random(),mode,day,key:k,items:questions(s,mode,day,k),i:0,choice:"",hints:0,done:false,start:Date.now(),rows:[]};
   view="quiz";render();$("ttPrompt")?.focus();
@@ -53,7 +53,7 @@ import visuals from "./visuals.mjs";
   if(!quiz||quiz.done||!quiz.choice.trim())return;
   const q=quiz.items[quiz.i],r={id:quiz.id+":"+quiz.i,stage,mode:quiz.mode,day:quiz.day,questionId:q.id,verb:quiz.key,prompt:q.prompt,answer:quiz.choice,expected:q.answer,correct:mark(quiz.choice,q),hints:quiz.hints,transfer:!!q.transfer,at:Date.now(),durationMs:Date.now()-quiz.start,complete:false};
   quiz.rows.push(r);state.rows.push(r);quiz.done=true;save();
-  send({externalId:"tense:"+r.id,skill:"tense-timeline:"+stage,anchorId:q.id,anchorLabel:L[stage],prompt:q.prompt,phase:quiz.mode==="review"?(quiz.day===1?"retrieve1":"retrieve2"):q.transfer?"apply":"demonstrate",outcome:r.correct?(r.durationMs>30000?"hesitant":"fast"):"noConcept",promptLevel:r.hints?"hint":"independent",responseSeconds:r.durationMs/1000,observations:["question:"+q.id,"first-answer:"+r.answer.slice(0,180),"correct-answer:"+r.expected,"review-day:"+r.day,"hint-count:"+r.hints]});
+  send({externalId:"tense:"+r.id,occurredAt:new Date(r.at).toISOString(),skill:"tense-timeline:"+stage,anchorId:q.id,anchorLabel:L[stage],prompt:q.prompt,phase:quiz.mode==="review"?(quiz.day===1?"retrieve1":"retrieve2"):q.transfer?"apply":"demonstrate",outcome:r.correct?(r.durationMs>30000?"hesitant":"fast"):"noConcept",promptLevel:r.hints?"hint":"independent",responseSeconds:r.durationMs/1000,observations:["question:"+q.id,"first-answer:"+r.answer.slice(0,180),"correct-answer:"+r.expected,"review-day:"+r.day,"hint-count:"+r.hints]});
   renderQuiz();$("ttStatus").textContent=status();root.querySelector('[data-action="next"]')?.focus();
  }
  function next(){
