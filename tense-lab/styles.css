@@ -1,0 +1,54 @@
+/* Tense Lab: scoped, responsive, colour-coded teaching workspace. */
+#tenseLabDialog{position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:0;border:0;background:#f5f7fb;color:#17233c;font-family:system-ui,-apple-system,"DM Sans",sans-serif;overflow:auto;overscroll-behavior:contain;box-sizing:border-box}
+#tenseLabDialog::backdrop{background:#17233c99}
+#tenseLabDialog *{box-sizing:border-box}
+#tenseLabDialog [hidden]{display:none!important}
+#tenseLabDialog button,#tenseLabDialog select,#tenseLabDialog input,#tenseLabDialog textarea{font:inherit;color:inherit}
+#tenseLabDialog button{cursor:pointer;border:1px solid #d8e0eb;background:#fff;border-radius:12px;padding:11px 15px;font-weight:650;min-height:44px;white-space:normal;line-height:1.35}
+#tenseLabDialog :is(button,input,select,textarea):focus-visible{outline:3px solid #2563eb;outline-offset:2px}
+#tenseLabDialog button:disabled{opacity:.5;cursor:default}
+#tenseLabDialog .tt-primary{background:#18365f;color:white;border-color:#18365f}
+#tenseLabDialog .tt-header{position:sticky;top:0;z-index:3;background:white;border-bottom:1px solid #e1e5ed;padding:12px clamp(12px,4vw,46px);display:flex;justify-content:space-between;align-items:center;gap:12px}
+#tenseLabDialog .tt-header h2{font:700 clamp(19px,4vw,28px)/1.15 system-ui;margin:3px 0}
+#tenseLabDialog .tt-shell{max-width:1140px;margin:auto;padding:22px clamp(12px,4vw,32px) 48px}
+#tenseLabDialog .tt-kicker{font-size:11px;font-weight:800;letter-spacing:.1em;color:#58647b;text-transform:uppercase}
+#tenseLabDialog h3{font:750 clamp(21px,4vw,30px)/1.25 system-ui;margin:8px 0 12px}
+#tenseLabDialog h4{font:700 17px/1.3 system-ui;margin:0 0 8px}
+#tenseLabDialog p{line-height:1.55;margin:8px 0}
+#tenseLabDialog .tt-muted{font-size:13px;color:#526179}
+#tenseLabDialog .tt-actions,#tenseLabDialog .tt-nav{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+#tenseLabDialog .tt-nav{margin:12px 0 20px}
+#tenseLabDialog .tt-nav button[aria-current="step"],#tenseLabDialog .tt-selected{background:#e9efff;border-color:#4774c8!important;box-shadow:inset 0 0 0 1px #4774c8}
+#tenseLabDialog .tt-card{background:white;border:1px solid #e0e5ed;border-radius:18px;padding:clamp(14px,3vw,24px);margin:12px 0;min-width:0;box-shadow:0 4px 18px #23375a08}
+#tenseLabDialog .tt-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:16px 0}
+#tenseLabDialog .tt-form{border:1px solid var(--tt-border);background:var(--tt-bg);border-radius:15px;padding:13px;min-width:0;overflow-wrap:anywhere}
+#tenseLabDialog .tt-past{--tt-border:#ccd4e2;--tt-bg:#f1f4f9;--tt-ink:#475569}
+#tenseLabDialog .tt-present{--tt-border:#b5dfc6;--tt-bg:#eefaf2;--tt-ink:#087345}
+#tenseLabDialog .tt-future{--tt-border:#b9d3fa;--tt-bg:#eef5ff;--tt-ink:#2459a9}
+#tenseLabDialog .tt-time{color:var(--tt-ink);font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+#tenseLabDialog .tt-sentence{font-size:clamp(17px,2.5vw,23px);font-weight:550;line-height:1.45;margin:9px 0!important}
+#tenseLabDialog .tt-verb{color:var(--tt-ink,#172e57);font-weight:800}
+#tenseLabDialog svg{width:100%;height:auto;display:block}
+#tenseLabDialog .tt-compare{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#tenseLabDialog .tt-field{display:flex;flex-direction:column;gap:5px;min-width:0;font-size:14px;font-weight:650}
+#tenseLabDialog input,#tenseLabDialog select,#tenseLabDialog textarea{min-width:0;max-width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px;background:white;min-height:44px}
+#tenseLabDialog .tt-controls{display:flex;flex-wrap:wrap;gap:12px;align-items:end}
+#tenseLabDialog .tt-options{display:grid;gap:9px;margin:15px 0}
+#tenseLabDialog .tt-options button{text-align:left;font-size:17px;padding:14px}
+#tenseLabDialog .tt-feedback{border-left:4px solid #657a9a;padding:10px 14px;background:#f3f6fb;border-radius:8px;margin:15px 0}
+#tenseLabDialog .tt-feedback[data-good="true"]{border-color:#138452;background:#edf9f1}
+#tenseLabDialog .tt-feedback[data-good="false"]{border-color:#b76a20;background:#fff5e8}
+#tenseLabDialog .tt-progress{height:9px;background:#e1e7f0;border-radius:9px;overflow:hidden;margin:12px 0}
+#tenseLabDialog .tt-progress i{display:block;background:#4774c8;height:100%;border-radius:9px}
+#tenseLabDialog .tt-table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed;overflow-wrap:anywhere}
+#tenseLabDialog .tt-table td,#tenseLabDialog .tt-table th{padding:9px 5px;border-bottom:1px solid #dfe6ee;text-align:left;vertical-align:top}
+#tenseLabDialog .tt-dashboard{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+#tenseLabDialog .tt-metric{padding:14px;background:#f4f7fc;border-radius:12px;min-width:0;overflow-wrap:anywhere}
+#tenseLabDialog .tt-metric b{display:block;font-size:24px;color:#24497d}
+#tenseLabDialog .tt-review-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;border-bottom:1px solid #e2e8f0;padding:12px 0}
+#tenseLabDialog .tt-note{background:#f3f0ff;color:#513b84;border:1px solid #e4dafa;border-radius:12px;padding:12px}
+#tenseLabDialog .tt-step{font-weight:700;font-size:12px;color:#526179}
+#tenseLabDialog .tt-spacer{margin-top:15px}
+#tenseLabDialog .tt-timeline-target{display:flex;flex-direction:column;align-items:center;min-height:80px;background:var(--tt-bg);border:1px solid var(--tt-border);color:var(--tt-ink);gap:4px}
+#tenseLabDialog .tt-timeline-target.tt-selected{outline:2px solid #4774c8}
+@media(max-width:650px){#tenseLabDialog .tt-grid,#tenseLabDialog .tt-compare{grid-template-columns:1fr}#tenseLabDialog .tt-dashboard{grid-template-columns:repeat(2,minmax(0,1fr))}#tenseLabDialog .tt-form svg{max-width:420px;margin:auto}#tenseLabDialog .tt-header{padding-top:max(12px,env(safe-area-inset-top))}}
