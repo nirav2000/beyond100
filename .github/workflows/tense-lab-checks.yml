@@ -25,6 +25,9 @@ jobs:
           node --check tense-lab/visuals.mjs
           node --check tense-lab/comparison.mjs
           node --check tense-lab/main.mjs
+          node --check tense-lab/grammar.mjs
+          node --check tense-lab/grammar-view.mjs
+          node --check tense-lab/grammar-workshop.mjs
           node --check learning-evidence-v07.js
           node --check app.js
           node --check versions-data.js
