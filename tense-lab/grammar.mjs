@@ -68,7 +68,7 @@ const grammar=(function createGrammar(model){
   [["He",1,0,"Use he in the present simple.","person-time"],["They",1,0,"Change the subject to they.","person"],["They",0,0,"Change to past time.","time"],["They",0,2,"Make it perfect.","aspect"],["They",0,3,"Make it perfect progressive.","aspect"],["I",0,3,"Change the subject to I.","person"]];
   return chain.map(([p,t,a,question,dimension],i)=>{
    const previous=i?withClue(k,...chain[i-1].slice(0,3)):"",answer=sentence(k,p,t,a);
-   return {id:"grammar-build-"+variant+"-"+i,display:previous||"Action: "+verbs[k][0]+verbs[k][4],question,prompt:(previous?"Starting sentence: "+previous:"Action: "+verbs[k][0]+verbs[k][4])+" "+question+" Write the complete sentence. Keep the action the same.",answer,options:null,dimension,reason:"The target form is "+answer+" Keep the action the same.",hint:"Keep the action and use "+p+" with "+times[t].toLowerCase()+" "+aspects[a].toLowerCase()+".",key:k,t,a,accept:[answer.slice(0,-1)+timeClue(k,t,a)+"."]};
+   return {id:"grammar-build-"+variant+"-"+i,display:previous||"Action: "+verbs[k][0]+verbs[k][4],question,prompt:(previous?"Starting sentence: "+previous:"Action: "+verbs[k][0]+verbs[k][4])+" "+question+" Write the complete sentence. Keep the action the same.",answer,options:null,dimension,reason:"The target form is "+answer+" Keep the action the same.",hint:"Keep the action and use "+p+" with "+times[t].toLowerCase()+" "+aspects[a].toLowerCase()+".",key:k,person:p,t,a,accept:[answer.slice(0,-1)+timeClue(k,t,a)+"."]};
   });
  }
  return {verbs,persons,personNames,times,aspects,meanings,modalNames,parts,sentence,withClue,mark,analyse,build};
