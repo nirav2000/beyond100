@@ -1,6 +1,6 @@
 import model from "./model.mjs";
 const visuals=(function visuals(model){
- const {times:T,aspects:A,verbs:V,form,cues}=model;
+ const {times:T,aspects:A,verbs:V,form,context,cues}=model;
  const C=["#64748b","#14935d","#3272c6"],AC=["#64748b","#d58a29","#8359c8","#8359c8"];
  const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
  function chart(t,a){
@@ -13,7 +13,7 @@ const visuals=(function visuals(model){
   const label=a===0?(t===1?"Repeated habit":"Event as a whole"):a===1?"In progress":a===2?"Looking back":"Duration up to a point";
   return `<svg viewBox="0 0 360 122" role="img" aria-label="${T[t]} ${A[a]}: ${label}"><rect x="5" y="16" width="113" height="84" rx="9" fill="#64748b" opacity=".06"/><rect x="123" y="16" width="113" height="84" rx="9" fill="#16a34a" opacity=".06"/><rect x="241" y="16" width="113" height="84" rx="9" fill="#2563eb" opacity=".06"/><text x="62" y="29" text-anchor="middle" font-size="10" fill="#475569">PAST</text><text x="180" y="29" text-anchor="middle" font-size="10" fill="#087345">PRESENT</text><text x="298" y="29" text-anchor="middle" font-size="10" fill="#2459a9">FUTURE</text><path d="M12 64 H348 l-7 -5 m7 5 l-7 5" stroke="#9ba9bc" stroke-width="1.5" fill="none"/><path d="M180 35 V88" stroke="#14834b" stroke-dasharray="3 3" opacity=".8"/>${shape}<path d="M${x} 36 V84" stroke="${stroke}" stroke-width="1.5" stroke-dasharray="3 2"/><circle cx="${x}" cy="84" r="3.5" fill="${stroke}"/><text x="180" y="96" text-anchor="middle" font-size="9" font-weight="700" fill="#087345">NOW</text><text x="180" y="116" text-anchor="middle" font-size="12" font-weight="600" fill="#475569">${label}</text></svg>`;
  }
- function card(k,t,a,label=T[t]+" · "+A[a]){return `<article class="tt-form tt-${T[t].toLowerCase()}"><span class="tt-time">${label}</span><p class="tt-sentence">I <span class="tt-verb">${form(k,t,a)}</span>${esc(V[k][4])}.</p>${chart(t,a)}<p class="tt-muted">${cues[a][t]}</p></article>`}
+ function card(k,t,a,label=T[t]+" · "+A[a]){return `<article class="tt-form tt-${T[t].toLowerCase()}"><span class="tt-time">${label}</span><p class="tt-sentence">I <span class="tt-verb">${form(k,t,a)}</span>${esc(V[k][4]+context(k,t,a))}.</p>${chart(t,a)}<p class="tt-muted">${cues[a][t]}</p></article>`}
  const dateISO=x=>[x.getFullYear(),String(x.getMonth()+1).padStart(2,"0"),String(x.getDate()).padStart(2,"0")].join("-");
  const labelDate=x=>x?new Date(x+"T12:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}):"Add date";
  function nextBirthday(s,now=new Date()){
