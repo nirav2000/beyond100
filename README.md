@@ -12,6 +12,8 @@ https://nirav2000.github.io/beyond100/versions.html
 
 ## What is implemented
 
+- **[Time, Tense & Timeline](https://nirav2000.github.io/beyond100/?tense=1)**: six English lessons with a personal timeline, reusable tense/aspect charts, sentence construction, matching and day 1/3/7 retrieval. Answer evidence uses the existing Beyond100 ledger; detailed history, explanations and review schedule are saved on the device. Birth dates are not persisted.
+
 - Mobile-friendly syllabus navigation for **Maths, English and Science**.
 - A full **Place Value & Number Structure** showcase, organised vertically from Y1 to Y7.
 - Quick cold-diagnostic questions at every stage.
