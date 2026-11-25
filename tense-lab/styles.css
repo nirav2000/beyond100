@@ -52,3 +52,28 @@
 #tenseLabDialog .tt-timeline-target{display:flex;flex-direction:column;align-items:center;min-height:80px;background:var(--tt-bg);border:1px solid var(--tt-border);color:var(--tt-ink);gap:4px}
 #tenseLabDialog .tt-timeline-target.tt-selected{outline:2px solid #4774c8}
 @media(max-width:650px){#tenseLabDialog .tt-grid,#tenseLabDialog .tt-compare{grid-template-columns:1fr}#tenseLabDialog .tt-dashboard{grid-template-columns:repeat(2,minmax(0,1fr))}#tenseLabDialog .tt-form svg{max-width:420px;margin:auto}#tenseLabDialog .tt-header{padding-top:max(12px,env(safe-area-inset-top))}}
+
+/* Compare the same subject and action in a compact, aligned visual layout. */
+#tenseLabDialog .tt-compact-rows{display:grid;gap:0;margin-top:14px}
+#tenseLabDialog .tt-compact-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;gap:16px;padding:14px 0;border-bottom:1px solid #e3e8f0}
+#tenseLabDialog .tt-compact-row:last-child{border-bottom:0}
+#tenseLabDialog .tt-meaning{font-size:13px;font-weight:600;color:#526179}
+#tenseLabDialog .tt-compare-sentence{font-size:clamp(18px,2.6vw,25px);font-weight:550;line-height:1.35;margin:5px 0!important}
+#tenseLabDialog .tt-grammar-name{font-size:12px;color:#526179;margin-top:5px}
+#tenseLabDialog .tt-compact-chart svg{max-width:440px;margin:auto}
+#tenseLabDialog .tt-time-picker button{background:var(--tt-bg);color:var(--tt-ink);border-color:var(--tt-border);flex:1}
+#tenseLabDialog .tt-moment-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:18px 0}
+#tenseLabDialog .tt-moment-grid article{background:#f5f7fb;border:1px solid #e0e5ed;padding:14px;border-radius:14px}
+#tenseLabDialog #ttMoment{width:100%;min-height:44px;accent-color:#365b91;padding:0;border:none;background:transparent;cursor:ew-resize}
+#tenseLabDialog #ttMomentTime{font-size:21px;color:#365b91;font-weight:750}
+#tenseLabDialog .tt-word-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:14px 0}
+#tenseLabDialog .tt-word-tile{display:flex;flex-direction:column;gap:4px;background:#f4f7fc;border-radius:10px;padding:10px;overflow-wrap:anywhere}
+#tenseLabDialog .tt-word-tile span,#tenseLabDialog .tt-word-tile small{font-size:12px;color:#526179}
+#tenseLabDialog .tt-word-tile strong{font-size:clamp(17px,2.5vw,24px)}
+#tenseLabDialog .tt-formula{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:12px 0}
+#tenseLabDialog .tt-formula-cont,#tenseLabDialog .tt-formula-perfect{font-weight:750;font-size:21px;padding:8px 12px;border-radius:10px}
+#tenseLabDialog .tt-formula-cont{background:#fff2df;color:#99510b}
+#tenseLabDialog .tt-formula-perfect{background:#f0e9ff;color:#6942ac}
+#tenseLabDialog .tt-expand>summary,#tenseLabDialog #ttVerbGuide summary{cursor:pointer;font-weight:700;padding:8px 0;line-height:1.4}
+#tenseLabDialog .tt-expand[open]>.tt-card{box-shadow:none}
+@media(max-width:650px){#tenseLabDialog .tt-compact-row,#tenseLabDialog .tt-moment-grid{grid-template-columns:1fr;gap:6px}#tenseLabDialog .tt-compact-row{padding:12px 0}#tenseLabDialog .tt-compact-chart svg{max-width:330px}#tenseLabDialog .tt-word-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}

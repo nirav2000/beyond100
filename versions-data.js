@@ -1,13 +1,27 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.13.0',
+  currentVersion: '0.13.1',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.13.1',
+      date: '2026-11-25',
+      title: 'Understand first · interactive tense comparisons',
+      ref: 'main',
+      status: 'current',
+      summary: 'Adds concise side-by-side comparisons of the same action, a movable viewpoint timeline and a verb form guide; introduces everyday meanings before grammar names.',
+      areas: [
+        { id: 'tense-compact-compare', title: 'Dynamic simple, continuous and perfect chart', kind: 'ux', summary: 'Switch the time and the verb while keeping the subject and context fixed.' },
+        { id: 'tense-viewpoint', title: 'Interactive understanding of the difference', kind: 'curriculum', summary: 'Move a reference point before, during and after an event to see why was writing and had written express different meanings.' },
+        { id: 'tense-plain-language', title: 'Meaning first, terminology later', kind: 'curriculum', summary: 'Uses short everyday explanations; technical grammar names can be revealed when useful.' },
+        { id: 'tense-verb-forms', title: 'Verb forms and helping words', kind: 'curriculum', summary: 'Compares write, wrote, writing and written with an optional passive-voice explanation.' }
+      ]
+    },
     {
       version: '0.13.0',
       date: '2026-11-25',
       title: 'Time, Tense & Timeline · English learning lab',
-      ref: 'main',
-      status: 'current',
+      ref: 'd39801155a13d40c5218ba97590f80a22f6bd364',
+      status: 'archive',
       summary: 'Introduces a personal timeline, reusable visual tense and aspect comparisons, fixed-subject verb practice, and delayed recall with learning evidence.',
       areas: [
         { id: 'tense-visuals', title: 'Personal timeline and colour-coded aspect diagrams', kind: 'ux', summary: 'Personal dates remain transient; past is grey, present green, future blue, continuous orange and perfect purple.' },

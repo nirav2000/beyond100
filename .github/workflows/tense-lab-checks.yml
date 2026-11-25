@@ -23,6 +23,7 @@ jobs:
         run: |
           node --check tense-lab/model.mjs
           node --check tense-lab/visuals.mjs
+          node --check tense-lab/comparison.mjs
           node --check tense-lab/main.mjs
           node --check learning-evidence-v07.js
           node --check app.js
