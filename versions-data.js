@@ -1,13 +1,27 @@
 window.BEYOND100_RELEASES = {
-  currentVersion: '0.12.7',
+  currentVersion: '0.13.0',
   repository: 'nirav2000/beyond100',
   releases: [
+    {
+      version: '0.13.0',
+      date: '2026-11-25',
+      title: 'Time, Tense & Timeline · English learning lab',
+      ref: 'main',
+      status: 'current',
+      summary: 'Introduces a personal timeline, reusable visual tense and aspect comparisons, fixed-subject verb practice, and delayed recall with learning evidence.',
+      areas: [
+        { id: 'tense-visuals', title: 'Personal timeline and colour-coded aspect diagrams', kind: 'ux', summary: 'Personal dates remain transient; past is grey, present green, future blue, continuous orange and perfect purple.' },
+        { id: 'tense-curriculum', title: 'Six progressive English lessons', kind: 'curriculum', summary: 'Isolates the verb change with the same subject and object, includes the past state misconception, and teaches all twelve classroom forms.' },
+        { id: 'tense-practice', title: 'Timeline sorting, sentence building and matching', kind: 'assessment', summary: 'Captures first answers, hints and explanations, and measures novel verb transfer separately.' },
+        { id: 'tense-evidence', title: 'Day 1, 3 and 7 recall and parent evidence', kind: 'data', summary: 'Records English answer evidence in the existing learning ledger, with local review schedules and history; delayed checks defer feedback until completion.' }
+      ]
+    },
     {
       version: '0.12.7',
       date: '2026-11-17',
       title: 'Learning Evidence · Verified browser deployment',
-      ref: 'main',
-      status: 'current',
+      ref: 'd6a62d0d0aa959d3b3f423793e4ecb4cdbcb9990',
+      status: 'archive',
       summary: 'Pins the Pages and Thinking Lab browser-test runners to a supported Ubuntu release so the shared evidence integration can pass full deployment smoke checks.',
       areas: [
         { id: 'supported-browser-runner', title: 'Restore Playwright browser validation', kind: 'workflow', summary: 'Runs Chromium smoke tests on Ubuntu 24.04 rather than Ubuntu 26.04, which is not supported by the pinned browser package.' }
