@@ -1,0 +1,41 @@
+name: Tense and Timeline Lab checks
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tense-lab/**'
+      - 'index.html'
+      - 'app.js'
+      - 'learning-evidence-v07.js'
+      - 'tests/ui-smoke.spec.cjs'
+      - '.github/workflows/tense-lab-checks.yml'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax
+        run: |
+          node --check tense-lab/model.mjs
+          node --check tense-lab/visuals.mjs
+          node --check tense-lab/main.mjs
+          node --check learning-evidence-v07.js
+          node --check app.js
+          node --check versions-data.js
+          node --check tests/ui-smoke.spec.cjs
+      - name: Install browser
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install --no-save --package-lock=false @playwright/test@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Run Tense Lab smoke tests
+        run: |
+          python3 -m http.server 4173 >/tmp/beyond100-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID' EXIT
+          npx playwright test tests/ui-smoke.spec.cjs --grep 'Tense Lab' --reporter=line
