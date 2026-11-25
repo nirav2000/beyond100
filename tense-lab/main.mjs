@@ -1,14 +1,15 @@
 import model from "./model.mjs";
 import visuals from "./visuals.mjs";
 import comparison from "./comparison.mjs";
+import mountWorkshop from "./grammar-workshop.mjs";
 (function mount(model,visuals,w){
  const {verbs:V,times:T,aspects:A,lessons:L,days:D,explanations,form,context,sentence,questions,mark,reviews,stats}=model;
  const {esc,chart,card,personal,stateCompare}=visuals;
  const d=w.document,$=id=>d.getElementById(id);
  if($("tenseLabDialog"))return;
  const preview=new URLSearchParams(w.location.search).has("version-preview"),storageKey="beyond100.tense-timeline.v1";
- const fresh=()=>({rows:[],completed:{},taught:{},pending:[],lastStage:0,lastVerb:"play"});
- function load(){try{const s=JSON.parse(w.localStorage.getItem(storageKey)||"{}");return {...fresh(),...s,rows:Array.isArray(s.rows)?s.rows:[],pending:Array.isArray(s.pending)?s.pending:[],completed:s.completed||{},taught:s.taught||{}}}catch{return fresh()}}
+ const fresh=()=>({rows:[],completed:{},taught:{},pending:[],grammarCompleted:{},lastStage:0,lastVerb:"play"});
+ function load(){try{const s=JSON.parse(w.localStorage.getItem(storageKey)||"{}");return {...fresh(),...s,rows:Array.isArray(s.rows)?s.rows:[],pending:Array.isArray(s.pending)?s.pending:[],completed:s.completed||{},grammarCompleted:s.grammarCompleted||{},taught:s.taught||{}}}catch{return fresh()}}
  let state=preview?fresh():load(),stage=L[state.lastStage]?state.lastStage:0,view="learn",verb=V[state.lastVerb]?state.lastVerb:"play",aspect=0,compareTime=0,momentMinute=270,showTerms=false,birth="",today="",quiz=null,focus=null,localOK=true,bridgeOK=false,flushing=false;
  function save(){if(preview)return;try{w.localStorage.setItem(storageKey,JSON.stringify(state));localOK=true}catch{localOK=false}}
  function flush(){
@@ -23,6 +24,7 @@ import comparison from "./comparison.mjs";
  dlg.innerHTML='<header class="tt-header"><div><div class="tt-kicker">Beyond 100 · English</div><h2 id="tenseLabTitle">Time, Tense &amp; Timeline</h2></div><button id="closeTenseLab" type="button">Close ×</button></header><div class="tt-shell"><div id="ttNav"></div><section id="ttContent" aria-label="Tense lesson"></section><p id="ttStatus" class="tt-muted" role="status"></p></div>';
  d.body.append(dlg);
  const root=$("ttContent");
+ const workshop=mountWorkshop({root,w,rows:()=>state.rows.filter(r=>r.grammarMode),completions:()=>state.grammarCompleted,save,notify:()=>{$("ttStatus").textContent=status()},complete:(key,value)=>{state.grammarCompleted[key] ||= value;save()},record:r=>{state.rows.push(r);save();send({externalId:"tense:"+r.id,occurredAt:new Date(r.at).toISOString(),skill:"grammar:"+r.grammarMode+":"+r.dimension,anchorId:r.questionId,anchorLabel:"Grammar workshop · "+r.dimension,prompt:r.prompt,phase:r.mode==="review"?(r.day===1?"retrieve1":"retrieve2"):r.transfer?"apply":"demonstrate",outcome:r.correct?(r.durationMs>30000?"hesitant":"fast"):"noConcept",promptLevel:r.hints?"hint":"independent",responseSeconds:r.durationMs/1000,observations:["question:"+r.questionId,"first-answer:"+r.answer.slice(0,240),"correct-answer:"+r.expected,"review-day:"+r.day,"hint-count:"+r.hints]})}});
  const supportedVerbs=["play","practise","walk","eat","read","write"];
  const plainLessons=["My life timeline","Events and habits","In the middle of doing it","Looking back","Doing it for a while","Match grammar names"];
  function terms(){return showTerms||stage===5}
@@ -42,11 +44,11 @@ import comparison from "./comparison.mjs";
   if(range){range.value=String(momentMinute);range.setAttribute("aria-valuetext",comparison.clock(momentMinute))}
   if(label)label.textContent=comparison.clock(momentMinute);
  }
- function nav(){$("ttNav").innerHTML=`<div class="tt-actions"><button type="button" data-action="learn"${view==="learn"?' class="tt-selected"':""}>Learn</button><button type="button" data-action="dashboard"${view==="dashboard"?' class="tt-selected"':""}>Progress &amp; reviews</button></div><nav class="tt-nav" aria-label="Lessons">${L.map((l,i)=>`<button type="button" data-stage="${i}"${i===stage&&view!=="dashboard"?' aria-current="step"':""}>${state.completed[i]?"✓ ":""}${i+1}. ${terms()?l:plainLessons[i]}</button>`).join("")}</nav>`}
+ function nav(){$("ttNav").innerHTML=`<div class="tt-actions"><button type="button" data-action="learn"${view==="learn"?' class="tt-selected"':""}>Learn</button><button type="button" data-action="grammar"${view==="grammar"?' class="tt-selected"':""}>Grammar workshop</button><button type="button" data-action="dashboard"${view==="dashboard"?' class="tt-selected"':""}>Progress &amp; reviews</button></div><nav class="tt-nav" aria-label="Lessons"${view==="grammar"?" hidden":""}>${L.map((l,i)=>`<button type="button" data-stage="${i}"${i===stage&&view!=="dashboard"?' aria-current="step"':""}>${state.completed[i]?"✓ ":""}${i+1}. ${terms()?l:plainLessons[i]}</button>`).join("")}</nav>`}
  function render(){
   nav();
   if(view==="learn")root.innerHTML=(stage===0?personal(birth,today):explore())+'<div class="tt-actions"><button type="button" class="tt-primary" data-action="start">Start practice</button><span class="tt-muted">One question at a time · hints tracked · no timer pressure</span></div>';
-  else if(view==="quiz")renderQuiz();else if(view==="finish")finish();else dashboard();
+  else if(view==="grammar")workshop.render();else if(view==="quiz")renderQuiz();else if(view==="finish")finish();else dashboard();
   $("ttStatus").textContent=status();
  }
  function begin(s,mode="practice",day=0){
@@ -85,13 +87,14 @@ import comparison from "./comparison.mjs";
  function finish(){root.innerHTML=`<div class="tt-card"><div class="tt-kicker">Session complete</div><h3>${L[stage]}</h3>${metrics(quiz.rows)}<p>${quiz.rows.filter(r=>r.correct).length} of ${quiz.rows.length} first answers correct. ${quiz.mode==="practice"?"Reviews become available after 1, 3 and 7 days.":"This is actual delayed retrieval evidence."}</p><div class="tt-actions"><button type="button" data-action="dashboard">Review progress</button>${stage<L.length-1&&quiz.mode==="practice"?`<button type="button" class="tt-primary" data-stage="${stage+1}">Next lesson</button>`:""}</div></div>`}
  function dashboard(){
   const rs=reviews(state.completed,state.rows);
-  root.innerHTML=`<div class="tt-card"><div class="tt-kicker">Parent view · learning evidence</div><h3>Can I still do it independently?</h3>${metrics(state.rows)}<p class="tt-muted">${state.rows.length} first responses. Independent means correct without an in-question hint. Transfer uses a changed verb or context. Delayed recall is measured only by actual review answers. A dash means not yet tested.</p><div class="tt-dashboard">${D.map(day=>metric("Day "+day+" recall",stats(state.rows.filter(r=>r.mode==="review"&&r.day===day))[2])).join("")}</div></div><div class="tt-card"><h4>Spaced reviews</h4>${rs.length?rs.map(r=>`<div class="tt-review-row"><div><strong>${L[r.stage]} · Day ${r.day}</strong><p class="tt-muted">${r.done?"Completed":r.ready?"Ready now":"Due "+new Date(r.due).toLocaleString("en-GB",{dateStyle:"medium",timeStyle:"short"})}</p></div><button type="button" data-review="${r.stage}:${r.day}"${r.ready?"":" disabled"}>${r.done?"Done":r.ready?"Start recall":"Not due yet"}</button></div>`).join(""):"<p>Finish a practice lesson to schedule delayed retrieval.</p>"}</div><div class="tt-card"><h4>Question history</h4><p class="tt-muted">Written explanations are saved on this device for parent review, not automatically marked. Answer evidence is also forwarded to the existing Beyond100 learning-evidence system.</p>${state.rows.length?`<table class="tt-table"><thead><tr><th>Question</th><th>First answer</th><th>Correct answer</th><th>Evidence</th></tr></thead><tbody>${state.rows.slice(-50).reverse().map(r=>`<tr><td>${esc(r.prompt)}${r.explanation?`<p class="tt-muted">Why: ${esc(r.explanation)}</p>`:""}</td><td>${esc(r.answer)}</td><td>${esc(r.expected)}</td><td>${r.correct?"Correct":"Incorrect"} · ${r.hints?"Hint used":"No hint"}${r.mode==="review"?" · Day "+r.day:""}</td></tr>`).join("")}</tbody></table>`:"<p>No attempts yet.</p>"}<div class="tt-actions tt-spacer"><button type="button" data-action="export">Export evidence JSON</button></div></div>`;
+  root.innerHTML=`<div class="tt-card"><div class="tt-kicker">Parent view · learning evidence</div><h3>Can I still do it independently?</h3>${metrics(state.rows)}<p class="tt-muted">${state.rows.length} first responses. Independent means correct without an in-question hint. Transfer uses a changed verb or context. Delayed recall is measured only by actual review answers. A dash means not yet tested.</p><div class="tt-dashboard">${D.map(day=>metric("Day "+day+" recall",stats(state.rows.filter(r=>r.mode==="review"&&r.day===day))[2])).join("")}</div></div><div class="tt-card"><h4>Spaced reviews</h4><p><button type="button" data-action="grammar-progress">Grammar workshop progress &amp; reviews</button></p>${rs.length?rs.map(r=>`<div class="tt-review-row"><div><strong>${L[r.stage]} · Day ${r.day}</strong><p class="tt-muted">${r.done?"Completed":r.ready?"Ready now":"Due "+new Date(r.due).toLocaleString("en-GB",{dateStyle:"medium",timeStyle:"short"})}</p></div><button type="button" data-review="${r.stage}:${r.day}"${r.ready?"":" disabled"}>${r.done?"Done":r.ready?"Start recall":"Not due yet"}</button></div>`).join(""):"<p>Finish a practice lesson to schedule delayed retrieval.</p>"}</div><div class="tt-card"><h4>Question history</h4><p class="tt-muted">Written explanations are saved on this device for parent review, not automatically marked. Answer evidence is also forwarded to the existing Beyond100 learning-evidence system.</p>${state.rows.length?`<table class="tt-table"><thead><tr><th>Question</th><th>First answer</th><th>Correct answer</th><th>Evidence</th></tr></thead><tbody>${state.rows.slice(-50).reverse().map(r=>`<tr><td>${esc(r.prompt)}${r.explanation?`<p class="tt-muted">Why: ${esc(r.explanation)}</p>`:""}</td><td>${esc(r.answer)}</td><td>${esc(r.expected)}</td><td>${r.correct?"Correct":"Incorrect"} · ${r.hints?"Hint used":"No hint"}${r.mode==="review"?" · Day "+r.day:""}</td></tr>`).join("")}</tbody></table>`:"<p>No attempts yet.</p>"}<div class="tt-actions tt-spacer"><button type="button" data-action="export">Export evidence JSON</button></div></div>`;
  }
  dlg.addEventListener("dragstart",e=>{if(e.target.id==="ttDragCard"&&quiz&&!quiz.done){e.dataTransfer?.setData("text/plain","tense-event");if(e.dataTransfer)e.dataTransfer.effectAllowed="move"}});
  dlg.addEventListener("dragover",e=>{if(e.target.closest?.(".tt-timeline-target")&&quiz&&!quiz.done)e.preventDefault()});
  dlg.addEventListener("drop",e=>{const b=e.target.closest?.(".tt-timeline-target");if(!b||!quiz||quiz.done||e.dataTransfer?.getData("text/plain")!=="tense-event")return;e.preventDefault();quiz.choice=quiz.items[quiz.i].options[+b.dataset.choice];renderQuiz();root.querySelector('[data-action="check"]')?.focus()});
- const leave=()=>view!=="quiz"||w.confirm("Leave this practice? Checked answers are saved. You can start a fresh practice later.");
+ const leave=()=>view==="grammar"?workshop.leave():view!=="quiz"||w.confirm("Leave this practice? Checked answers are saved. You can start a fresh practice later.");
  dlg.addEventListener("click",e=>{
+  if(view==="grammar"&&workshop.click(e))return;
   const b=e.target.closest("button");if(!b)return;
   if(b.id==="closeTenseLab"){dlg.close();return}
   if(b.dataset.compareTime!==undefined){compareTime=+b.dataset.compareTime;updateComparison();return}
@@ -102,18 +105,20 @@ import comparison from "./comparison.mjs";
   switch(b.dataset.action){
    case "terms":showTerms=!showTerms;render();root.querySelector('[data-action="terms"]')?.focus();break;
    case "dates":birth=$("ttBirth").value;today=$("ttToday").value;render();break;
+   case "grammar":if(leave()){view="grammar";render()}break;
+   case "grammar-progress":if(leave()){view="grammar";workshop.openMode("progress");render()}break;
    case "learn":if(leave()){view="learn";render()}break;
    case "dashboard":if(leave()){view="dashboard";render()}break;
    case "start":begin(stage);break;
    case "hint":if(!quiz.done){quiz.hints++;renderQuiz();root.querySelector('[data-action="check"]')?.focus()}break;
    case "check":check();break;
    case "next":next();break;
-   case "export":{const a=d.createElement("a"),url=URL.createObjectURL(new Blob([JSON.stringify({schema:"beyond100-tense-timeline-v1",rows:state.rows,completed:state.completed,taught:state.taught},null,2)],{type:"application/json"}));a.href=url;a.download="tense-timeline-evidence.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);break}
+   case "export":{const a=d.createElement("a"),url=URL.createObjectURL(new Blob([JSON.stringify({schema:"beyond100-tense-timeline-v1",rows:state.rows,completed:state.completed,grammarCompleted:state.grammarCompleted,taught:state.taught},null,2)],{type:"application/json"}));a.href=url;a.download="tense-timeline-evidence.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);break}
   }
  });
- dlg.addEventListener("input",e=>{const el=e.target;if(el.id==="ttMoment"){momentMinute=+el.value;updateMoment();return}if(el.id==="ttBirth")birth=el.value;if(el.id==="ttToday")today=el.value;if(el.id==="ttAnswer"&&!quiz.done){quiz.choice=el.value;root.querySelector('[data-action="check"]').disabled=!quiz.choice.trim()}if(el.id==="ttExplain"&&quiz?.done){quiz.rows.at(-1).explanation=el.value.slice(0,1000);save()}});
- dlg.addEventListener("change",e=>{if(e.target.id==="ttVerb"){verb=e.target.value;state.lastVerb=verb;save();render();$("ttVerb")?.focus()}if(e.target.id==="ttAspect"){aspect=+e.target.value;render();$("ttAspect")?.focus()}});
- dlg.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.id==="ttAnswer"){e.preventDefault();check()}});
+ dlg.addEventListener("input",e=>{if(view==="grammar"&&workshop.input(e))return;const el=e.target;if(el.id==="ttMoment"){momentMinute=+el.value;updateMoment();return}if(el.id==="ttBirth")birth=el.value;if(el.id==="ttToday")today=el.value;if(el.id==="ttAnswer"&&!quiz.done){quiz.choice=el.value;root.querySelector('[data-action="check"]').disabled=!quiz.choice.trim()}if(el.id==="ttExplain"&&quiz?.done){quiz.rows.at(-1).explanation=el.value.slice(0,1000);save()}});
+ dlg.addEventListener("change",e=>{if(view==="grammar"&&workshop.change(e))return;if(e.target.id==="ttVerb"){verb=e.target.value;state.lastVerb=verb;save();render();$("ttVerb")?.focus()}if(e.target.id==="ttAspect"){aspect=+e.target.value;render();$("ttAspect")?.focus()}});
+ dlg.addEventListener("keydown",e=>{if(view==="grammar"&&workshop.keydown(e))return;if(e.key==="Enter"&&e.target.id==="ttAnswer"){e.preventDefault();check()}});
  dlg.addEventListener("close",()=>{birth="";today="";if($("ttBirth"))$("ttBirth").value="";if($("ttToday"))$("ttToday").value="";focus?.focus?.()});
  function open(){if(!dlg.open){focus=d.activeElement;flush();render();dlg.showModal();$("closeTenseLab").focus()}}
  w.BEYOND100_TENSE_OPEN=open;
@@ -121,5 +126,5 @@ import comparison from "./comparison.mjs";
  d.addEventListener("click",e=>{if(e.target.closest?.('[data-topic="Tense & Aspect"]')){e.preventDefault();e.stopPropagation();open()}},true);
  w.addEventListener("load",()=>{flush();$("ttStatus").textContent=status()},{once:true});
  w.addEventListener("beyond100-learning-evidence-saved",()=>{if(!flushing){flush();$("ttStatus").textContent=status()}});
- if(new URLSearchParams(w.location.search).get("tense")==="1")open();
+ const params=new URLSearchParams(w.location.search);if(params.has("grammar")){view="grammar";workshop.openMode(params.get("grammar"));open()}else if(params.get("tense")==="1")open();
 })(model,visuals,window);
