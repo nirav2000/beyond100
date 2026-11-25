@@ -247,3 +247,77 @@ test('Tense Lab comparison generates all verb sets and correct viewpoint boundar
  expect(c.momentSentence('write',330).sentence).toContain('had written');
  expect(c.momentSentence('eat',330).sentence).toContain('had eaten');
 });
+
+
+test('Tense Lab grammar workshop explores person, aspect, modal and theme',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ await page.goto('http://127.0.0.1:4173/?tense=1&grammar=explore',{waitUntil:'domcontentloaded'});
+ const dialog=page.locator('#tenseLabDialog'),root=dialog.locator('#gwRoot');
+ await expect(dialog).toHaveJSProperty('open',true);
+ await expect(root.locator('#gwSentence')).toContainText('I had been studying French');
+ await root.locator('#gwPerson').selectOption('You');
+ await root.locator('[data-gw-time="2"]').click();
+ await root.locator('[data-gw-aspect="1"]').click();
+ await expect(root.locator('#gwSentence')).toContainText('You will be studying French');
+ await root.locator('#gwPerson').selectOption('I');
+ await root.locator('[data-gw-aspect="3"]').click();
+ await root.locator('.gw-extra').first().locator('summary').click();
+ await root.locator('#gwModal').selectOption('might');
+ await expect(root.locator('#gwSentence')).toContainText('I might have been studying French');
+ await expect(root.locator('[data-gw-time="2"]')).toBeDisabled();
+ await root.locator('[data-gw="theme"]').click();
+ await expect(root).toHaveAttribute('data-theme','dark');
+ expect(await dialog.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
+});
+
+test('Tense Lab grammar workshop records construction, analysis and delayed recall',async({page})=>{
+ await page.goto('http://127.0.0.1:4173/?tense=1&grammar=build',{waitUntil:'domcontentloaded'});
+ const root=page.locator('#gwRoot');
+ await root.locator('[data-gw="start"]').click();
+ const answers=['You play the piano.','You will play the piano.','You will be playing the piano.','You will have played the piano.','He will have played the piano.','He has played the piano.','He has written a sentence.'];
+ for(const answer of answers){
+  await root.locator('#gwAnswer').fill(answer);
+  await root.locator('[data-gw="check"]').click();
+  await expect(root.locator('.tt-feedback')).toContainText('Correct!');
+  await root.locator('[data-gw="next"]').click();
+ }
+ await expect(root).toContainText('7 of 7 first answers correct');
+ await root.locator('[data-gw="progress"]').click();
+ await expect(root).toContainText('Day 1, 3 and 7 recall');
+ await expect(root.getByRole('button',{name:'Not due yet'})).toHaveCount(3);
+ await root.locator('[data-gw-mode="analyse"]').click();
+ await root.locator('[data-gw="start"]').click();
+ await root.getByRole('button',{name:'Past',exact:true}).click();
+ await root.locator('[data-gw="check"]').click();
+ await expect(root.locator('.tt-feedback')).toContainText('Correct!');
+ await root.locator('[data-gw="next"]').click();
+ await root.getByRole('button',{name:'Simple',exact:true}).click();
+ await root.locator('[data-gw="check"]').click();
+ await expect(root.locator('.tt-feedback')).toContainText('Not quite');
+ const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('beyond100.tense-timeline.v1')));
+ expect(saved.rows.filter(r=>r.grammarMode)).toHaveLength(9);
+ expect(saved.rows.filter(r=>r.grammarMode==='build'&&r.transfer)).toHaveLength(1);
+ expect(saved.rows.at(-1).correct).toBe(false);
+ await page.evaluate(()=>{const k='beyond100.tense-timeline.v1',s=JSON.parse(localStorage.getItem(k));s.grammarCompleted['build|0|play'].at=Date.now()-8*86400000;localStorage.setItem(k,JSON.stringify(s))});
+ await page.goto('http://127.0.0.1:4173/?tense=1&grammar=progress',{waitUntil:'domcontentloaded'});
+ await root.locator('[data-gw-review="build|0|play:7"]').click();
+ await expect(root).toContainText('Day 7 recall');
+ await expect(root.locator('[data-gw="hint"]')).toBeDisabled();
+ await expect(root.locator('#gwQuestion')).not.toContainText('undefined');
+ await root.locator('#gwAnswer').fill('We play the piano.');
+ await root.locator('[data-gw="check"]').click();
+ await expect(root.locator('.tt-feedback')).toContainText('Answer recorded');
+});
+
+test('Tense Lab grammar forms cover subject agreement and advanced analysis',async()=>{
+ const {default:g}=await import('../tense-lab/grammar.mjs');
+ expect(g.sentence('play','You',2,1)).toBe('You will be playing the piano.');
+ expect(g.sentence('play','He',1,2)).toBe('He has played the piano.');
+ expect(g.sentence('study','I',0,3,'might')).toBe('I might have been studying French.');
+ expect(g.sentence('study','She',1,0)).toBe('She studies French.');
+ expect(g.sentence('write','They',0,1)).toBe('They were writing a sentence.');
+ expect(g.mark("He's played the piano.",{answer:'He has played the piano.'})).toBe(true);
+ for(const q of g.analyse('play',2))expect(g.mark(q.answer,q)).toBe(true);
+ expect(g.analyse('play',2).find(q=>q.id.endsWith('went-time')).answer).toBe('Past');
+ expect(g.analyse('play',2).find(q=>q.id.endsWith('-went')).answer).toBe('Simple');
+});

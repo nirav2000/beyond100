@@ -12,6 +12,8 @@ https://nirav2000.github.io/beyond100/versions.html
 
 ## What is implemented
 
+- **[Grammar Workshop](https://nirav2000.github.io/beyond100/?tense=1&grammar=explore)**: explore person, time, aspect and optional modality with coloured verb blocks and dynamic timelines; analyse sentences or construct them step by step. Practice records and review dates are kept on this device, with answer evidence forwarded to Beyond100's existing ledger.
+
 - **[Time, Tense & Timeline](https://nirav2000.github.io/beyond100/?tense=1)**: six English lessons with a personal timeline, reusable tense/aspect charts, sentence construction, matching and day 1/3/7 retrieval. Answer evidence uses the existing Beyond100 ledger; detailed history, explanations and review schedule are saved on the device. Birth dates are not persisted.
 
 - Mobile-friendly syllabus navigation for **Maths, English and Science**.

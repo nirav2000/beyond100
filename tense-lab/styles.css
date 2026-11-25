@@ -77,3 +77,60 @@
 #tenseLabDialog .tt-expand>summary,#tenseLabDialog #ttVerbGuide summary{cursor:pointer;font-weight:700;padding:8px 0;line-height:1.4}
 #tenseLabDialog .tt-expand[open]>.tt-card{box-shadow:none}
 @media(max-width:650px){#tenseLabDialog .tt-compact-row,#tenseLabDialog .tt-moment-grid{grid-template-columns:1fr;gap:6px}#tenseLabDialog .tt-compact-row{padding:12px 0}#tenseLabDialog .tt-compact-chart svg{max-width:330px}#tenseLabDialog .tt-word-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Grammar workshop — screenshot-inspired, isolated light/dark themes. */
+#tenseLabDialog .gw{--gw-bg:#f5f7fb;--gw-panel:#fff;--gw-text:#17233c;--gw-muted:#526179;--gw-border:#dce3ed;--gw-active:#e9efff;--gw-main:#e2f2e7;--gw-main-ink:#286d4e;--gw-aux:#e2ecfb;--gw-aux-ink:#2e5795;--gw-modal:#efe5fb;--gw-modal-ink:#7750a3;--gw-subject:#edf0f5;--gw-subject-ink:#49566c;color:var(--gw-text);background:var(--gw-bg);border-radius:18px;padding:clamp(10px,2vw,18px)}
+#tenseLabDialog .gw[data-theme="dark"]{--gw-bg:#111315;--gw-panel:#1d1f21;--gw-text:#f3f4f7;--gw-muted:#b3b7bf;--gw-border:#373a3d;--gw-active:#353a42;--gw-main:#dceee3;--gw-main-ink:#246e4b;--gw-aux:#e0eafb;--gw-aux-ink:#2f5995;--gw-modal:#efe5fa;--gw-modal-ink:#7950a3;--gw-subject:#34383f;--gw-subject-ink:#f3f4f7}
+#tenseLabDialog .gw .tt-kicker,#tenseLabDialog .gw .tt-muted,#tenseLabDialog .gw .tt-step{color:var(--gw-muted)}
+#tenseLabDialog .gw-toolbar{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:8px 2px}
+#tenseLabDialog .gw-subheading{font-size:13px;color:var(--gw-muted);margin:3px 0}
+#tenseLabDialog .gw-mode-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:12px 0}
+#tenseLabDialog .gw button,#tenseLabDialog .gw input,#tenseLabDialog .gw select{border-color:var(--gw-border);background:var(--gw-panel);color:var(--gw-text)}
+#tenseLabDialog .gw button.gw-active,#tenseLabDialog .gw button.tt-selected{background:var(--gw-active);border-color:#7593c2}
+#tenseLabDialog .gw button.tt-primary{background:#315d99;color:#fff;border-color:#315d99}
+#tenseLabDialog .gw-card{background:var(--gw-panel);border:1px solid var(--gw-border);border-radius:16px;padding:clamp(14px,3vw,24px);margin:12px 0;overflow-wrap:anywhere}
+#tenseLabDialog .gw-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}
+#tenseLabDialog .gw-fields small{color:var(--gw-muted)}
+#tenseLabDialog .gw-label{display:block;font-size:15px;font-weight:650;color:var(--gw-muted);margin:18px 0 8px}
+#tenseLabDialog .gw-time{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+#tenseLabDialog .gw-aspects{display:grid;gap:5px}
+#tenseLabDialog .gw-aspects button{display:flex;align-items:center;gap:12px;text-align:left;border-color:transparent;padding:10px 12px;font-weight:500}
+#tenseLabDialog .gw-radio{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;flex:0 0 20px;border:1.5px solid var(--gw-muted);border-radius:50%}
+#tenseLabDialog .gw-aspects .gw-active .gw-radio:after{content:"";width:10px;height:10px;border-radius:50%;background:var(--gw-text)}
+#tenseLabDialog .gw-result{border-top:1px solid var(--gw-border);margin:22px 0 14px;padding:20px 0 5px}
+#tenseLabDialog .gw-result-label{text-align:center;color:var(--gw-muted);font-size:14px}
+#tenseLabDialog .gw-sentence{font-size:clamp(23px,4.5vw,36px);font-weight:750;line-height:1.65;text-align:center;margin:14px auto!important}
+#tenseLabDialog .gw-token{padding:4px 7px;border-radius:8px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+#tenseLabDialog .gw-subject{background:var(--gw-subject);color:var(--gw-subject-ink)}
+#tenseLabDialog .gw-modal{background:var(--gw-modal);color:var(--gw-modal-ink)}
+#tenseLabDialog .gw-aux{background:var(--gw-aux);color:var(--gw-aux-ink)}
+#tenseLabDialog .gw-main{background:var(--gw-main);color:var(--gw-main-ink)}
+#tenseLabDialog .gw-object{padding-left:0;padding-right:0}
+#tenseLabDialog .gw-timeline{margin:16px auto;max-width:580px}
+#tenseLabDialog .gw-timeline svg{max-height:160px}
+#tenseLabDialog .gw-timeline figcaption{color:var(--gw-muted);font-size:13px;text-align:center}
+#tenseLabDialog .gw-legend{display:grid;gap:12px;margin:15px 0}
+#tenseLabDialog .gw-legend>div{display:flex;gap:12px;align-items:flex-start}
+#tenseLabDialog .gw-legend p{margin:2px 0;color:var(--gw-muted);font-size:14px}
+#tenseLabDialog .gw-dot{display:inline-block;width:13px;height:13px;flex:0 0 13px;border-radius:50%;margin-top:5px}
+#tenseLabDialog .gw-extra{border-top:1px solid var(--gw-border);padding:13px 0;margin-top:12px}
+#tenseLabDialog .gw-extra summary{cursor:pointer;font-weight:650;line-height:1.4}
+#tenseLabDialog .gw-extra label{margin-top:12px}
+#tenseLabDialog .gw-pattern{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;margin:16px 0}
+#tenseLabDialog .gw-pattern-tile{display:flex;flex-direction:column;gap:8px;padding:14px;border-radius:12px;min-width:95px}
+#tenseLabDialog .gw-pattern-tile strong{font-size:23px}
+#tenseLabDialog .gw-pattern-tile small{font-size:12px;opacity:.85}
+#tenseLabDialog .gw-plus{font-size:23px;font-weight:700}
+#tenseLabDialog .gw-pattern-example{font-size:20px;font-weight:650;text-align:center;line-height:1.8}
+#tenseLabDialog .gw-source{font-size:clamp(21px,3.3vw,30px);font-weight:700;padding:17px;background:var(--gw-bg);border-radius:12px;line-height:1.5}
+#tenseLabDialog .gw .tt-note{background:var(--gw-modal);color:var(--gw-modal-ink);border-color:transparent}
+#tenseLabDialog .gw .tt-feedback{background:var(--gw-bg);color:var(--gw-text)}
+#tenseLabDialog .gw .tt-feedback[data-good="true"]{background:var(--gw-main);color:var(--gw-main-ink)}
+#tenseLabDialog .gw .tt-feedback[data-good="false"]{background:#fff0dc;color:#905017}
+#tenseLabDialog .gw-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+#tenseLabDialog .gw .tt-metric{background:var(--gw-bg);color:var(--gw-text)}
+#tenseLabDialog .gw .tt-metric b{color:var(--gw-text)}
+#tenseLabDialog .gw .tt-review-row,#tenseLabDialog .gw .tt-table td,#tenseLabDialog .gw .tt-table th{border-color:var(--gw-border)}
+#tenseLabDialog .gw-answer-list>div{border-top:1px solid var(--gw-border);padding:10px 0}
+#tenseLabDialog .gw-answer-list p{margin:4px 0}
+@media(max-width:650px){#tenseLabDialog .gw-fields{grid-template-columns:1fr}#tenseLabDialog .gw-mode-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}#tenseLabDialog .gw-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}#tenseLabDialog .gw-pattern-tile{min-width:75px;padding:10px}#tenseLabDialog .gw-pattern-tile strong{font-size:19px}}
