@@ -27,12 +27,21 @@ export default function mountWorkshop({root,w,record,complete,rows,completions,s
   const variant=day||Object.values(completions()).filter(x=>x.mode===mode&&x.verb===k).length;
   let items=grammar[mode](k,level,variant);
   if(day&&mode==="build")items=items.map(q=>({...q,display:"Action: "+grammar.verbs[k][0]+grammar.verbs[k][4],question:"Write a complete sentence using "+q.person+", "+grammar.times[q.t].toLowerCase()+" time and "+grammar.aspects[q.a].toLowerCase()+".",prompt:"Independent recall: "+grammar.verbs[k][0]+grammar.verbs[k][4]+" · "+q.person+" · "+grammar.times[q.t]+" · "+grammar.aspects[q.a]}));
+  if(!day){
+   const novel=k==="write"?"eat":"write";
+   if(mode==="build"){
+    const q=grammar.build(novel,level,variant).at(-1);
+    items.push({...q,id:q.id+"-transfer",display:"New action: "+grammar.verbs[novel][0]+grammar.verbs[novel][4],question:"Write a complete sentence using "+q.person+", "+grammar.times[q.t].toLowerCase()+" time and "+grammar.aspects[q.a].toLowerCase()+".",prompt:"Changed action: "+grammar.verbs[novel][0]+grammar.verbs[novel][4]+" · "+q.person+" · "+grammar.times[q.t]+" · "+grammar.aspects[q.a],transfer:true});
+   }else{
+    items.push(...grammar.analyse(novel,level,variant).slice(0,2).map(q=>({...q,id:q.id+"-transfer",key:novel,transfer:true})));
+   }
+  }
   state.mode=mode;state.level=level;state.practiceVerb=k;state.screen="quiz";
   state.quiz={id:w.crypto?.randomUUID?.()||String(now())+"-"+Math.random(),mode,level,key:key(mode,level,k),verb:k,reviewDay:day,items,index:0,choice:"",hints:0,done:false,started:now(),rows:[]};render();root.querySelector("#gwQuestion")?.focus();
  }
  function check(){
   const s=state.quiz;if(!s||state.screen!=="quiz"||s.done||!s.choice.trim())return;
-  const q=s.items[s.index],r={id:s.id+":"+s.index,stage:"grammar-"+s.mode,grammarMode:s.mode,grammarKey:s.key,level:s.level,dimension:q.dimension,mode:s.reviewDay?"review":"practice",day:s.reviewDay,questionId:q.id,verb:s.verb,prompt:q.prompt,answer:s.choice,expected:q.answer,correct:grammar.mark(s.choice,q),hints:s.hints,transfer:false,at:now(),durationMs:now()-s.started,complete:false};
+  const q=s.items[s.index],r={id:s.id+":"+s.index,stage:"grammar-"+s.mode,grammarMode:s.mode,grammarKey:s.key,level:s.level,dimension:q.dimension,mode:s.reviewDay?"review":"practice",day:s.reviewDay,questionId:q.id,verb:q.key||s.verb,prompt:q.prompt,answer:s.choice,expected:q.answer,correct:grammar.mark(s.choice,q),hints:s.hints,transfer:!!q.transfer,at:now(),durationMs:now()-s.started,complete:false};
   s.rows.push(r);s.done=true;record(r);render();root.querySelector('[data-gw="next"]')?.focus();
  }
  function next(){
