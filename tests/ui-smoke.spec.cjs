@@ -188,24 +188,62 @@ test('Tense Lab personal timeline, practice, local evidence and review gating', 
  await expect(root.locator('.tt-feedback')).not.toContainText('Correct!');
 });
 
-test('Tense Lab fits a phone, changes only the selected verb form, closes and reopens',async({page})=>{
+test('Tense Lab fits a phone, compares forms dynamically and delays grammar names',async({page})=>{
  await page.setViewportSize({width:390,height:844});
  await page.goto('http://127.0.0.1:4173/?tense=1',{waitUntil:'domcontentloaded'});
  const dialog=page.locator('#tenseLabDialog'),root=dialog.locator('#ttContent');
  await expect(dialog).toHaveJSProperty('open',true);
- await dialog.getByRole('button',{name:'3. Continuous forms',exact:true}).click();
+ await expect(root).not.toContainText('simple past passive');
+ await dialog.locator('[data-stage="2"]').click();
  await expect(root).toContainText('I was playing the piano.');
- await expect(root).toContainText('Long-lasting does not mean continuous');
- await expect(root).toContainText('I was in Year 4.');
- await dialog.locator('#ttVerb').selectOption('eat');
- for(const s of ['I was eating breakfast.','I am eating breakfast.','I will be eating breakfast.'])await expect(root).toContainText(s);
- await expect(root.locator('svg')).toHaveCount(7);
+ await expect(root.locator('#ttCompareRows .tt-compact-row')).toHaveCount(3);
+ await expect(root.locator('.tt-grammar-name')).toHaveCount(0);
+ await root.locator('#ttVerb').selectOption('write');
+ for(const s of ['I wrote a sentence.','I was writing a sentence.','I had written a sentence.'])await expect(root.locator('#ttCompareRows')).toContainText(s);
+ await root.locator('[data-compare-time="1"]').click();
+ for(const s of ['I write a sentence.','I am writing a sentence.','I have written a sentence.'])await expect(root.locator('#ttCompareRows')).toContainText(s);
+ await root.locator('[data-compare-time="2"]').click();
+ await expect(root.locator('#ttCompareRows')).toContainText('I will have written a sentence.');
+ await expect(root.locator('[data-compare-time="2"]')).toHaveAttribute('aria-pressed','true');
+ await root.locator('[data-action="terms"]').click();
+ await expect(root.locator('.tt-grammar-name')).toHaveCount(3);
+ await root.locator('[data-action="terms"]').click();
+ await expect(root.locator('.tt-grammar-name')).toHaveCount(0);
+ await root.locator('[data-moment="210"]').click();
+ await expect(root.locator('#ttMomentResult')).toContainText('I had not started writing');
+ await root.locator('[data-moment="270"]').click();
+ await expect(root.locator('#ttMomentResult')).toContainText('I was writing');
+ await root.locator('[data-moment="330"]').click();
+ await expect(root.locator('#ttMomentResult')).toContainText('I had written');
+ await root.locator('#ttMoment').focus();
+ await root.locator('#ttMoment').press('Home');
+ await expect(root.locator('#ttMomentTime')).toHaveText('3 pm');
+ await root.locator('#ttMoment').press('End');
+ await expect(root.locator('#ttMomentTime')).toHaveText('6 pm');
+ await root.locator('#ttVerbGuide details summary').click();
+ await expect(root.locator('#ttVerbGuide')).toContainText('was written');
  expect(await dialog.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
- await dialog.getByRole('button',{name:'6. Tense matching',exact:true}).click();
+ await dialog.locator('[data-stage="5"]').click();
  await expect(root.locator('table tbody tr')).toHaveCount(4);
  await dialog.locator('#closeTenseLab').click();
  await expect(dialog).not.toHaveJSProperty('open',true);
  await page.locator('#launchTenseLab').click();
  await expect(dialog).toHaveJSProperty('open',true);
  await expect(root).toContainText('All twelve forms');
+});
+
+test('Tense Lab comparison generates all verb sets and correct viewpoint boundaries',async()=>{
+ const {default:m}=await import('../tense-lab/model.mjs');
+ const {default:c}=await import('../tense-lab/comparison.mjs');
+ for(const key of Object.keys(m.verbs))for(let t=0;t<3;t++){
+  const rows=c.rows(key,t,true,true);
+  for(let a=0;a<4;a++)expect(rows).toContain(m.form(key,t,a));
+ }
+ expect(c.moment(239)).toBe('before');
+ expect(c.moment(240)).toBe('during');
+ expect(c.moment(299)).toBe('during');
+ expect(c.moment(300)).toBe('after');
+ expect(c.momentSentence('write',270).sentence).toContain('was writing');
+ expect(c.momentSentence('write',330).sentence).toContain('had written');
+ expect(c.momentSentence('eat',330).sentence).toContain('had eaten');
 });
