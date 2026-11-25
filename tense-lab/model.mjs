@@ -2,10 +2,10 @@ const model=(function buildModel(){
  const verbs={play:["play","played","played","playing"," the piano"],practise:["practise","practised","practised","practising"," the bassoon"],walk:["walk","walked","walked","walking"," to school"],eat:["eat","ate","eaten","eating"," breakfast"],read:["read","read","read","reading"," a book"],write:["write","wrote","written","writing"," a sentence"],paint:["paint","painted","painted","painting"," a picture"],cook:["cook","cooked","cooked","cooking"," dinner"],clean:["clean","cleaned","cleaned","cleaning"," my room"],climb:["climb","climbed","climbed","climbing"," a hill"],draw:["draw","drew","drawn","drawing"," a picture"],wash:["wash","washed","washed","washing"," the dishes"]};
  const times=["Past","Present","Future"],aspects=["Simple","Continuous","Perfect","Perfect continuous"],lessons=["My life timeline","Simple forms","Continuous forms","Perfect forms","Perfect continuous","Tense matching"],days=[1,3,7],DAY=86400000;
  const explanations=[
- "Simple forms describe a fact, a habit or an event viewed as a whole. They need not describe a short event. ‘I was in Year 4’ is a past state.",
- "Continuous forms describe an activity in progress at the time we are talking about. Use was/am/will be + -ing. ‘I was a baby’ is simple past, not continuous.",
- "Perfect forms look back from a reference point to something earlier. Use had/have/will have + the past participle. The earlier situation may be finished or may continue.",
- "Perfect continuous forms look back at the duration of an activity leading up to a reference point. Use had been/have been/will have been + -ing. The activity may still be happening or may have just stopped."
+ "Tell someone what happened, what you do regularly, or what you will do. Being in Year 4 lasted a year, but ‘I was in Year 4’ simply tells us what was true then.",
+ "Imagine someone asks what you were doing at a particular moment. Use was, am or will be with the -ing word. The action is in progress.",
+ "Imagine looking back from a particular moment. Use had, have or will have with a special form of the verb, such as written or eaten. In these examples the action has already happened, but sometimes it can still be continuing.",
+ "Imagine looking back and asking how long an activity has been going on. Use had been, have been or will have been with the -ing word."
  ];
  const cues=[
  ["Yesterday, as an event viewed as a whole.","Every day, as a habit.","Tomorrow, as a plan or prediction."],
@@ -26,15 +26,15 @@ const model=(function buildModel(){
    add("birth",review?"Where does yesterday belong?":"Where does my birth belong?","Past",times,{hint:"Has it already happened?"});
    add("now","Where does the current moment belong?","Present",times,{hint:"Which time contains now?"});
    add("future",review?"Where does tomorrow belong?":"Where does my next birthday belong?","Future",times,{hint:"Has it happened yet?"});
-   add("born","Which sentence tells someone about your birth?","I was born.",["I am born.","I was born.","I will be born."],{hint:"Your birth has already happened.",reason:"Was born is a simple past passive form; was alone does not mean continuous."});
+   add("born","Which sentence tells someone about your birth?","I was born.",["I am born.","I was born.","I will be born."],{hint:"Your birth has already happened.",reason:"Your birth happened in the past. That is why we say “I was born”."});
    add("transfer","Where does a school trip that has not happened yet belong?","Future",times,{hint:"Look after today.",transfer:!review});
   }else if(s===5){
    for(let i=0;i<12;i++){const a=Math.floor(i/3),t=i%3,key=i<9?k:"draw",answer=times[t]+" "+aspects[a].toLowerCase(),opts=aspects.map(x=>times[t]+" "+x.toLowerCase()).concat(times.filter(x=>x!==times[t]).map(x=>x+" "+aspects[a].toLowerCase()));add("match-"+i,"Name the form: “"+sentence(key,t,a)+"”",answer,rotate(opts,i+day+1),{key,t,a,hint:"Identify the time, then look for have, been or -ing.",transfer:i>=9&&!review&&key!==k})}
   }else{
    const a=s-1,novel=["paint","cook","clean","climb"][a],build=(id,key,t,transfer=false)=>add(id,cues[a][t]+" Use "+verbs[key][0]+": I ___"+verbs[key][4]+".",form(key,t,a),null,{key,t,a,accept:[sentence(key,t,a),"I "+form(key,t,a)+verbs[key][4]+"."],hint:"Start with "+form(key,t,a).split(" ")[0]+".",reason:explanations[a],transfer});
-   for(let t of review?rotate([0,1,2],days.indexOf(day)+1):[0,1,2])add("choose-"+t,cues[a][t]+" Which sentence fits?",sentence(k,t,a),rotate(times.map((_,j)=>sentence(k,j,a)),t+day+1),{key:k,t,a,hint:"Look for "+times[t].toLowerCase()+" time and the "+aspects[a].toLowerCase()+" pattern.",reason:explanations[a]});
+   for(let t of review?rotate([0,1,2],days.indexOf(day)+1):[0,1,2])add("choose-"+t,cues[a][t]+" Which sentence fits?",sentence(k,t,a),rotate(times.map((_,j)=>sentence(k,j,a)),t+day+1),{key:k,t,a,hint:"Think about when it happens and what the question asks you to describe.",reason:explanations[a]});
    for(let t of review?[days.indexOf(day)]:[1,0])build("build-"+t,k,t);
-   if(!review&&s===2)add("state","Which is past continuous?","I was playing the piano.",["I was in Year 4.","I was playing the piano.","I played the piano."],{hint:"Look for was + -ing.",reason:"I was in Year 4 is simple past. I was playing the piano uses was + playing."});
+   if(!review&&s===2)add("state","Which sentence tells us what I was doing at a particular past moment?","I was playing the piano.",["I was in Year 4.","I was playing the piano.","I played the piano."],{hint:"Look for was + -ing.",reason:"I was in Year 4 tells us what was true. I was playing the piano tells us what I was doing."});
    if(!review)build("transfer",novel,2,novel!==k);
   }
   return r;
